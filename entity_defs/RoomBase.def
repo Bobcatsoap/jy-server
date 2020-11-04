@@ -1,0 +1,113 @@
+<root>
+	<Properties>
+	     <!--房间牌局信息-->
+       <chapterReplay>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </chapterReplay>
+        <chapterInfos>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </chapterInfos>
+        <!--房间信息-->
+        <roomInfos>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </roomInfos>
+        <!--房间状态-->
+        <roomState>
+            <Type>              UINT32      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </roomState>
+        <!--房间Id-->
+        <roomId>
+            <Type>              UINT32      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </roomId>
+	</Properties>
+
+	<BaseMethods>
+		<!-- cell到base通信的通用方法 -->
+		<cellToBase>
+			<Arg>        PY_DICT    </Arg>
+		</cellToBase>
+	</BaseMethods>
+
+	<CellMethods>
+		<!-- 进入后的事件通知 -->
+		<onEnter>
+		    <Exposed/>
+		</onEnter>
+		<!-- 离开后的事件通知 -->
+		<onLeave>
+			<Arg>		ENTITY_ID	</Arg>
+			<Arg>       PY_DICT     </Arg>
+		</onLeave>
+		<!-- base到cell通信的通用方法 -->
+		<baseToCell>
+			<Arg>        PY_DICT    </Arg>
+		</baseToCell>
+		<!-- client请求房间基本信息 -->
+		<reqRoomBaseInfo>
+		    <!--该参数可以让此方法暴露给客户端调用-->
+            <Exposed/>
+		</reqRoomBaseInfo>
+		<!-- 玩家操作请求 -->
+		<playerOperation>
+		    <!--该参数可以让此方法暴露给客户端调用-->
+            <Exposed/>
+            <Arg>       STRING       </Arg>
+		</playerOperation>
+		<clientReq>
+		    <!--该参数可以让此方法暴露给客户端调用-->
+            <Exposed/>
+            <Arg>       STRING       </Arg>
+		</clientReq>
+	</CellMethods>
+
+    <ClientMethods>
+      <!--牌局系统提示-->
+      <retChapterSysPrompt>
+        <!--内容-->
+        <Arg>   UNICODE         </Arg>
+      </retChapterSysPrompt>
+      <!--发牌-->
+      <dealCardsToPlayer>
+        <!--玩家位置-->
+        <Arg>   INT8         </Arg>
+        <!--牌-->
+        <Arg>
+                ARRAY
+                <of>        INT32       </of>
+        </Arg>
+      </dealCardsToPlayer>
+      <!--房间基本信息返回-->
+      <retRoomBaseInfo>
+        <!--信息-->
+        <Arg>       STRING       </Arg>
+      </retRoomBaseInfo>
+      <!--座位信息返回-->
+      <retLocationIndexs>
+        <!--信息-->
+        <Arg>       STRING       </Arg>
+      </retLocationIndexs>
+      <!--通用方法-->
+      <cellToClient>
+      <!--信息-->
+            <Arg>       STRING       </Arg>
+            <Arg>       STRING       </Arg>
+      </cellToClient>
+    </ClientMethods>
+
+</root>
+

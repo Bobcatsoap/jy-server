@@ -1,0 +1,36 @@
+<root>
+	<!--
+		实体注册文件(<你的资产库>/scripts/entities.xml)
+		详细说明请参考：http://kbengine.org/cn/docs/configuration/entities.html
+					http://www.kbengine.org/cn/docs/programming/entitydef.html
+	-->
+
+	<Account hasClient="true"></Account>
+	<RoomType1 hasClient="true"></RoomType1>
+	<RoomType2 hasClient="true"></RoomType2>
+	<RoomType3 hasClient="true"></RoomType3>
+	<RoomType4 hasClient="true"></RoomType4>
+	<RoomType5 hasClient="true"></RoomType5>
+	<RoomType6 hasClient="true"></RoomType6>
+	<RoomType7 hasClient="true"></RoomType7>
+	<RoomType8 hasClient="true"></RoomType8>
+	<RoomType10 hasClient="true"></RoomType10>
+	<RoomType11 hasClient="true"></RoomType11>
+	<RoomType12 hasClient="true"></RoomType12>
+	<RoomType13 hasClient="true"></RoomType13>
+	<RoomType14 hasClient="true"></RoomType14>
+	<RoomType15 hasClient="true"></RoomType15>
+	<RoomType16 hasClient="true"></RoomType16>
+	<RoomType18 hasClient="true"></RoomType18>
+	<RoomType21 hasClient="true"></RoomType21>
+	<RoomType22 hasClient="true"></RoomType22>
+	<MgrObj hasClient="false"></MgrObj>
+	<TeaHouse hasClient="false"></TeaHouse>
+	<GoldSession hasClient="false"></GoldSession>
+	<ChallengeArea hasClient="false"></ChallengeArea>
+	<GameCoinChargeHistory hasClient="false"></GameCoinChargeHistory>
+	<RoomCardChargeHistory hasClient="false"></RoomCardChargeHistory>
+	<ApplicationProxyList hasClient="false"></ApplicationProxyList>
+	<TeaHousePerformance hasClient="false"></TeaHousePerformance>
+	<RedeemGift hasClient="false"></RedeemGift>
+</root>

@@ -1,0 +1,229 @@
+<root>
+	<Properties>
+        <!--亲友圈id-->
+        <teaHouseId>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </teaHouseId>
+        <!--亲友圈等级-->
+        <teaHouseLevel>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </teaHouseLevel>
+        <!--亲友圈创建时间-->
+        <createTime>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </createTime>
+        <!--亲友圈创建者DBID-->
+        <creatorDBID>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </creatorDBID>
+        <!--亲友圈头像-->
+        <headImage>
+            <Type>              STRING       </Type>
+            <DatabaseLength>    1000        </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </headImage>
+        <!--亲友圈联系方式-->
+        <contactWay>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    20          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </contactWay>
+        <!--亲友圈名字-->
+        <name>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    20          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </name>
+        <!--亲友圈公告-->
+        <notice>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    200         </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </notice>
+        <!--会员信息-->
+        <memberInfo>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </memberInfo>
+        <joinAndExitHistory>
+            <Type>              PY_LIST     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </joinAndExitHistory>
+        <todayRooms>
+            <Type>              PY_LIST     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </todayRooms>
+        <todayGameCoinBilling>
+            <Type>              PY_LIST     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </todayGameCoinBilling>
+        <todayLuckyCardConsume>
+            <Type>              PY_LIST     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </todayLuckyCardConsume>
+        <!--亲友圈信息json-->
+        <memberInfoJson>
+            <Type>              UNICODE     </Type>
+            <Flags>             BASE        </Flags>
+            <DatabaseLength>    10000        </DatabaseLength>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </memberInfoJson>
+        <!--申请列表-->
+        <applicationList>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </applicationList>
+        <!--申请列表-->
+        <exitApplicationList>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </exitApplicationList>
+        <!--房间-->
+        <rooms>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        false        </Persistent>
+        </rooms>
+        <saveRooms>
+            <Type>              PY_LIST     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </saveRooms>
+        <historyRooms>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        True        </Persistent>
+        </historyRooms>
+		<!--亲友圈是否打烊-->
+        <isSnoring>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>             0         </Default>
+            <Persistent>        true        </Persistent>
+        </isSnoring>
+		<!--是否审核-->
+        <isReview>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>             1         </Default>
+            <Persistent>        true        </Persistent>
+        </isReview>
+		<!--房费信息-->
+        <performance_detail>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </performance_detail>
+		<!--亲友圈类型 0：比赛场， 1：普通场 -->
+        <teaHouseType>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>             0         </Default>
+            <Persistent>        true        </Persistent>
+        </teaHouseType>
+		<!--亲友圈打烊的游戏-->
+        <snoring_games>
+            <Type>              PY_LIST     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </snoring_games>
+        <canReduceGameCoin>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </canReduceGameCoin>
+        <haveExchangeMall>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </haveExchangeMall>
+        <luckyCardSwitch>
+            <Type>              BOOL     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </luckyCardSwitch>
+        <gameCoinSwitch>
+            <Type>              BOOL     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </gameCoinSwitch>
+        <allowChangeGameCoinSwitch>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>            0          </Default>
+            <Persistent>        true        </Persistent>
+        </allowChangeGameCoinSwitch>
+        <luckyCard>
+            <Type>              INT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </luckyCard>
+        <!--排行榜-->
+        <rank>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </rank>
+		<!--战队排行榜-->
+		<teamRank>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </teamRank>
+        <!--战队排行榜-->
+		<freezePlayers>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </freezePlayers>
+	</Properties>
+</root>
+

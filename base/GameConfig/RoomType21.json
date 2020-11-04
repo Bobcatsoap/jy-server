@@ -1,0 +1,47 @@
+{
+  "card": {
+    "chapterLimitAndRoomCard": {
+      "4": [5, 2.5],
+      "8": [10,5],
+      "16": [20,10]
+    },
+    "refreshButtonVisible": true,
+    "immobilizationRunList": [0,1,2,3,4,5],
+    "autonomouslyRunList": [0,1,2,3],
+    "dunLaList": [0,1,2,3],
+    "gangDiScoreList": [1,2,3,4,5,10,20,30,40,50],
+    "ziMoScoreList": [1,2,3,4,5,10,20,30,40,50],
+    "dianPaoScoreList": [1,2,3,4,5,10,20,30,40,50],
+    "timeDown": [0,15,20,25,30,45,60,90,120]
+  },
+  "gameCoin": {
+    "chapterLimitAndRoomCard": {
+      "4": [5, 2.5],
+      "8": [10,5],
+      "16": [20,10]
+    },
+    "refreshButtonVisible": true,
+    "immobilizationRunList": [0,1,2,3,4,5],
+    "autonomouslyRunList": [0,1,2,3],
+    "dunLaList": [0,1,2,3],
+    "gangDiScoreList": [1,2,3,4,5,10,20,30,40,50],
+    "ziMoScoreList": [1,2,3,4,5,10,20,30,40,50],
+    "dianPaoScoreList": [1,2,3,4,5,10,20,30,40,50],
+    "timeDown": [0,15,20,25,30,45,60,90,120]
+  },
+  "normalGameCoin": {
+    "chapterLimitAndRoomCard": {
+      "4": [5, 2.5],
+      "8": [10,5],
+      "16": [20,10]
+    },
+    "refreshButtonVisible": true,
+    "immobilizationRunList": [0,1,2,3,4,5],
+    "autonomouslyRunList": [0,1,2,3],
+    "dunLaList": [0,1,2,3],
+    "gangDiScoreList": [1,2,3,4,5,10,20,30,40,50],
+    "ziMoScoreList": [1,2,3,4,5,10,20,30,40,50],
+    "dianPaoScoreList": [1,2,3,4,5,10,20,30,40,50],
+    "timeDown": [0,15,20,25,30,45,60,90,120]
+  }
+}

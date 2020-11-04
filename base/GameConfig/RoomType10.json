@@ -1,0 +1,47 @@
+{
+  "card": {
+    "chapterLimitAndRoomCard": {
+      "8": [1,0.5],
+      "16": [2,1],
+      "24": [3,1.5]
+    },
+    "potMaxMultiple": [
+      5,
+      10
+    ],
+    "potStake": [
+      10,20,50,80,100,500
+    ],
+    "refreshButtonVisible": true
+  },
+  "gameCoin": {
+    "chapterLimitAndRoomCard": {
+      "8": [1,0.5],
+      "16": [2,1],
+      "24": [3,1.5]
+    },
+    "potMaxMultiple": [
+      5,
+      10
+    ],
+    "potStake": [
+      10,20,50,80,100,500
+    ],
+    "refreshButtonVisible": true
+  },
+  "normalGameCoin": {
+    "chapterLimitAndRoomCard": {
+      "8": [1,0.5],
+      "16": [2,1],
+      "24": [3,1.5]
+    },
+    "potMaxMultiple": [
+      5,
+      10
+    ],
+    "potStake": [
+      10,20,50,80,100,500
+    ],
+    "refreshButtonVisible": true
+  }
+}

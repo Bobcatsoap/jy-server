@@ -1,0 +1,12 @@
+diff a/cell/mj/MohjangCalculator.py b/cell/mj/MohjangCalculator.py	(rejected hunks)
+@@ -191,7 +191,9 @@
+         normal_hu = agari(key)
+         seven_hu = seven_pair(key)
+     elif red_count == 4:
+-        normal_hu, seven_hu = magic_red_check(red_count, [], n, card_range[0], card_range)
++        # 判断去掉红中后的牌是否满足七星对
++        key_without_red = calc_key(n_without_red, pos)
++        seven_hu = seven_pair(key_without_red)
+         normal_hu = True
+     else:
+         normal_hu, seven_hu = magic_red_check(red_count, [], n, card_range[0], card_range)

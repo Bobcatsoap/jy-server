@@ -1,0 +1,47 @@
+{
+  "1": {
+    "goldLimit": [
+      10,
+      -1
+    ],
+    "baseScore": 10,
+    "roomCountLimit": 30,
+    "roomListPageItem": 8,
+    "showAnonymityButton": true,
+    "showChangeRoomConfigButton": true,
+    "roomRate": 1,
+    "witness": false,
+    "perGameRoomCount": 6,
+    "perGameFakeRoomCount": 1
+  },
+  "2": {
+    "goldLimit": [
+      101,
+      -1
+    ],
+    "baseScore": 50,
+    "roomCountLimit": 30,
+    "roomListPageItem": 8,
+    "showAnonymityButton": true,
+    "showChangeRoomConfigButton": true,
+    "roomRate": 10,
+    "witness": false,
+    "perGameRoomCount": 6,
+    "perGameFakeRoomCount": 1
+  },
+  "3": {
+    "goldLimit": [
+      1001,
+      -1
+    ],
+    "baseScore": 100,
+    "roomCountLimit": 30,
+    "roomListPageItem": 8,
+    "showAnonymityButton": true,
+    "showChangeRoomConfigButton": true,
+    "roomRate": 100,
+    "witness": false,
+    "perGameRoomCount": 6,
+    "perGameFakeRoomCount": 1
+  }
+}

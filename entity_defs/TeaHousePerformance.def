@@ -1,0 +1,42 @@
+<root>
+	<Properties>
+        <accountDBID>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </accountDBID>       
+        <superior>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    30          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </superior>
+        <time>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </time>
+		<count>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </count>
+		<performanceDetail>
+            <Type>              UNICODE     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </performanceDetail>
+		<proportion>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </proportion>
+	</Properties>
+</root>
+

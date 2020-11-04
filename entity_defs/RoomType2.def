@@ -1,0 +1,18 @@
+<root>
+    <Parent>
+            RoomBase
+    </Parent>
+    <ClientMethods>
+      <updateMapping>
+      <!--信息-->
+        <Arg>       STRING       </Arg>
+        <Arg>
+                ARRAY
+                <of>    ARRAY
+                    <of>   UINT8   </of>
+                </of>
+        </Arg>
+      </updateMapping>
+    </ClientMethods>
+</root>
+

@@ -1,0 +1,75 @@
+<root>
+	<Properties>
+        <accountProxyType>
+            <Type>              INT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </accountProxyType>
+        <modifyTime>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </modifyTime>
+        <accountDBID>
+            <Type>              INT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </accountDBID>
+        <operationDBID>
+            <Type>              INT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </operationDBID>
+        <accountName>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    20          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </accountName>
+        <operationName>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    20          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </operationName>
+        <accountPhone>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    20          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </accountPhone>
+        <operationPhone>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    20          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </operationPhone>
+        <operationProxyType>
+            <Type>              INT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </operationProxyType>
+        <modifyCount>
+            <Type>              FLOAT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </modifyCount>
+        <modifiedRoomCard>
+            <Type>              FLOAT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </modifiedRoomCard>
+	</Properties>
+</root>
+

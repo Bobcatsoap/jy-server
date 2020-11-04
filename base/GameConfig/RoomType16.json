@@ -1,0 +1,35 @@
+{
+  "card": {
+    "chapterLimitAndRoomCard": {
+      "4": [5, 3],
+      "6": [8, 4],
+      "8": [10, 5]
+    },
+    "refreshButtonVisible": true,
+    "baseScore": [1,2,3,4,5,10,20,30,40,50],
+    "timeDown": [0,15,20,25,30,45,60,90,120],
+    "zhaMaScore": [1,2,3,4,5]
+  },
+  "gameCoin": {
+    "chapterLimitAndRoomCard": {
+      "4": [5, 3],
+      "6": [8, 4],
+      "8": [10, 5]
+    },
+    "refreshButtonVisible": true,
+    "baseScore": [1,2,3,4,5,10,20,30,40,50],
+    "timeDown": [0,15,20,25,30,45,60,90,120],
+    "zhaMaScore": [1,2,3,4,5]
+  },
+  "normalGameCoin": {
+    "chapterLimitAndRoomCard": {
+      "4": [5, 3],
+      "6": [8, 4],
+      "8": [10, 5]
+    },
+    "refreshButtonVisible": true,
+    "baseScore": [1,2,3,4,5,10,20,30,40,50],
+    "timeDown": [0,15,20,25,30,45,60,90,120],
+    "zhaMaScore": [1,2,3,4,5]
+  }
+}

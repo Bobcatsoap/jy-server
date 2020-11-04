@@ -1,0 +1,44 @@
+{
+  "card": {
+    "chapterLimitAndRoomCard": {
+      "4": [5, 3],
+      "6": [8, 4],
+      "8": [10, 5]
+    },
+    "refreshButtonVisible": true,
+    "timeDown": [0,15,20,25,30,45,60,90,120],
+    "paoCount": [0,1,2,4,8],
+    "ziMoMouth": [2,3,4,5],
+    "dianPaoMouth": [2,3],
+    "fangShui": [0,1,2,3,5],
+    "fanLimit": [0,6,8,16]
+  },
+  "gameCoin": {
+    "chapterLimitAndRoomCard": {
+      "4": [5, 3],
+      "6": [8, 4],
+      "8": [10, 5]
+    },
+    "refreshButtonVisible": true,
+    "timeDown": [0,15,20,25,30,45,60,90,120],
+    "paoCount": [0,1,2,4,8],
+    "ziMoMouth": [2,3,4,5],
+    "dianPaoMouth": [2,3],
+    "fangShui": [0,1,2,3,5],
+    "fanLimit": [0,6,8,16]
+  },
+  "normalGameCoin": {
+    "chapterLimitAndRoomCard": {
+      "4": [5, 3],
+      "6": [8, 4],
+      "8": [10, 5]
+    },
+    "refreshButtonVisible": true,
+    "timeDown": [0,15,20,25,30,45,60,90,120],
+    "paoCount": [0,1,2,4,8],
+    "ziMoMouth": [2,3,4,5],
+    "dianPaoMouth": [2,3],
+    "fangShui": [0,1,2,3,5],
+    "fanLimit": [0,6,8,16]
+  }
+}

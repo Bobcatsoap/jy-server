@@ -1,0 +1,25 @@
+<root>
+	<Properties>
+        <accountDBID>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </accountDBID>
+       
+        <contactWay>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    30          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </contactWay>
+        <applicationTime>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </applicationTime>
+	</Properties>
+</root>
+

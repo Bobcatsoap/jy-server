@@ -1,0 +1,139 @@
+{
+  "1": {
+    "goldLimit": [
+      0,
+      -1
+    ],
+    "baseScore": 10,
+    "roomCountLimit": 100000,
+    "roomListPageItem": 8,
+    "showAnonymityButton": true,
+    "showChangeRoomConfigButton": true,
+    "roomRate": 8,
+    "witness": false,
+    "perGameRoomCount": 6,
+    "perGameFakeRoomCount": 1,
+    "maxChallengeCount": 0,
+    "prizeName": "2元话费",
+    "prizeType": 0,
+    "prizePrice": 2,
+    "winPercent": 0.33,
+    "streakWinPercent": 0.16,
+    "streakFailPercent": 0.5
+  },
+
+  "2": {
+    "goldLimit": [
+      0,
+      -1
+    ],
+    "baseScore": 50,
+    "roomCountLimit": 0,
+    "roomListPageItem": 8,
+    "showAnonymityButton": true,
+    "showChangeRoomConfigButton": true,
+    "roomRate": 15,
+    "witness": false,
+    "perGameRoomCount": 6,
+    "perGameFakeRoomCount": 1,
+    "maxChallengeCount": 0,
+    "prizeName": "5元话费",
+    "prizeType": 0,
+    "prizePrice": 5,
+    "winPercent": 0.25,
+    "streakWinPercent": 0.16,
+    "streakFailPercent": 0.5
+  },
+
+  "3": {
+    "goldLimit": [
+      0,
+      -1
+    ],
+    "baseScore": 100,
+    "roomCountLimit": 0,
+    "roomListPageItem": 8,
+    "showAnonymityButton": true,
+    "showChangeRoomConfigButton": true,
+    "roomRate": 30,
+    "witness": false,
+    "perGameRoomCount": 6,
+    "perGameFakeRoomCount": 1,
+    "maxChallengeCount": 0,
+    "prizeName": "10元话费",
+    "prizeType": 0,
+    "prizePrice": 10,
+    "winPercent": 0.001,
+    "streakWinPercent": 0.001,
+    "streakFailPercent": 0.001
+  },
+
+  "4": {
+    "goldLimit": [
+      0,
+      -1
+    ],
+    "baseScore": 100,
+    "roomCountLimit": 0,
+    "roomListPageItem": 8,
+    "showAnonymityButton": true,
+    "showChangeRoomConfigButton": true,
+    "roomRate": 60,
+    "witness": false,
+    "perGameRoomCount": 6,
+    "perGameFakeRoomCount": 1,
+    "maxChallengeCount": 0,
+    "prizeName": "20元话费",
+    "prizeType": 0,
+    "prizePrice": 20,
+    "winPercent": 0.001,
+    "streakWinPercent": 0.001,
+    "streakFailPercent": 0.001
+  },
+
+  "5": {
+    "goldLimit": [
+      0,
+      -1
+    ],
+    "baseScore": 100,
+    "roomCountLimit": 0,
+    "roomListPageItem": 8,
+    "showAnonymityButton": true,
+    "showChangeRoomConfigButton": true,
+    "roomRate": 300,
+    "witness": false,
+    "perGameRoomCount": 6,
+    "perGameFakeRoomCount": 1,
+    "maxChallengeCount": 0,
+    "prizeName": "100元话费",
+    "prizeType": 0,
+    "prizePrice": 100,
+    "winPercent": 0.001,
+    "streakWinPercent": 0.001,
+    "streakFailPercent": 0.001
+  },
+
+  "6": {
+    "goldLimit": [
+      0,
+      -1
+    ],
+    "baseScore": 100,
+    "roomCountLimit": 0,
+    "roomListPageItem": 8,
+    "showAnonymityButton": true,
+    "showChangeRoomConfigButton": true,
+    "roomRate": 600,
+    "witness": false,
+    "perGameRoomCount": 6,
+    "perGameFakeRoomCount": 1,
+    "maxChallengeCount": 0,
+    "prizeName": "200元购物卡",
+    "prizeType": 1,
+    "prizePrice": 200,
+    "winPercent": 0.001,
+    "streakWinPercent": 0.001,
+    "streakFailPercent": 0.001
+  }
+}

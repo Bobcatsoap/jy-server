@@ -1,0 +1,24 @@
+{
+  "welcomeImageUrl": "https://fx-qyyl.guojin123.net/dxhy-fx.gfcvip168.com/xyhybanner23.jpg",
+  "welcomeSwitch": 1,
+  "videoButtonVisible": true,
+  "videoButtonUrl": "https://haokan.baidu.com/#recommend",
+  "videoButtonImgUrl": "https://fx-qyyl.guojin123.net/dxhy-fx.gfcvip168.com/lALPDgQ9rx-b_oVkzQEY_280_100.png",
+  "roomInnerShareImgUrl": "https://fx-qyyl.guojin123.net/dxhy-fx.gfcvip168.com/fenxiangmoban.png",
+  "roomOuterShareImgUrl": "https://fx-qyyl.guojin123.net/dxhy-fx.gfcvip168.com/fenxianghuafei.png",
+  "challengeRedeemUrl": "http://dx.guojinkj123.com",
+  "giftGoldIngotCount": 0,
+  "goldIngotUrl": "",
+  "goldIngotValue": {
+    "10": 1,
+    "102": 10,
+    "310": 30,
+    "520": 50
+  },
+  "goldIngotByHf": {
+    "20": 2,
+    "50": 5,
+    "100": 10,
+    "200": 20
+  }
+}

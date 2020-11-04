@@ -1,0 +1,52 @@
+<root>
+    <Parent>
+            RoomBase
+    </Parent>
+    <Properties>
+        <createUserId>
+            <Type>              INT32         </Type>
+            <DatabaseLength>    10         </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </createUserId>
+        <roomConfig>
+            <Type>              PY_DICT     </Type>
+            <DatabaseLength>    500         </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </roomConfig>
+        <startTime>
+            <Type>              STRING     </Type>
+            <DatabaseLength>    40         </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </startTime>
+        <endTime>
+            <Type>              STRING     </Type>
+            <DatabaseLength>    40         </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </endTime>
+        <!--房间中的玩家-->
+        <users>
+            <Type>              STRING       </Type>
+            <DatabaseLength>    100          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </users>
+        <!--房间中的玩家-->
+        <scores>
+            <Type>              STRING       </Type>
+            <DatabaseLength>    200          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>           {}            </Default>
+            <Persistent>        true        </Persistent>
+        </scores>
+    </Properties>
+</root>
+

@@ -1,0 +1,31 @@
+{
+  "blessRoomCardStandard": 2,
+  "blessRoomCardConsume": 1,
+  "teaHouseCreateDiamondConsume": 0,
+  "shareGiftDiamondCount": 20,
+  "shareChallengeGiftDiamondCount": 1,
+  "bindingProxyRechargeOffer": 0.2,
+  "bindingProxyGiftDiamondCount": 8,
+  "giftGoldCount": 5000,
+  "giftDiamondCount": 100,
+  "diamondToGoldRate": 1000,
+  "ShopGoldItem": [
+    1000,
+    5000,
+    10000,
+    20000,
+    50000,
+    100000
+  ],
+  "diamondValue": {
+    "12000": 1000,
+    "6500": 600,
+    "2000": 200
+  },
+  "proxydiamondValue": {
+    "300": 50,
+    "800": 100,
+    "2000": 200,
+    "6666": 600
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "AddTeamSwitch": 1,
+  "GameCoinSwitch": 1,
+  "joinExitHistoryLimit": 50,
+  "maxMemberCount": 800,
+  "minReceiveLuckyCardStandard": 1000,
+  "modifyGameCoinSwitch": 1,
+  "receiveLuckyCard": 100000,
+  "roomLimit": 40,
+  "scoreControlMax": [
+    0.7,
+    1.3
+  ],
+  "scoreControlMin": [
+    1.1,
+    1.3
+  ],
+  "scoreControlPercent": {
+    "RoomType1": 0.2,
+    "RoomType13": 0.3,
+    "RoomType4": 0.2,
+    "RoomType6": 0.3,
+    "RoomType8": 0.2,
+    "default": 0.5
+  }
+}

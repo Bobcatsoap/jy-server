@@ -1,0 +1,113 @@
+{
+  "card": {
+    "chapterLimitAndRoomCard": {
+      "4": [4,2],
+      "8": [8,4],
+      "16": [16,8]
+    },
+    "overStandard": [
+      100,
+      200,
+      300,
+      400,
+      500,
+      600
+    ],
+    "potStake": [
+      10,
+      20,
+      30,
+      50,
+      60,
+      80,
+      100,
+      150,
+      200,
+      300,
+      400,
+      500
+    ],
+    "potMaxMultiple": [
+      5,
+      10
+    ],
+    "setStakeLimit": 0,
+    "onePersonOnePotRoomCardConsume": [14,7],
+    "potModeRoomCardConsume": [7,3.5],
+    "refreshButtonVisible": true
+  },
+  "gameCoin": {
+    "chapterLimitAndRoomCard": {
+      "4": [4,2],
+      "8": [8,4],
+      "16": [16,8]
+    },
+    "overStandard": [
+      100,
+      200,
+      300,
+      400,
+      500,
+      600
+    ],
+    "potStake": [
+      10,
+      20,
+      30,
+      50,
+      60,
+      80,
+      100,
+      150,
+      200,
+      300,
+      400,
+      500
+    ],
+    "potMaxMultiple": [
+      5,
+      10
+    ],
+    "setStakeLimit": 0,
+    "onePersonOnePotRoomCardConsume": [14,7],
+    "potModeRoomCardConsume": [7,3.5],
+    "refreshButtonVisible": true
+  },
+  "normalGameCoin": {
+    "chapterLimitAndRoomCard": {
+      "4": [4,2],
+      "8": [8,4],
+      "16": [16,8]
+    },
+    "overStandard": [
+      100,
+      200,
+      300,
+      400,
+      500,
+      600
+    ],
+    "potStake": [
+      10,
+      20,
+      30,
+      50,
+      60,
+      80,
+      100,
+      150,
+      200,
+      300,
+      400,
+      500
+    ],
+    "potMaxMultiple": [
+      5,
+      10
+    ],
+    "setStakeLimit": 0,
+    "onePersonOnePotRoomCardConsume": [14,7],
+    "potModeRoomCardConsume": [7,3.5],
+    "refreshButtonVisible": true
+  }
+}

@@ -1,0 +1,252 @@
+{
+  "gameCoin": {
+    "RoomType22":{
+      "rSwitch": 1
+    },
+    "RoomType21":{
+      "rSwitch": 1
+    },
+    "RoomType18":{
+      "rSwitch": 1
+    },
+    "RoomType16":{
+      "rSwitch": 1
+    },
+    "RoomType8": {
+      "rSwitch": 1
+    },
+    "RoomType10": {
+      "rSwitch": 1
+    },
+    "RoomType1": {
+      "rSwitch": 1
+    },
+    "RoomType15": {
+      "rSwitch": 1
+    },
+    "RoomType5": {
+      "rSwitch": 1
+    },
+    "RoomType4": {
+      "rSwitch": 1
+    },
+    "RoomType13": {
+      "rSwitch": 1
+    },
+    "RoomType14": {
+      "rSwitch": 1
+    },
+    "RoomType12": {
+      "rSwitch": 1
+    },
+    "RoomType11": {
+      "rSwitch": 1
+    },
+    "RoomType7": {
+      "rSwitch": 1
+    },
+    "RoomType6": {
+      "rSwitch": 1
+    }
+  },
+  "normalGameCoin": {
+    "RoomType22":{
+      "rSwitch": 1
+    },
+    "RoomType21":{
+      "rSwitch": 1
+    },
+    "RoomType18":{
+      "rSwitch": 1
+    },
+    "RoomType16":{
+      "rSwitch": 1
+    },
+    "RoomType8": {
+      "rSwitch": 1
+    },
+    "RoomType10": {
+      "rSwitch": 1
+    },
+    "RoomType1": {
+      "rSwitch": 1
+    },
+    "RoomType15": {
+      "rSwitch": 1
+    },
+    "RoomType5": {
+      "rSwitch": 1
+    },
+    "RoomType4": {
+      "rSwitch": 1
+    },
+    "RoomType13": {
+      "rSwitch": 1
+    },
+    "RoomType14": {
+      "rSwitch": 1
+    },
+    "RoomType12": {
+      "rSwitch": 1
+    },
+    "RoomType11": {
+      "rSwitch": 1
+    },
+    "RoomType7": {
+      "rSwitch": 1
+    },
+    "RoomType6": {
+      "rSwitch": 1
+    }
+  },
+  "card": {
+    "RoomType22":{
+      "rSwitch": 1
+    },
+    "RoomType21":{
+      "rSwitch": 1
+    },
+    "RoomType18":{
+      "rSwitch": 1
+    },
+    "RoomType16":{
+      "rSwitch": 1
+    },
+    "RoomType8": {
+      "rSwitch": 1
+    },
+    "RoomType10": {
+      "rSwitch": 1
+    },
+    "RoomType1": {
+      "rSwitch": 1
+    },
+    "RoomType15": {
+      "rSwitch": 1
+    },
+    "RoomType5": {
+      "rSwitch": 1
+    },
+    "RoomType4": {
+      "rSwitch": 1
+    },
+    "RoomType13": {
+      "rSwitch": 1
+    },
+    "RoomType14": {
+      "rSwitch": 1
+    },
+    "RoomType12": {
+      "rSwitch": 1
+    },
+    "RoomType11": {
+      "rSwitch": 1
+    },
+    "RoomType7": {
+      "rSwitch": 1
+    },
+    "RoomType6": {
+      "rSwitch": 1
+    }
+  },
+  "gold": {
+    "RoomType22":{
+      "rSwitch": 1
+    },
+    "RoomType21":{
+      "rSwitch": 1
+    },
+    "RoomType18":{
+      "rSwitch": 0
+    },
+    "RoomType16":{
+      "rSwitch": 0
+    },
+    "RoomType8": {
+      "rSwitch": 0
+    },
+    "RoomType10": {
+      "rSwitch": 0
+    },
+    "RoomType1": {
+      "rSwitch": 0
+    },
+    "RoomType15": {
+      "rSwitch": 0
+    },
+    "RoomType5": {
+      "rSwitch": 0
+    },
+    "RoomType4": {
+      "rSwitch": 0
+    },
+    "RoomType13": {
+      "rSwitch": 0
+    },
+    "RoomType14": {
+      "rSwitch": 0
+    },
+    "RoomType12": {
+      "rSwitch": 0
+    },
+    "RoomType11": {
+      "rSwitch": 0
+    },
+    "RoomType7": {
+      "rSwitch": 0
+    },
+    "RoomType6": {
+      "rSwitch": 0
+    }
+  },
+  "challenge": {
+    "RoomType22":{
+      "rSwitch": 1
+    },
+    "RoomType21":{
+      "rSwitch": 1
+    },
+    "RoomType18":{
+      "rSwitch": 0
+    },
+    "RoomType16":{
+      "rSwitch": 0
+    },
+    "RoomType8": {
+      "rSwitch": 0
+    },
+    "RoomType10": {
+      "rSwitch": 0
+    },
+    "RoomType1": {
+      "rSwitch": 0
+    },
+    "RoomType15": {
+      "rSwitch": 0
+    },
+    "RoomType5": {
+      "rSwitch": 0
+    },
+    "RoomType4": {
+      "rSwitch": 0
+    },
+    "RoomType13": {
+      "rSwitch": 0
+    },
+    "RoomType14": {
+      "rSwitch": 0
+    },
+    "RoomType12": {
+      "rSwitch": 0
+    },
+    "RoomType11": {
+      "rSwitch": 0
+    },
+    "RoomType7": {
+      "rSwitch": 0
+    },
+    "RoomType6": {
+      "rSwitch": 0
+    }
+  }
+}

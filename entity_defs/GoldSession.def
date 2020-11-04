@@ -1,0 +1,35 @@
+<root>
+	<Properties>
+        <sessionLevel>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        True        </Persistent>
+        </sessionLevel>
+        <rooms>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        false        </Persistent>
+        </rooms>
+        <baseScore>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        True        </Persistent>
+        </baseScore>
+        <goldLimit>
+            <Type>              PY_LIST     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        True        </Persistent>
+        </goldLimit>
+        <memberInfo>
+            <Type>              PY_DICT     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        True        </Persistent>
+        </memberInfo>
+	</Properties>
+</root>
+

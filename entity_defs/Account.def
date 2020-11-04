@@ -1,0 +1,299 @@
+﻿<root>
+	<Properties>
+        <!--自己拥有的avatar的数据库id-->
+        <avatarDBID>
+            <!--数据库的id是UINT64类型-->
+            <Type>          DBID      </Type>
+            <!--该属性只在Base上有-->
+            <Flags>         BASE        </Flags>
+            <Default>                   </Default>
+            <!--需要持久化保存-->
+            <Persistent>    true        </Persistent>
+        </avatarDBID>
+        <!--账号的名字-->
+        <name>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    20          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </name>
+		<!--账号的位置-->
+        <address>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    200          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </address>
+        <scene>
+            <Type>              ENTITYCALL      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        False        </Persistent>
+        </scene>
+        <!--玩家的userId-->
+        <userId>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </userId>
+        <!--玩家修改个人信息次数-->
+        <changeAccountInfoTimes>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </changeAccountInfoTimes>
+        <!--是否是机器人账号-->
+        <isBot>
+            <Type>              UINT8       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>             0         </Default>
+            <Persistent>        true        </Persistent>
+        </isBot>
+        <proxyType>
+            <Type>              UINT8       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>             0         </Default>
+            <Persistent>        true        </Persistent>
+        </proxyType>
+        <!--玩家的金币数-->
+        <gold>
+            <Type>              INT32       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </gold>
+        <!--玩家vip-->
+        <vip>
+            <Type>              UINT32      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>           0           </Default>
+            <Persistent>        true        </Persistent>
+        </vip>
+        <!--玩家性别-->
+        <gender>
+            <Type>              UINT32       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>           1           </Default>
+            <Persistent>        true        </Persistent>
+        </gender>
+        <frozen>
+            <Type>              UINT32       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>           0           </Default>
+            <Persistent>        true        </Persistent>
+        </frozen>
+        <!--玩家头像地址-->
+        <headImageUrl>
+            <Type>              STRING       </Type>
+            <DatabaseLength>    1000        </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </headImageUrl>
+        <!--vip到期时间-->
+        <vipDateTime>
+            <Type>              STRING       </Type>
+            <DatabaseLength>    1000        </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </vipDateTime>
+        <!--手机号-->
+        <phone>
+            <Type>              STRING       </Type>
+            <DatabaseLength>    1000        </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </phone>
+        <!--邮件-->
+        <mail>
+            <Type>              UNICODE      </Type>
+            <DatabaseLength>                </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </mail>
+        <!--公会申请信息-->
+        <guildApplicationData>
+            <Type>              UNICODE      </Type>
+            <DatabaseLength>                </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </guildApplicationData>
+        <!--参与过的房间-->
+        <rooms>
+            <Type>              PY_DICT      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </rooms>
+		<!--好友列表信息-->
+		<friends>
+            <Type>              PY_LIST      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </friends>
+        <!--创建的没有到期的房间-->
+        <createRooms>
+            <Type>              PY_DICT      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </createRooms>
+        <!--挑战赛奖品-->
+        <myPrize>
+            <Type>              PY_DICT      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </myPrize>
+        <!--玩家的钻石数量-->
+        <roomCard>
+            <Type>              FLOAT      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                     </Default>
+            <Persistent>        true        </Persistent>
+        </roomCard>
+        <!--玩家的钻石数量-->
+        <goldIngot>
+            <Type>              FLOAT      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                     </Default>
+            <Persistent>        true        </Persistent>
+        </goldIngot>
+        <!--是否是外挂账号-->
+        <addOn>
+            <Type>              UINT8       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>           0          </Default>
+            <Persistent>        true        </Persistent>
+        </addOn>
+        <!--签到时间-->
+        <attendanceDataTime>
+            <Type>              UINT32      </Type>
+			<DatabaseLength>    10          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>           0           </Default>
+            <Persistent>        true        </Persistent>
+        </attendanceDataTime>
+        <!--日分享时间-->
+        <dayShareDateTime>
+            <Type>              UINT32      </Type>
+			<DatabaseLength>    10          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>           0           </Default>
+            <Persistent>        true        </Persistent>
+        </dayShareDateTime>
+        <!--日分享次数-->
+        <dayShareCount>
+            <Type>              UINT32      </Type>
+			<DatabaseLength>    10          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>           0           </Default>
+            <Persistent>        true        </Persistent>
+        </dayShareCount>
+        <substituteRooms>
+            <Type>              PY_LIST       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        True       </Persistent>
+        </substituteRooms>
+        <!--祈福次数-->
+        <blessCountToday>
+            <Type>              UINT32      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>           0           </Default>
+            <Persistent>        true        </Persistent>
+        </blessCountToday>
+		<!--邀请码-->
+        <invitation_code>
+            <Type>              UINT32      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>           0           </Default>
+            <Persistent>        true        </Persistent>
+        </invitation_code>
+		<!--上级-->
+        <belong_to>
+            <Type>              UINT32      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>           0         	</Default>
+            <Persistent>        true        </Persistent>
+        </belong_to>
+        <todoList>
+            <Type>              PY_LIST       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        True       </Persistent>
+        </todoList>
+        <chat_log>
+            <Type>              PY_DICT       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        True       </Persistent>
+        </chat_log>
+        <sys_notice>
+            <Type>              PY_DICT       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        True       </Persistent>
+        </sys_notice>
+        <!--玩家的坐庄记录-->
+        <bankerHistory>
+            <Type>              PY_LIST      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </bankerHistory>
+        <partnerSwitch>
+            <Type>              UINT32       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>           0          </Default>
+            <Persistent>        true        </Persistent>
+        </partnerSwitch>
+	</Properties>
+
+	<BaseMethods>
+		<!-- cell到base通信的通用方法 -->
+		<cellToBase>
+			<Arg>        PY_DICT    </Arg>
+		</cellToBase>
+		<clientToBase>
+		    <!--该参数可以让此方法暴露给客户端调用-->
+            <Exposed/>
+            <Arg>       UNICODE       </Arg>
+		</clientToBase>
+	</BaseMethods>
+
+	<CellMethods>
+		<!-- base到cell通信的通用方法 -->
+		<baseToCell>
+			<Arg>        PY_DICT    </Arg>
+		</baseToCell>
+		<clientToCell>
+		    <!--该参数可以让此方法暴露给客户端调用-->
+            <Exposed/>
+            <Arg>       UNICODE       </Arg>
+		</clientToCell>
+		<destroyCell>
+		</destroyCell>
+	</CellMethods>
+
+    <ClientMethods>
+        <baseToClient>
+            <Arg>       UNICODE       </Arg>
+            <Arg>       UNICODE       </Arg>
+        </baseToClient>
+        <cellToClient>
+            <Arg>       UNICODE       </Arg>
+            <Arg>       UNICODE       </Arg>
+        </cellToClient>
+    </ClientMethods>
+
+</root>

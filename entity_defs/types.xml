@@ -1,0 +1,6 @@
+<root>
+    <BOOL>				UINT8		</BOOL>
+    <DBID>				UINT64		</DBID>
+    <UID>				UINT64		</UID>
+    <ENTITY_ID>			INT32		</ENTITY_ID>
+</root>

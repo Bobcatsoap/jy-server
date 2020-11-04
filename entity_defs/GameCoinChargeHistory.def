@@ -1,0 +1,75 @@
+<root>
+	<Properties>
+        <teaHouseId>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </teaHouseId>
+        <modifyTime>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </modifyTime>
+        <accountDBID>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </accountDBID>
+        <operationAccountDBID>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </operationAccountDBID>
+        <accountName>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    20          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </accountName>
+        <operationName>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    20          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </operationName>
+        <accountPhone>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    20          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </accountPhone>
+        <operationPhone>
+            <Type>              UNICODE     </Type>
+            <DatabaseLength>    20          </DatabaseLength>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </operationPhone>
+        <operationProxyType>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </operationProxyType>
+        <modifyCount>
+            <Type>              INT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </modifyCount>
+        <modifiedGameCoin>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </modifiedGameCoin>
+	</Properties>
+</root>
+
