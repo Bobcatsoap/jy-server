@@ -1,6 +1,6 @@
 {
   "AddTeamSwitch": 1,
-  "GameCoinSwitch": 1,
+  "GameCoinSwitch": 0,
   "joinExitHistoryLimit": 50,
   "maxMemberCount": 800,
   "minReceiveLuckyCardStandard": 1000,
