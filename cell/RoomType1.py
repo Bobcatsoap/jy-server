@@ -253,6 +253,7 @@ class RoomType1(RoomBase):
         self.callOtherClientsFunction("currentChapterCount", {"count": self.cn + 1})
         # 1 定庄 设置庄家
         self.setBanker()
+        # 坐庄信息同步到BASE
         self.set_base_player_banker_history(_chapter)
         # 因为炸金花一个房间会进行多局游戏，庄信息只在进房间同步一次，所以庄需要自己记录
         self.set_banker_history_in_cell(_chapter)
@@ -350,7 +351,7 @@ class RoomType1(RoomBase):
                     if not _hasNext:
                         DEBUG_MSG("_currentRound=%s, maxCount=%s" % (_currentRound, self.info["maxRound"]))
                         return
-                if not _locationIndexs[_nextLocationIndex]["hasDisCard"]:
+                if not _locationIndexs[_nextLocationIndex]["hasDisCard"]:  # 是否弃牌
                     break
             _nextLocationIndex += 1
             DEBUG_MSG("startLocationIndex:%s" % _startLocationIndex)
@@ -528,10 +529,10 @@ class RoomType1(RoomBase):
         """
         DEBUG_MSG('[Room id %i]------>setCurrentRound currentRound %s' % (self.id, currentRound))
         _chapter = self.chapters[self.cn]
-        if _chapter["maxRound"] - currentRound == 1:
+        if _chapter["maxRound"] - currentRound == 1:  # maxRound 最大局数
             self.callOtherClientsFunction("Notice", ["两轮下注后系统自动比牌"])
         # 1 当前轮数大于牌局最大轮数
-        if currentRound > _chapter["maxRound"]:
+        if currentRound > _chapter["maxRound"]:   # maxRound 最大局数
             # 1 获取未弃牌玩家
             _playerHasNoDisCard = self.getHasNoDisCardPlayer()
             _playerHasNoDisCardKeys = list(_playerHasNoDisCard.keys())
@@ -710,7 +711,7 @@ class RoomType1(RoomBase):
         """
         DEBUG_MSG('[Room id %i]------>setBanker ' % self.id)
         _chapter = self.chapters[self.cn]
-        _playerInGame = _chapter["playerInGame"]
+        _playerInGame = _chapter["playerInGame"]   # 游戏中玩家
         # 1 从在游戏中玩家随机生成一个玩家为庄家   sample生成的是一个列表
         banker_id = self.banker_area_random(list(_chapter["playerInGame"].keys()))
         _banker = [banker_id]
@@ -1014,7 +1015,7 @@ class RoomType1(RoomBase):
         _chapter = self.chapters[self.cn]
         _hasNoDisCardPlayer = {}
         for k, v in _chapter["playerInGame"].items():
-            if not v["hasDisCard"]:
+            if not v["hasDisCard"]:  # 是否弃牌
                 _hasNoDisCardPlayer[k] = v
         return _hasNoDisCardPlayer
 
@@ -1028,12 +1029,12 @@ class RoomType1(RoomBase):
         DEBUG_MSG('[Room id %i]------>disCard accountId %s' % (self.id, accountId))
         _chapter = self.chapters[self.cn]
         _player = _chapter["playerInGame"][accountId]
-        if _player['hasDisCard']:
+        if _player['hasDisCard']:  # 是否弃牌
             DEBUG_MSG('[Room id %i]------>disCard accountId %s is already discard' % (self.id, accountId))
             return
         self.delTimer(_chapter["operateTimerId"])
         _chapter["operateTimerId"] = -1
-        _player["hasDisCard"] = True
+        _player["hasDisCard"] = True  # 是否弃牌
         _player["isCompareDisCard"] = is_compare_card_dis_card
         _args = {"accountId": accountId, "isCompareDisCard": _player["isCompareDisCard"]}
         self.callOtherClientsFunction("DisCard", _args)
@@ -1652,7 +1653,8 @@ class RoomType1(RoomBase):
                 type(RoomType1Calculator.type_of_cards(cards, self.info)) == float or \
                 type(RoomType1Calculator.type_of_cards(cards, self.info)) == int else -1
             _player = {"cards": v["cards"], "hasLookCard": v["hasLookCard"], "hasFollowCard": v["hasLookCard"],
-                       "hasDisCard": v["hasDisCard"], "isCompareDisCard": v["isCompareDisCard"],
+                       "hasDisCard": v["hasDisCard"],   # 是否弃牌
+                       "isCompareDisCard": v["isCompareDisCard"],
                        "gold": v["score"] if _chapter['currentState'] == 2 or _chapter['currentState'] == 3
                        else v['score'] - v['totalBet'],
                        "locationIndex": int(v["locationIndex"]),
@@ -1671,7 +1673,7 @@ class RoomType1(RoomBase):
         for k, v in _chapter["playerOutGame"].items():
             try:
                 _player = {"cards": v["cards"], "hasLookCard": v["hasLookCard"], "hasFollowCard": v["hasLookCard"],
-                           "hasDisCard": v["hasDisCard"],
+                           "hasDisCard": v["hasDisCard"],  # 是否弃牌
                            "gold": v["score"] if _chapter['currentState'] == 2 or _chapter['currentState'] == 3
                            else v['score'] - v['totalBet'],
                            "locationIndex": int(v["locationIndex"]),
@@ -1778,7 +1780,8 @@ class RoomType1(RoomBase):
 
         for k, v in _chapter["playerOutGame"].items():
             _player = {"cards": v["cards"], "hasLookCard": v["hasLookCard"], "hasFollowCard": v["hasLookCard"],
-                       "hasDisCard": v["hasDisCard"], "gold": v["score"] - v["totalBet"],
+                       "hasDisCard": v["hasDisCard"],  # 是否弃牌
+                       "gold": v["score"] - v["totalBet"],
                        "locationIndex": int(v["locationIndex"]),
                        "userId": v["entity"].info["userId"],
                        "ip": v["entity"].info["ip"],
