@@ -1,25 +1,25 @@
 {
   "card": {
     "chapterLimitAndRoomCard": {
-      "12": [7,3.5],
-      "24": [10,5],
-      "36": [13,6.5]
+      "12": [0,0],
+      "24": [0,0],
+      "36": [0,0]
     },
     "refreshButtonVisible": true
   },
   "gameCoin": {
     "chapterLimitAndRoomCard": {
-      "12": [7,3.5],
-      "24": [10,5],
-      "36": [13,6.5]
+      "12": [0,0],
+      "24": [0,0],
+      "36": [0,0]
     },
     "refreshButtonVisible": true
   },
   "normalGameCoin": {
     "chapterLimitAndRoomCard": {
-      "12": [7,3.5],
-      "24": [10,5],
-      "36": [13,6.5]
+      "12": [0,0],
+      "24": [0,0],
+      "36": [0,0]
     },
     "refreshButtonVisible": true
   }

@@ -1849,8 +1849,8 @@ class RoomManager(Manger):
         # E 是否消耗钻石
         try:
             consume_config = Const.ServerGameConfigJson.config_json['CreateRoomConsumeSwitch']
-            # return bool(consume_config[room_info['roomType']][room_info['type']])
-            return False
+            return bool(consume_config[room_info['roomType']][room_info['type']])
+            # return False
         except TypeError as e:
             ERROR_MSG('need_consume_card %s' % e)
         except KeyError as e:

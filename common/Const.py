@@ -59,7 +59,8 @@ class AccountInfo:
 
 class UpgradeTeaHouseRoomCardConsume:
     # 升级冠名赛钻石消耗
-    RoomCardConsume = {1: 0, 2: 300, 3: 500, 4: 1000, 5: 2000}
+    # RoomCardConsume = {1: 0, 2: 300, 3: 500, 4: 1000, 5: 2000}
+    RoomCardConsume = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 
 
 class RoomType:

@@ -1,9 +1,9 @@
 {
   "card": {
     "chapterLimitAndRoomCard": {
-      "4": [4,2],
-      "8": [8,4],
-      "16": [16,8]
+      "4": [0,0],
+      "8": [0,0],
+      "16": [0,0]
     },
     "overStandard": [
       100,
@@ -38,9 +38,9 @@
   },
   "gameCoin": {
     "chapterLimitAndRoomCard": {
-      "4": [4,2],
-      "8": [8,4],
-      "16": [16,8]
+      "4": [0,0],
+      "8": [0,0],
+      "16": [0,0]
     },
     "overStandard": [
       100,
@@ -75,9 +75,9 @@
   },
   "normalGameCoin": {
     "chapterLimitAndRoomCard": {
-      "4": [4,2],
-      "8": [8,4],
-      "16": [16,8]
+      "4": [0,0],
+      "8": [0,0],
+      "16": [0,0]
     },
     "overStandard": [
       100,
