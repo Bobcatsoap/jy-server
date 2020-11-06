@@ -819,8 +819,7 @@ class RoomType1(RoomBase):
             self.base.cellToBase({"func": "autoCreateRoom", "roomInfo": self.info})
 
     def player_ready(self, account_id):
-        """
-        玩家准备
+        """TODO E玩家准备
         :param account_id:
         :return:
         """
@@ -843,6 +842,7 @@ class RoomType1(RoomBase):
             # 1 标志位置为True
             _args = {"accountId": account_id, "ready": True}
             # 向客户端发送准备完成
+            # 玩家准备完成
             self.callOtherClientsFunction("Ready", _args)
 
     # 1 玩家点击下局坐下按钮
@@ -1291,6 +1291,9 @@ class RoomType1(RoomBase):
 
     # 1 玩家点击开始游戏
     def firstStartGame(self, accountEntityId):
+        """
+        TODO E开始游戏
+        """
         _chapter = self.chapters[self.cn]
         _playerInRoom = _chapter["playerInRoom"]
         _playerInGame = _chapter["playerInGame"]
@@ -1328,7 +1331,7 @@ class RoomType1(RoomBase):
 
     def changeChapterState(self, state):
         """
-        改变游戏状态
+        TODO E改变游戏状态
         :param state: 0:准备,1:游戏开始
         :return:
         """

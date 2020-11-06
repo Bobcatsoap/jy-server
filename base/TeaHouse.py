@@ -55,7 +55,7 @@ class TeaHouse(KBEngine.Entity):
     createTime = 0
     # 历史房间
     historyRooms = {}
-         # 今天开的房间
+    # 今天开的房间
     todayRooms = []
     #
     todayGameCoinBilling = []
@@ -81,7 +81,7 @@ class TeaHouse(KBEngine.Entity):
     haveExchangeMall = 1
     # 福卡系统开关
     luckyCardSwitch = 0
-    # 比赛分开关
+    # TODO 比赛分开关   0关闭 1开启
     gameCoinSwitch = 0
     # 福卡
     luckyCard = 0

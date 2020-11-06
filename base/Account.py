@@ -257,6 +257,9 @@ class Account(KBEngine.Proxy):
                 DEBUG_MSG('req_wx_name id %s except = %s' % (self.id, e))
 
     def account_init(self):
+        """
+        登录
+        """
         if not hasattr(self, '__ACCOUNT_NAME__'):
             return
         _name = self.__ACCOUNT_NAME__
@@ -589,7 +592,7 @@ class Account(KBEngine.Proxy):
 
     def clientToBase(self, jsonData):
         """
-
+        TODO E创建房间函数
         :param jsonData:
         :return:
         """
@@ -606,7 +609,7 @@ class Account(KBEngine.Proxy):
 
             if self.check_have_challenge_room(-1):
                 return
-
+            # TODO 开始创建房间
             self.room_mgr.create_room(self.databaseID, _args)
         elif _func_name == "JoinRoom":
             # 准备关服维护
@@ -617,7 +620,7 @@ class Account(KBEngine.Proxy):
             if self.check_have_challenge_room(-1):
                 return
 
-            # 加入房间
+            # TODO E加入房间
             if _args["roomType"] == "card":
                 self.room_mgr.join_card_room(self, int(_args["number"]))
             # 加入冠名赛房间

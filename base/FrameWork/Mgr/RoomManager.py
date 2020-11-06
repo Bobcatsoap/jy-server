@@ -85,7 +85,7 @@ class RoomManager(Manger):
     def create_room(self, _creator_db_id, _config, is_fake=False, is_auto=False, creator_id=-1,
                     creator_name='', creator_entity=None, record_sql=True):
         """
-        创建房间
+        E创建房间
         :param creator_name:
         :param creator_entity: 自动创建时拿到楼主实体
         :param is_fake:
@@ -99,8 +99,8 @@ class RoomManager(Manger):
         if _account is None:
             ERROR_MSG('create room 楼主实体未找到')
             return
-        _type = _config["type"]
-        _roomType = _config["roomType"]
+        _type = _config["type"]  # 游戏类型
+        _roomType = _config["roomType"]  # 房间类型
         _room = KBEngine.createEntityLocally(_type, {})
         _room.is_fake = is_fake
         _room.record_sql = record_sql
@@ -144,7 +144,7 @@ class RoomManager(Manger):
             else:
                 _room.info["witness"] = False
 
-        if _type == Const.RoomType.RoomType1:
+        if _type == Const.RoomType.RoomType1:   # 炸金花房间
             _room.info["hasAnthorizeBuying"] = _config["hasAnthorizeBuying"]
             _room.info["maxRound"] = _config["maxRound"]
             # 1 特殊玩法的   顺子大于金花
@@ -178,7 +178,7 @@ class RoomManager(Manger):
                 _room.info['timeDown'] = _config['timeDown']
             else:
                 _room.info['timeDown'] = 45
-        elif _type == Const.RoomType.RoomType4:
+        elif _type == Const.RoomType.RoomType4:   # 牛牛房间
             _room.info["betBase"] = _config["betBase"]
             # 游戏模式
             _room.info["playMode"] = _config["playMode"]
@@ -213,7 +213,7 @@ class RoomManager(Manger):
             _room.info['multiple'] = _config['multiple']
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
-        elif _type == Const.RoomType.RoomType5:
+        elif _type == Const.RoomType.RoomType5:  # 麻将
             # 最大局数
             _room.info["maxChapterCount"] = _config["maxChapterCount"]
             # 硬次 & 软次  0硬   1软
@@ -233,7 +233,7 @@ class RoomManager(Manger):
             # 少人模式
             _room.info["fewPersonPattern"] = _config["fewPersonPattern"]
             self.room5_conflict(_room.info)
-        elif _type == Const.RoomType.RoomType6:
+        elif _type == Const.RoomType.RoomType6:   # 斗地主
             # 1 房间底分
             _room.info["baseScore"] = _config["baseScore"]
             # 1 抢地主的方式  随机先叫  赢家先叫
@@ -254,11 +254,11 @@ class RoomManager(Manger):
             _room.info["SiDaiEr"] = _config["SiDaiEr"]
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
-        elif _type == Const.RoomType.RoomType7:
+        elif _type == Const.RoomType.RoomType7:  # 牌九
             _room.info["betLimit"] = _config["betLimit"]
             _room.info["maxChapterCount"] = _config["maxChapterCount"]
             _room.info["grabBankerType"] = _config["grabBankerType"]
-        elif _type == Const.RoomType.RoomType8:
+        elif _type == Const.RoomType.RoomType8:  # 新牌九
             # 最大局数
             _room.info["maxChapterCount"] = _config["maxChapterCount"]
             # 抢庄模式
@@ -289,7 +289,7 @@ class RoomManager(Manger):
             else:
                 _room.info['setStakeLimit'] = -1
             self.room8_conflict(_room.info)
-        elif _type == Const.RoomType.RoomType10:
+        elif _type == Const.RoomType.RoomType10:   # 八叉
             # 钓鱼开关
             _room.info['canFishing'] = _config['canFishing']
             # 最大局数
@@ -304,7 +304,7 @@ class RoomManager(Manger):
             _room.info['eightXDouble'] = _config['eightXDouble']
             # 爆锅上限
             _room.info['potMaxMultiple'] = _config['potMaxMultiple']
-        elif _type == Const.RoomType.RoomType11:
+        elif _type == Const.RoomType.RoomType11:  # 洛阳牌九
             # 最大局数
             _room.info["maxChapterCount"] = _config["maxChapterCount"]
             # 抢庄模式
@@ -329,7 +329,7 @@ class RoomManager(Manger):
             _room.info['onePersonOnePot'] = _config['onePersonOnePot']
             # 爆锅上限
             _room.info['potMaxMultiple'] = _config['potMaxMultiple']
-        elif _type == Const.RoomType.RoomType12:
+        elif _type == Const.RoomType.RoomType12:  # 滑水麻将
             # 胡牌类型 int  0：点炮，1：自摸
             _room.info['huType'] = _config['huType']
             # 少人模式
@@ -355,7 +355,7 @@ class RoomManager(Manger):
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
             self.room12_conflict(_room.info)
-        elif _type == Const.RoomType.RoomType13:
+        elif _type == Const.RoomType.RoomType13:  # 跑的快
             # Special为True是15人场，Flae 是经典场   类型：bool
             _room.info["special"] = _config["special"]
             # 少人模式
@@ -407,7 +407,7 @@ class RoomManager(Manger):
             # 是否必要
             _room.info["haveCardMustCome"] = _config["haveCardMustCome"]
             _room.info["baseMultiple"] = _config["baseMultiple"] if 'baseMultiple' in _config else 1
-        elif _type == Const.RoomType.RoomType14:
+        elif _type == Const.RoomType.RoomType14:  # 郑州麻将
             # 胡牌类型 int  0：点炮，1：自摸
             _room.info['huType'] = _config['huType']
             # 有风牌   bool
@@ -445,7 +445,7 @@ class RoomManager(Manger):
             # self.room12_conflict(_room.info)
             # 双混只能自摸，必带风
             # 带跑时，杠跑才有意义
-        elif _type == Const.RoomType.RoomType15:
+        elif _type == Const.RoomType.RoomType15:  # 点炮胡
             # 胡牌类型 int  0：点炮，1：自摸
             _room.info['huType'] = _config['huType']
             # 少人模式
@@ -495,7 +495,7 @@ class RoomManager(Manger):
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
             # self.room12_conflict(_room.info)
-        elif _type == Const.RoomType.RoomType16:
+        elif _type == Const.RoomType.RoomType16:  # 晃晃麻将
             # 胡牌类型 int  0：点炮，1：自摸
             _room.info['huType'] = _config['huType']
             # 少人模式
@@ -528,7 +528,7 @@ class RoomManager(Manger):
             _room.info["redoubleType"] = 0
             # 过胡只能自摸    bool
             _room.info['onlySelfAfterPass'] = False
-        elif _type == Const.RoomType.RoomType18:
+        elif _type == Const.RoomType.RoomType18:  # 潢川麻将
             # 少人模式
             _room.info["fewPersonPattern"] = _config["fewPersonPattern"]
             # 双嘴    1,门清    2,断门    3,独赢    4,上听    List[int]
@@ -563,7 +563,7 @@ class RoomManager(Manger):
             _room.info["moreRing"] = True
             # 默认开启过胡只可自摸
             _room.info['onlySelfAfterPass'] = True
-        elif _type == Const.RoomType.RoomType21:
+        elif _type == Const.RoomType.RoomType21:  # 商丘麻将
             # 胡牌类型 int  0：点炮，1：自摸
             _room.info['huType'] = _config['huType']
             # 有风牌   bool
@@ -604,7 +604,7 @@ class RoomManager(Manger):
             _room.info['dunLa'] = _config['dunLa']
             # 花类型
             _room.info['flowerType'] = _config['flowerType']
-        elif _type == Const.RoomType.RoomType22:
+        elif _type == Const.RoomType.RoomType22:  # 济源麻将
             # 胡牌类型 int  0：点炮，1：自摸
             _room.info['huType'] = _config['huType']
             # 有风牌   bool
@@ -1015,6 +1015,7 @@ class RoomManager(Manger):
             # 如果房间不存在，不再加入房间
             if not _room.cell:
                 return
+            # TODO E加入房间
             _account.call_client_func("join_room_success", [_room.info["type"], "card", _roomId])
             _account.writeRooms(_room)
 
