@@ -136,6 +136,7 @@ class Account(KBEngine.Proxy):
 
     def __init__(self):
         KBEngine.Proxy.__init__(self)
+        # self.databaseID = 500000 + self.databaseID   # TODO 自添加
         self.account_mgr = KBEngine.globalData["AccountMgr"].mgr
         self.room_mgr = KBEngine.globalData["RoomManager"].mgr
         self.tea_house_mgr = KBEngine.globalData["TeaHouseManager"].mgr
@@ -260,6 +261,7 @@ class Account(KBEngine.Proxy):
         """
         登录
         """
+        DEBUG_MSG("account_init-eeeeeeeee------> userId %s" % self.databaseID)
         if not hasattr(self, '__ACCOUNT_NAME__'):
             return
         _name = self.__ACCOUNT_NAME__
@@ -273,6 +275,7 @@ class Account(KBEngine.Proxy):
                 self.req_wx_name(_l[1])
         # 游客登陆
         else:
+            # self.name = "游客" + self.databaseID
             self.name = "游客" + str(self.databaseID)
             self.headImageUrl = Const.AccountInfo.HeadImageUrl
         self.gold = int(Const.GameConfigJson.config_json['Hall']['giftGoldCount'])
@@ -1452,7 +1455,7 @@ class Account(KBEngine.Proxy):
             self.call_client_func("BelongToResp", {"belongTo": self.belong_to})
         elif _func_name == 'GetSingleMemberInfo':
             self.get_single_member_info(_args['teaHouseId'], _args['accountDBID'])
-        elif _func_name == 'GetMembersWithPageIndex':
+        elif _func_name == 'GetMembersWithPageIndex':  # TODO GetMembersWithPageIndex
             self.get_members_with_page_index(_args['teaHouseId'], _args['accountDBID'],
                                              _args['pageIndex'])
         elif _func_name == 'SearchMember':
@@ -1594,7 +1597,6 @@ class Account(KBEngine.Proxy):
         elif _func_name == 'SetRewards':
             # 获取茶楼实体
             reward_type = _args['rewardType']
-
             def callback(state):
                 content = '设置成功' if state else '设置失败'
                 self.call_client_func('SetRewards', {'state': state, 'content': content})
@@ -2586,7 +2588,7 @@ class Account(KBEngine.Proxy):
         """
         战队成员抽水统计
         account_db_id:战队长id
-        tea_house_id：茶楼ID
+        tea_house_id：茶楼ID 冠名赛id
         :return:
         """
         # 通过茶楼ID获取茶楼实体
@@ -3351,6 +3353,7 @@ class Account(KBEngine.Proxy):
 
     def binding_proxy_by_user_id(self, user_id):
         """
+        E绑定代理
         扫码绑定代理
         if 要绑定的人不是代理：
             找到要绑定人的上级

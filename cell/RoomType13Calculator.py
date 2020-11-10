@@ -863,67 +863,71 @@ def convert_cards_to_value(cards):
     return it_men_card
 
 
+# 获取玩家出牌的类型
 def get_cards_type(correct_cards, card_type):
     """
     牌型判断
     3带1,3带2单等牌型根据设置判断
+    result: int
     """
+    # 转换牌值
+    cards = convert_cards_to_value(correct_cards)
     cards = convert_cards_to_value(correct_cards)
     # DEBUG_MSG("get_cards_type card:%s" % cards)
     length = len(cards)
     if not length:
-        return CardType.Com_Invalid
+        return CardType.Com_Invalid  # 无效牌
     if length == 1:
-        return CardType.Com_Single
-    elif length == 2:
+        return CardType.Com_Single  # 单张
+    elif length == 2:  # 一对
         if cards.count(cards[-1]) > 1:
-            return CardType.Com_Double
-        return CardType.Com_Invalid
+            return CardType.Com_Double  # 一对
+        return CardType.Com_Invalid  # 无效牌
     elif length == 3:
         if cards.count(cards[0]) == 3:
             if card_type["boomType"] == 1:
                 if cards.count(14) == 3:
-                    return CardType.Lin_MaxBoomForFour
-            if card_type["haveThree"]:
-                return CardType.Spc_OnlyThree
-        return CardType.Com_Invalid
+                    return CardType.Lin_MaxBoomForFour  # AAA炸弹
+            if card_type["haveThree"]:  # haveThree
+                return CardType.Spc_OnlyThree  # 三张不带
+        return CardType.Com_Invalid  # 无效牌
     elif length == 4:
         # AAA为炸弹时，不能作为3带1出（炸弹不可拆？）
         if cards.count(14) == 3:
             if card_type["boomType"] == 3:
                 # aaa.1为炸弹
-                return CardType.Lin_MaxBoomWithSingle
+                return CardType.Lin_MaxBoomWithSingle  # AAA炸弹带一
             # elif card_type["boomType"] == 1:
             #     # aaa为炸弹
             #     return CardType.Com_Invalid
         # 炸弹
         if cards.count(cards[0]) == 4:
             if card_type["boomType"] == 1 or card_type["boomType"] == 2:
-                return CardType.Lin_FourBoom
+                return CardType.Lin_FourBoom  # 炸弹四张
             else:
-                return CardType.Spc_OnlyFour
+                return CardType.Spc_OnlyFour  # 四张(此牌型只在四代一为炸弹下使用)
         # 三带一
         if cards.count(cards[0]) == 3 or cards.count(cards[1]) == 3:
             if card_type["threeAndOne"]:
-                return CardType.Com_ThreeWithSingle
+                return CardType.Com_ThreeWithSingle  # 三带一
             else:
-                return CardType.Com_Invalid
+                return CardType.Com_Invalid  # 无效牌
         # 二联对
         if card_type["doubleCount"] == 2:
             cards.sort()
             if cards.count(cards[0]) == cards.count(cards[-1]) and cards[0] + 1 == cards[-1]:
-                return CardType.Lin_ShortDouble
-        return CardType.Com_Invalid
+                return CardType.Lin_ShortDouble  # 短连对
+        return CardType.Com_Invalid  # 无效牌
 
     elif length == 5:
         cards.sort()
         # 顺子
         if is_continuous_single(cards):
-            return CardType.Com_ContinuousSingle
+            return CardType.Com_ContinuousSingle  # 顺子
         # 四带一
         if cards.count(cards[0]) == 4 or cards.count(cards[-1]) == 4:
             if card_type["boomType"] == 3:
-                return CardType.Lin_FourBoomWithSingle
+                return CardType.Lin_FourBoomWithSingle  # 四带一炸弹
         # 三带二
         if cards.count(cards[0]) == 3 or cards.count(cards[1]) == 3 or cards.count(cards[2]) == 3:
             # if card_type["boomType"] == 3 or card_type["boomType"] == 1:
@@ -931,39 +935,39 @@ def get_cards_type(correct_cards, card_type):
             #         return CardType.Com_Invalid
             # 最后一张牌有两张，三带一对
             if card_type['threeAndDouble'] and (cards.count(cards[0]) == 2 or cards.count(cards[-1]) == 2):
-                return CardType.Lin_ThreeWithDouble
+                return CardType.Lin_ThreeWithDouble  # 三带一对
             # 最后两张牌只有一张,三带两单
             if card_type['threeAndTwoSingle'] and (cards.count(cards[0]) == 1 or cards.count(cards[-1]) == 1):
-                return CardType.Lin_ThreeWithTwo
+                return CardType.Lin_ThreeWithTwo  # 3带2
         return CardType.Com_Invalid
     elif length > 5:
         # 顺子
         if is_continuous_single(cards):
-            return CardType.Com_ContinuousSingle
+            return CardType.Com_ContinuousSingle  # 顺子
         # 连对
         elif is_continuous_double(cards):
-            return CardType.Com_LongDouble
+            return CardType.Com_LongDouble  # 长联对
         # 飞机(默认)
         elif is_plane_with_nothing(cards) and card_type["haveThree"]:
-            return CardType.Spc_OnlyPlan
+            return CardType.Spc_OnlyPlan  # 飞机不带（此牌型只在最后一手牌判断使用）
         elif is_plane_with_single(cards) and card_type["threeAndOne"]:
-            return CardType.Com_PlaneWithSingle
+            return CardType.Com_PlaneWithSingle  # 默认3带1飞机
         # 飞机（规则）
         elif is_plane_with_double(cards) and card_type["threeAndDouble"]:
-            return CardType.Lin_PlaneWithDouble
+            return CardType.Lin_PlaneWithDouble  # 3带对飞机
         elif is_plane_with_two(cards) and card_type["threeAndTwoSingle"]:
-            return CardType.Com_PlaneWithTwo
+            return CardType.Com_PlaneWithTwo  # 3带2飞机
         # # 3带2张任意牌飞机
         # elif is_plane_with_two_any(cards) and (card_type["threeAndDouble"] and card_type["threeAndTwoSingle"]):
         #     return CardType.Com_PlaneWithTwo
         # 四带二
         elif is_four_with_two(cards) and card_type["fourAndDouble"]:
-            return CardType.Lin_FourWithTwoSingle
+            return CardType.Lin_FourWithTwoSingle  # 四带二
         # 四带三
         elif is_four_with_three(cards) and card_type["fourAndThree"]:
-            return CardType.Lin_FourWithThreeSingle
+            return CardType.Lin_FourWithThreeSingle  # 四带三
         else:
-            return CardType.Com_Invalid
+            return CardType.Com_Invalid  # 无效牌
 
 
 # 以下为牌型判断函数

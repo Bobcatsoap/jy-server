@@ -7,6 +7,7 @@ import random
 import time
 
 import KBEngine
+from KBEDebug import *
 import collections
 import Const
 import DBCommand
@@ -164,6 +165,7 @@ class TeaHouse(KBEngine.Entity):
                 account_manager().modify_room_card(databaseID, room_card_consume, consume_type='saveRooms',
                                                    record_sql=False)
             for info in _copy:
+                # TODO 报错
                 baseRef.create_tea_house_room(info, creator_entity=baseRef, record_sql=False)
 
         KBEngine.createEntityFromDBID("Account", self.creatorDBID, callback)
@@ -1873,7 +1875,7 @@ class TeaHouse(KBEngine.Entity):
 
         # 排序优先级,权限>在线状态,权限大的在前，在线状态为True的在前
         members_info.sort(key=lambda x: (-x['level'], -x['state']))
-
+        # INFO_MSG('[base TeaHouse] request_db_id request_db_id %s' % str(request_db_id))
         # 如果是客户端请求
         if request_db_id != -1:
             request_entity = get_account_entity_with_db_id(request_db_id)
@@ -1988,6 +1990,7 @@ class TeaHouse(KBEngine.Entity):
                 performance_detail = []
                 if k in self.performance_detail.keys():
                     performance_detail = self.performance_detail[k]
+
                 yesterday_performance, today_performance = self.get_today_and_yesterday(performance_detail)
                 p = {"name": v.name, "headImageUrl": v.head_image, "belongTo": v.belong_to,
                      "invitationCode": v.invitation_code, "proportion": v.proportion,
@@ -1996,7 +1999,8 @@ class TeaHouse(KBEngine.Entity):
                      "performance": round(v.performance, 2),
                      'todayData': round(today_performance, 2),
                      'yesterdayData': round(yesterday_performance, 2),
-                     "turnInPerformance": round(v.turn_in_performance, 2)}
+                     "turnInPerformance": round(v.turn_in_performance, 2),
+                     }
                 partner_info.append(p)
 
         return partner_info
@@ -2644,6 +2648,7 @@ class TeaHouse(KBEngine.Entity):
         belong_members_id = []
         for k, v in self.memberInfo.items():
             if self.is_down_player(k, account_db_id):
+                # INFO_MSG('[base is_down_player] account_db_id %s  k %s' % (str(account_db_id), str(k)))
                 belong_members_id.append(k)
 
         return belong_members_id
@@ -3200,19 +3205,49 @@ class TeaHousePlayerLevel:
     Creator = 100
     # 合伙人/战队长
     Partner = 50
+    BigCaptain = 45   # 大队长
     # 队长
     Captain = 40
     # 中队长
     MediumCaptain = 30
     # 小队长
     SmallCaptain = 28
+    BigTeamLeader = 25  # BigTeamLeader
     # 组长
     TeamLeader = 24
     # 中组长
     MediumTeamLeader = 20
     # 小组长
     SmallTeamLeader = 15
+    BigAdmin = 14  # BigAdmin
+    MediumAdmin = 13  # MediumAdmin
     # 助理
     Admin = 10
+    SmallAdmin = 9  # SmallAdmin
     # 普通成员
     Normal = 1
+
+
+
+
+# class TeaHousePlayerLevel:
+#     # 创建者
+#     Creator = 100
+#     # 合伙人/战队长
+#     Partner = 50
+#     # 队长
+#     Captain = 40
+#     # 中队长
+#     MediumCaptain = 30
+#     # 小队长
+#     SmallCaptain = 28
+#     # 组长
+#     TeamLeader = 24
+#     # 中组长
+#     MediumTeamLeader = 20
+#     # 小组长
+#     SmallTeamLeader = 15
+#     # 助理
+#     Admin = 10
+#     # 普通成员
+#     Normal = 1

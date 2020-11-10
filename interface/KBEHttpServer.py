@@ -46,6 +46,7 @@ def wx_code(req, resp):
     _account = "w*" + _open_id
     _password = "123456"
     _r_dic = {"access_token": _asset_token, "account": _account, "password": _password, "refresh_token": _dic["refresh_token"]}
+    INFO_MSG('[_r_dic] wx_code access_token = %s account = %s password=%s refresh_token=%s' % (_asset_token, _account, _password, _dic["refresh_token"]))
     resp.body = json.dumps(_r_dic).encode()
     resp.end()
 

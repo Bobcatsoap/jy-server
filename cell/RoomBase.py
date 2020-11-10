@@ -505,6 +505,7 @@ class RoomBase(KBEngine.Entity):
             # 如果两个玩家都有经纬度
             if player_entity.info["latitude"] and player_entity.info["longitude"] and \
                     account_entity.info["longitude"] and account_entity.info["latitude"]:
+                # 获取两个玩家距离  E距离
                 distance = Util.getdistance(account_entity.info["longitude"], account_entity.info["latitude"],
                                             player_entity.info["longitude"], player_entity.info["latitude"])
                 distance_info[player_entity.id] = round(distance * 1000, 2)

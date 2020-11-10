@@ -78,7 +78,7 @@ class RoomType13(RoomBase):
 
     # 牌局状态机，根据状态执行流程（待优化）
     def changeChapterState(self, state):
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _chapter["currentState"] = state  # 当前房间状态
         # 牌局准备状态
         if state == 0:
@@ -93,7 +93,7 @@ class RoomType13(RoomBase):
             # self.auto_ready_for_player_in_game()
         # 牌局开始、发牌状态
         elif state == 1:
-            self.set_current_round(self.cn + 1)
+            self.set_current_round(self.cn + 1)  # self.cn 当前局数下标
             _args = {"state": state, "Timer": _timeDealCardToPlayer}
             self.callOtherClientsFunction("changeChapterState", _args)
             # 发牌
@@ -119,7 +119,7 @@ class RoomType13(RoomBase):
             for k, v in _chapter["playerInGame"].items():
                 self.player_ready(k, False)
             # 如果是正常大结算
-            if self.cn + 1 >= self.info["maxChapterCount"]:
+            if self.cn + 1 >= self.info["maxChapterCount"]:  # E self.cn 当前局数下标   E maxChapterCount 最大局数
                 self.changeChapterState(5)
             else:
                 # 整理结算信息
@@ -134,7 +134,7 @@ class RoomType13(RoomBase):
 
     # 计时器
     def onTimer(self, timer_handle, user_data):
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInGame = _chapter["playerInGame"]
         # 发牌动画完成以后切换牌局状态机状态
         if timer_handle == _chapter["dealCardAnimationTimerId"]:
@@ -178,7 +178,7 @@ class RoomType13(RoomBase):
         elif timer_handle == _chapter["settlementTimer"]:
             self.delTimer(timer_handle)
             _chapter["settlementTimer"] = -1
-            if self.cn + 1 >= self.info["maxChapterCount"]:
+            if self.cn + 1 >= self.info["maxChapterCount"]:  # self.cn 当前局数下标
                 pass
             else:
                 self.chapter_clear()
@@ -238,6 +238,9 @@ class RoomType13(RoomBase):
     # ================================================================================================================
     # 当有玩家进入房间
     def onEnter(self, accountEntityId):
+        """
+        E玩家进入
+        """
         # 初始化位置
         if self.InitRoom == 1:
             self.emptyLocationIndex = list(range(0, self.info["maxPlayersCount"]))
@@ -248,7 +251,7 @@ class RoomType13(RoomBase):
         if not RoomBase.onEnter(self, accountEntityId):
             return
         # 获取当前局数信息
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息 self.cn 当前局数下标
         # 如果当前人数已满，将玩家踢出
         # if len(_chapter["playerInRoom"]) >= self.info["maxPlayersCount"] and \
         #         accountEntityId not in _chapter["playerInRoom"] and accountEntityId not in _chapter["playerOutGame"]:
@@ -278,7 +281,7 @@ class RoomType13(RoomBase):
         # 向玩家发送当前的牌局状态
         self.send_chapter_state(accountEntityId)
         # 如果当前的牌局在准备状态，牌局还未开始，座位还未坐满
-        if _chapter["currentState"] == 0 and not self.started and len(self.emptyLocationIndex) != 0:   # 当前房间状态
+        if _chapter["currentState"] == 0 and not self.started and len(self.emptyLocationIndex) != 0:  # 当前房间状态
             if len(_chapter["playerInGame"]) < self.info["maxPlayersCount"]:
                 self.set_seat(accountEntityId, self.emptyLocationIndex[0])
                 _account.update_player_stage(Account.PlayerStage.NO_READY)
@@ -295,6 +298,7 @@ class RoomType13(RoomBase):
                 self.ret_out_game_player_info(k)
             # 给进入的玩家发送牌局信息（或者重连玩家）
             self.ret_chapter_info(accountEntityId)
+            # 更新玩家的游戏阶段 观战、未准备、已准备、游戏中
             _account.update_player_stage(Account.PlayerStage.WATCHING)
 
     # 玩家进入房间后点击准备
@@ -304,7 +308,7 @@ class RoomType13(RoomBase):
         E准备
         """
         # 获取牌局信息
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         # 拿到牌局玩家信息
         _player = chapter["playerInGame"][account_id]
         # 如果是比赛场,准备时金币不能小于0
@@ -337,7 +341,7 @@ class RoomType13(RoomBase):
         :param account_id:
         :return:
         """
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息 self.cn 当前局数下标
         # 1 在房间中的人
         _playerInRoom = chapter["playerInRoom"]
         # 1 在游戏中的人
@@ -377,23 +381,25 @@ class RoomType13(RoomBase):
         # 将房间状态修正为开始
         self.started = True
         self.info["started"] = True
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息 self.cn 当前局数下标
         # 获取当前所有牌局玩家信息
         _playerInGame = chapter["playerInGame"]
         # 金币场扣除房费
         if self.is_gold_session_room():
             for k, v in _playerInGame.items():
                 v['gold'] -= self.info['roomRate']
-                self.set_base_player_gold(k)   # 设置玩家金币数量
+                self.set_base_player_gold(k)  # 设置玩家金币数量
 
         # 起始局
-        if self.cn == 0:
+        if self.cn == 0:  # self.cn 当前局数下标
             # 将坐下玩家的数据库ID发送到base用于更新房间状态给客户端
             player_in_game_db_id = []
-            for k, v in self.chapters[self.cn]["playerInGame"].items():
-                player_in_game_db_id.append(v["entity"].info["dataBaseId"])
+            for k, v in self.chapters[self.cn]["playerInGame"].items():  # 遍历玩家
+                player_in_game_db_id.append(v["entity"].info["dataBaseId"])  # 添加玩家id到列表
+                # 游戏阶段 PLAYING 游戏开始
                 self.player_entity(v).update_player_stage(Account.PlayerStage.PLAYING, self.max_chapter_count,
                                                           self.current_chapter_count)
+            # 通知客户端返回房间
             self.notify_viewing_hall_players_chapter_start()
             self.base.cellToBase(
                 {"func": "roomStart",
@@ -402,13 +408,15 @@ class RoomType13(RoomBase):
             )
             # 房间开始，并且人未满时创建新的房间(onRoomEnd为true时插入在当前房间后面)
             if len(_playerInGame) < self.info['maxPlayersCount']:
+                # 通知客户端自动创建房间
                 self.base.cellToBase({"func": "autoCreateRoom", "roomInfo": self.info})
-        self.base.cellToBase({"func": "newChapter", "count": self.cn + 1})
+        # 通知通知客户端创建牌局
+        self.base.cellToBase({"func": "newChapter", "count": self.cn + 1})  # self.cn 当前局数下标
 
     # 生成一个牌局内玩家信息
     def newPlayer(self, accountEntity):
         # 获取当前的游戏牌局信息
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息 self.cn 当前局数下标
         # 牌局玩家信息字典
         _player = {}
         # 准备
@@ -571,8 +579,8 @@ class RoomType13(RoomBase):
         _chapter["max_boom"] = []
         # 把赢家放走的人
         _chapter['letPlayer'] = -1
-        self.chapters.append(_chapter)
-        self.cn = len(self.chapters) - 1
+        self.chapters.append(_chapter)  # self.chapters 牌局信息
+        self.cn = len(self.chapters) - 1  # self.chapters 牌局信息  self.cn 当前局数下标
 
         return _chapter
 
@@ -593,7 +601,7 @@ class RoomType13(RoomBase):
 
     # 给坐下玩家发送观战玩家信息
     def ret_out_game_player_info(self, accountId=-1):
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerOutGameNotEntity = {}
         for k, v in _chapter["playerOutGame"].items():
             _player = {
@@ -615,7 +623,7 @@ class RoomType13(RoomBase):
 
     # 重连时发送当前牌桌信息或者发送给观战玩家信息
     def ret_chapter_info(self, account_id):
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         play_in_game = chapter["playerInGame"]
         # 剔除不存在房间里的人
         for _entity_id in self.wait_to_seat:
@@ -628,7 +636,8 @@ class RoomType13(RoomBase):
         chapter_info = {"currentRound": int(chapter["currentRound"]),
                         "prePlayerPlayCards": self.change_value_to_client(chapter["prePlayerPlayCards"]),
                         "deadline": int(chapter["deadline"]) - int(time.time()), "prePlayer": int(chapter["prePlayer"]),
-                        "currentState": int(chapter["currentState"]), "currentPlayer": int(chapter["currentPlayer"]),   # 当前房间状态
+                        "currentState": int(chapter["currentState"]), "currentPlayer": int(chapter["currentPlayer"]),
+                        # 当前房间状态
                         "prePlayerPlayCardsType": RoomType13Calculator.get_cards_type(
                             chapter["prePlayerPlayCards"], self.info).value, "started": self.info["started"],
                         "disbandSender": self.disband_sender, "isDisbanding": self.is_disbanding,
@@ -671,7 +680,7 @@ class RoomType13(RoomBase):
         :return:
         """
         DEBUG_MSG('[Room id %i]------>setSeat accountId %s, locationIndex %s ' % (self.id, accountId, locationIndex))
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         if accountId not in _chapter["playerOutGame"]:
             return
         for player in _chapter["playerInGame"].values():
@@ -702,7 +711,7 @@ class RoomType13(RoomBase):
 
         :return:广播房间内所有玩家状态
         """
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInGameNotEntity = {}
         _playerOutGameNotEntity = {}
         player_in_game_to_base = {}
@@ -751,7 +760,7 @@ class RoomType13(RoomBase):
         """
         E发牌
         """
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         # _playerInGame = _chapter["playerInGame"]
         # if len(_playerInGame) != self.info["maxPlayersCount"]:
         #     DEBUG_MSG('player count is error: % i' % len(_playerInGame))
@@ -779,7 +788,7 @@ class RoomType13(RoomBase):
     # 获取第一个出牌玩家的accountid 并设置出牌身份
     def get_first_out_card_pos(self):
         self.base.cellToBase({"func": "changeRoomState", "roomState": 1})
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         # 牌局出牌的第一个玩家
         chapter["startAccountId"] = -1
         # 出牌玩家结果类型通知前端的值
@@ -787,7 +796,7 @@ class RoomType13(RoomBase):
         # 赢家先出
         if self.info["outCradType"] == 1:
             # 如果是第一局，随便拿到第一个人
-            if self.cn == 0:
+            if self.cn == 0:  # self.cn 当前局数下标
                 over_result = 0
                 chapter["startAccountId"] = self.banker_area_random(list(chapter["playerInGame"].keys()))
                 self.set_base_player_banker_history2(chapter)
@@ -835,7 +844,7 @@ class RoomType13(RoomBase):
 
     # 播放定庄动画计时器
     def send_info_to_clients_fun(self, call_type):
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInGame = _chapter["playerInGame"]
         _chapter["setPosAnimationTimerId"] = self.addTimer(_timeHadLocalPlans, 0, 0)
         _chapter["deadline"] = time.time() + _timeHadLocalPlans
@@ -854,14 +863,14 @@ class RoomType13(RoomBase):
         :param current_round:
         :return:
         """
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _chapter["currentRound"] = current_round
         _args = {"currentRound": _chapter["currentRound"]}
         self.callOtherClientsFunction("RetCurrentRound", _args)
 
     # 手牌展示
     def showCards(self):
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         chapter["showCardTime"] = self.addTimer(_timeShowCard, 0, 0)
         chapter["deadline"] = time.time() + WAIT_TIME_LEN_ON_PLAY_OFFLINE
         player_list_card = {}
@@ -881,9 +890,9 @@ class RoomType13(RoomBase):
         chapter['recordCards'] = player_list_card.copy()
 
     # 改变出牌玩家
-    def change_play_card_player(self, account_id):
+    def change_play_card_player(self, account_id) -> None:
         DEBUG_MSG("change_play_card_player process %s" % account_id)
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         # 遍历游戏中的玩家
         _player = None
         for k, v in chapter["playerInGame"].items():
@@ -901,27 +910,27 @@ class RoomType13(RoomBase):
         # 判断出牌玩家是否在线
         # 玩家掉线、打不住时计时变短
         wait_time_length = self.play_card_time
-        have_bigger = self.have_big_in_player(account_id)
+        have_bigger = self.have_big_in_player(account_id)  # 判断玩家手中是否有大过的牌
         add_server_timer = True
         _player["allowAutoPlayCheck"] = False
         if self.play_card_time != 0:
             if self.is_auto_play_card(account_id):
-                wait_time_length = WAIT_TIME_LEN_ON_PLAY_OFFLINE
+                wait_time_length = WAIT_TIME_LEN_ON_PLAY_OFFLINE  # 离线出牌时间
             elif self.is_player_offline(account_id):
-                wait_time_length = WAIT_TIME_LEN_ON_PLAY_OFFLINE
+                wait_time_length = WAIT_TIME_LEN_ON_PLAY_OFFLINE  # 离线出牌时间
             else:
                 if have_bigger:
-                    wait_time_length = self.play_card_time
+                    wait_time_length = self.play_card_time  # 出牌时间
                     _player["allowAutoPlayCheck"] = True
                 else:
-                    wait_time_length = WAIT_TIME_LEN_ON_PLAY_OFFLINE
+                    wait_time_length = WAIT_TIME_LEN_ON_PLAY_OFFLINE  # 离线出牌时间
         else:
             # 没开定时器
             wait_time_length = 60
             if have_bigger:
                 add_server_timer = False
             else:
-                wait_time_length = WAIT_TIME_LEN_ON_PLAY_OFFLINE
+                wait_time_length = WAIT_TIME_LEN_ON_PLAY_OFFLINE  # 离线出牌时间
 
         if add_server_timer:
             chapter["playCardTimer"] = self.addTimer(wait_time_length, 0, 0)
@@ -951,7 +960,7 @@ class RoomType13(RoomBase):
 
     # 是不是最后一手牌
     def is_last_count_in_player(self, account_id):
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         # 先判断是不是当前玩家出牌
         if chapter["playerInGame"][account_id]["locationIndex"] == chapter["currentLocationIndex"]:
             # 判断玩家是不是首发出牌
@@ -985,14 +994,18 @@ class RoomType13(RoomBase):
         return False, card_type
 
     # 判断玩家手中是否有大过的牌
-    def have_big_in_player(self, account_id):
+    def have_big_in_player(self, account_id) -> bool:
+        """
 
-        chapter = self.chapters[self.cn]
+        """
+
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         chapter["playerInGame"][account_id]["cards"].sort()
+        #  获取card2中与card1牌型一样的牌或者大的牌型
         bigger_cards = RoomType13Calculator.find_greater_cards(chapter["prePlayerPlayCards"],
                                                                chapter["playerInGame"][account_id]["cards"], self.info)
         DEBUG_MSG("have_big_in_player %s" % bigger_cards)
-        if bigger_cards:
+        if bigger_cards:  # 如果有大过的牌
             return True
         if chapter["prePlayer"] == -1 or chapter["prePlayer"] == account_id:
             return True
@@ -1001,10 +1014,11 @@ class RoomType13(RoomBase):
     # 玩家出牌
     def player_play_cards(self, account_id, client_cards):
         """
+        E玩家出牌
         玩家请求出牌
         """
         # 阶段判断
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         if chapter['currentState'] != 3:  # 当前房间状态
             return
         # 转换成服务端的牌值
@@ -1038,8 +1052,9 @@ class RoomType13(RoomBase):
             self.send_player_cards(account_id, 0, client_cards, RoomType13Calculator.CardType.Com_Invalid)
             return
 
-        # 获取玩家出的牌型
+        # TODO 获取玩家出的牌型 如单张 一对 三带一 炸弹
         server_cards_type = RoomType13Calculator.get_cards_type(server_cards, self.info)
+
         if server_cards_type == RoomType13Calculator.CardType.Com_Invalid and server_cards:
             self.send_player_cards(account_id, -1, client_cards, server_cards_type)
             return
@@ -1135,7 +1150,7 @@ class RoomType13(RoomBase):
             self.send_player_cards(account_id, -1, client_cards, server_cards_type)
 
     def play_tips(self, account_id):
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         bigger_cards = RoomType13Calculator.find_greater_cards_can_split_boom(chapter["prePlayerPlayCards"],
                                                                               chapter["playerInGame"][account_id][
                                                                                   "cards"], self.info)
@@ -1189,7 +1204,10 @@ class RoomType13(RoomBase):
 
     # 发送玩家出牌
     def send_player_cards(self, account_id, result, client_cards, cards_type):
-        chapter = self.chapters[self.cn]
+        """
+        TODO 发送玩家出牌
+        """
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         if result == 0:
             client_cards = []
             cards_type = RoomType13Calculator.CardType.Com_Invalid
@@ -1232,7 +1250,7 @@ class RoomType13(RoomBase):
             for i in server_cards:
                 if i in player_cards:
                     player_cards.remove(i)
-                player_played_cards.append(i)
+                player_played_cards.append(i)  # E玩家已出牌堆
             # 此玩家的出牌次数更新
             chapter["playerInGame"][account_id]["playCount"] += 1
             count_time = chapter["playerInGame"][account_id]["playCount"]
@@ -1262,7 +1280,7 @@ class RoomType13(RoomBase):
 
     # 统计炸弹分(待优化)
     def boom_score_for_total(self, server_cards, cards_type, account_id):
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         if cards_type == RoomType13Calculator.CardType.Lin_FourBoom or \
                 cards_type == RoomType13Calculator.CardType.Lin_MaxBoomForFour or \
                 cards_type == RoomType13Calculator.CardType.Lin_MaxBoomWithSingle or \
@@ -1298,7 +1316,7 @@ class RoomType13(RoomBase):
         轮到玩家出牌，自动出牌
         """
         DEBUG_MSG("get_info_and_change_player: %s" % account_id)
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         send_card = []
         chapter["playerInGame"][account_id]["cards"].sort()
         # 判断当前出牌玩家的下一家手牌长度
@@ -1560,7 +1578,7 @@ class RoomType13(RoomBase):
 
     # 发送小局结算处理(待优化)
     def settlement(self):
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         # 结算信息
         settlement_info = {}
         # 输分统计
@@ -1774,6 +1792,9 @@ class RoomType13(RoomBase):
 
     # 总结算
     def total_settlement(self, is_disband=False):
+        """
+        总结算
+        """
         if self.total_settlement_ed:  # 总结算设置位
             return
         DEBUG_MSG("is_disband:%s" % is_disband)
@@ -1782,7 +1803,7 @@ class RoomType13(RoomBase):
         # 1 设置总结算为True
         self.total_settlement_ed = True
         # 1 当前牌局
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         player_settlement_info_s = {}
         # 抽奖
         max_winner_id = -1
@@ -1814,7 +1835,7 @@ class RoomType13(RoomBase):
 
         for k, v in chapter["playerInGame"].items():
             if self.info["roomType"] == "gameCoin":
-                self.set_base_player_game_coin(k)
+                self.set_base_player_game_coin(k)  # 设置玩家比赛分数量
             else:
                 self.set_base_player_gold(k)  # 设置玩家金币数量
 
@@ -1839,11 +1860,11 @@ class RoomType13(RoomBase):
     def get_max_winner(self, chapter):
         winner = {}
         max_win = 0
-        for k, v in self.chapters[self.cn]['playerInGame'].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():  # self.chapters 牌局信息  self.cn 当前局数下标
             if v['totalGoldChange'] >= max_win:
                 max_win = v['totalGoldChange']
 
-        for k, v in self.chapters[self.cn]['playerInGame'].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():  # self.chapters 牌局信息 self.cn 当前局数下标
             if v['totalGoldChange'] == max_win:
                 winner[k] = v
 
@@ -1926,7 +1947,7 @@ class RoomType13(RoomBase):
         """
         if self.info['roomType'] != 'gameCoin':
             return
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInRoom = _chapter["playerInRoom"]
         _player = _playerInRoom[accountId]
         _player["entity"].accountMutableInfo["gameCoin"] = self.round_int(_player['gold'])
@@ -1936,7 +1957,7 @@ class RoomType13(RoomBase):
 
     # 结算统计
     def cl_card_chapter(self):
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         # 1 通知base端是AA支付扣除钻石扣除钻石
         if self.info['payType'] == Const.PayType.AA:
             need_consume = []
@@ -1951,7 +1972,7 @@ class RoomType13(RoomBase):
 
     # 清理房间
     def chapter_clear(self):
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInGame = _chapter["playerInGame"]
         _playerInRoom = _chapter["playerInRoom"]
         _playerOutGame = _chapter["playerOutGame"]
@@ -1978,7 +1999,7 @@ class RoomType13(RoomBase):
 
     # 确定大结算方式
     def set_time_for_total(self):
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         # 如果是正常大结算
         if self.settlement_count >= self.info["maxChapterCount"]:
             self.total_settlement()
@@ -1986,7 +2007,7 @@ class RoomType13(RoomBase):
             self.total_settlement(is_disband=True)
 
     # 获取下家手牌长度仅一张（此处为保单顶大辅助函数）
-    def is_only_left_one_for_next_player(self, account_id, _cp):
+    def is_only_left_one_for_next_player(self, account_id, _cp) -> bool:
         # 获取下个玩家的id
         next_account = self.get_next_player_with_account_id(account_id)
         # DEBUG_MSG("is_only_left_one_for_next_player %s %s %s" % (account_id, next_account, len(_cp["playerInGame"])))
@@ -1999,12 +2020,12 @@ class RoomType13(RoomBase):
     # ==================================================================================================================
     # 向玩家发送当前的牌局状态
     def send_chapter_state(self, accountEntityId):
-        _chapter = self.chapters[self.cn]
-        self.callClientFunction(accountEntityId, "ChapterState", {"state": _chapter["currentState"]})   # 当前房间状态
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息   self.cn 当前局数下标
+        self.callClientFunction(accountEntityId, "ChapterState", {"state": _chapter["currentState"]})  # 当前房间状态
 
     # 获取玩家准备数量
     def get_player_in_game_count(self):
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         return len(_chapter["playerInGame"])
 
     # todo:临时方案，6.28修改
@@ -2059,7 +2080,7 @@ class RoomType13(RoomBase):
 
     # 如果有玩家手里有飞机，重新洗牌
     def init_deal_cards(self):
-        all_cards = self.wash_cards()
+        all_cards = self.wash_cards()  # 洗牌
         # # 如果开启了三带一对或者
         # if self.info['threeAndDouble'] or self.info['threeAndTwoSingle']:
         #     for i in range(200):
@@ -2099,15 +2120,15 @@ class RoomType13(RoomBase):
                     good_index = cards_index
             return good_index
 
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInGame = _chapter["playerInGame"]
         player_cards_data = []
 
         # 有人输的太多的话，需要发好牌
         is_in_rand_range = self.is_need_rand_score_control("RoomType13")
-        luck_player = None
+        luck_player = None  # 幸运玩家
         if is_in_rand_range:
-            luck_player = self.select_max_loser(_playerInGame.values())
+            luck_player = self.select_max_loser(_playerInGame.values())  # 选择输分最多的人作为幸运玩家
             # if luck_player:
             #     self.callClientFunction(luck_player['entity'].id, 'Notice', ['发好牌'])
 
@@ -2145,7 +2166,7 @@ class RoomType13(RoomBase):
 
         #  给幸运玩家发好牌
         if max_loser > 0:
-            good_index = find_good_cards(all_cards)
+            good_index = find_good_cards(all_cards)  # A多的牌为好牌
             _playerInGame[max_loser]["cards"] = all_cards[good_index]
             del all_cards[good_index]
             player_cards_data.append(
@@ -2175,7 +2196,7 @@ class RoomType13(RoomBase):
 
     # 获取准备玩家信息
     def get_ready_player(self):
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         ready_players = []
         for k, v in chapter["playerInGame"].items():
             if v["ready"]:
@@ -2186,8 +2207,8 @@ class RoomType13(RoomBase):
         """
         判断所有玩家是否准备完毕
         """
-        chapter = self.chapters[self.cn]
-        if self.is_less_mode:   # 少人模式
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
+        if self.is_less_mode:  # 少人模式
             if len(chapter["playerInGame"]) < 2:
                 return False
         elif len(chapter["playerInGame"]) != self.info["maxPlayersCount"]:
@@ -2200,20 +2221,24 @@ class RoomType13(RoomBase):
     # 玩家自动准备
     def auto_ready_for_player_in_game(self):
         # 第二局以后开始自动准备不超过最大局数
-        _chapter = self.chapters[self.cn]
-        if self.cn > 0:
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
+        if self.cn > 0:  # self.cn 当前局数下标
             for k, v in _chapter["playerInGame"].items():
                 self.player_ready(k)
 
     # 判断玩家手中是有指定的牌
     def get_card_value_for_want(self, ScoureCard, FindCard):
+        """
+        params: ScoureCard list
+                FindCard   int
+        """
         if ScoureCard.count(FindCard):
             return True
         return False
 
     # 获取手牌最小的玩家
     def find_min_card(self):
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         min_card = 15.1
         min_account_id = -1
         for k, v in _chapter["playerInGame"].items():
@@ -2225,7 +2250,7 @@ class RoomType13(RoomBase):
 
     # 检查牌局是否结束
     def check_chapter_over(self):
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         for k, v in chapter["playerInGame"].items():
             if len(v["cards"]) == 0:
                 chapter["winner"] = k
@@ -2254,6 +2279,10 @@ class RoomType13(RoomBase):
 
     # 转换成服务器的值
     def change_value_to_server(self, cards):
+        """
+        前端传入的牌
+        把前端转入的牌 转换成服务器的值
+        """
         if len(cards) == 0:
             return []
         card_nums = []
@@ -2318,12 +2347,16 @@ class RoomType13(RoomBase):
 
     # 出牌是否比上家大
     def is_current_card_greater(self, current_cards, pre_cards):
+        # 同牌型比较 必须是同牌型，同长度
         return RoomType13Calculator.compare_cards(current_cards, pre_cards, self.info)
 
     # 获取下一个玩家id
-    def get_next_player_with_account_id(self, account_id):
+    def get_next_player_with_account_id(self, account_id) -> int:
+        """
+        获取下一个游戏玩家id
+        """
         location_index = -1
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         for k, v in chapter["playerInGame"].items():
             if account_id == k:
                 location_index = v["locationIndex"]
@@ -2341,7 +2374,7 @@ class RoomType13(RoomBase):
 
     # 根据玩家位置获取玩家
     def get_player_with_location_index(self, location_index):
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息
         for k, v in chapter["playerInGame"].items():
             if location_index == v["locationIndex"]:
                 return k
@@ -2349,7 +2382,7 @@ class RoomType13(RoomBase):
     # 1 关闭所有的定时器
     def close_all_timer(self):
         DEBUG_MSG("************************stop all timer*********************************************")
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         chapter["goToNext"] = -1
         self.delTimer(chapter["goToNext"])
         chapter["showLastTime"] = -1
@@ -2377,7 +2410,7 @@ class RoomType13(RoomBase):
     def start_next_chapter(self, account_id):
         if self.total_settlement_ed:  # 总结算设置位
             return
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         if account_id not in chapter['playerInGame']:
             return
 
@@ -2407,7 +2440,7 @@ class RoomType13(RoomBase):
         # 至少打一局才写入库中
         # if self.settlement_count < 1:
         #     return
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInGame = _chapter["playerInGame"]
         _playerData = {}
         _playerInfo = []
@@ -2417,10 +2450,10 @@ class RoomType13(RoomBase):
         # 存储回放数据
         replay_data = {"chapterInfo": {}}
         # 判断如果最后一局未到结算状态，不计入战绩
-        chapter_record_max_count = self.cn + 1
+        chapter_record_max_count = self.cn + 1  # self.cn 当前局数下标
         # 1 循环所有局数
         for c in range(0, chapter_record_max_count):
-            chapter_info = self.chapters[c]
+            chapter_info = self.chapters[c]  # self.chapters 牌局信息
             chapter_players_data = []
             # 循环牌局中的玩家信息
             for k, v in chapter_info["playerInGame"].items():
@@ -2483,7 +2516,7 @@ class RoomType13(RoomBase):
         player_online = True
         DEBUG_MSG('[Room id %i]------>onLeave accountId %s, emptyLocationIndex %s' % (
             self.id, account_entity_id, self.emptyLocationIndex))
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInRoom = _chapter["playerInRoom"]
         _playerInGame = _chapter["playerInGame"]
         _playerOutGame = _chapter["playerOutGame"]
@@ -2607,11 +2640,10 @@ class RoomType13(RoomBase):
             # 改变牌局状态机状态(流程移交状态机)
             self.changeChapterState(1)
 
-
     # 客户端进程死亡
     def onPlayerClientDeath(self, accountEntity):
         DEBUG_MSG("RoomType13 onPlayerClientDeath accountId:%s" % accountEntity)
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
 
         for k, v in chapter["playerInGame"].items():
             if v["entity"] == accountEntity:
@@ -2639,11 +2671,11 @@ class RoomType13(RoomBase):
                 :return:
                 """
         DEBUG_MSG('[Room id %i]------>onLeave accountId %s' % (self.id, accountEntityId))
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInRoom = _chapter["playerInRoom"]
         _playerInGame = _chapter["playerInGame"]
         _playerOutGame = _chapter["playerOutGame"]
-        _currentState = _chapter["currentState"]   # 当前房间状态
+        _currentState = _chapter["currentState"]  # 当前房间状态
         if accountEntityId in _playerInGame:
             _player = _playerInGame[accountEntityId]
             _playerInGame.pop(accountEntityId)
@@ -2690,7 +2722,7 @@ class RoomType13(RoomBase):
 
     # 换桌
     def change_table(self, account_id):
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInRoom = _chapter["playerInRoom"]
         _playerInGame = _chapter["playerInGame"]
         _playerOutGame = _chapter["playerOutGame"]
@@ -2716,7 +2748,7 @@ class RoomType13(RoomBase):
         群主解散房间
         :return:
         """
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         player_in_game = _chapter["playerInGame"].copy()
         self.disband_from_creator = True
         if not self.started:
@@ -2725,8 +2757,8 @@ class RoomType13(RoomBase):
             else:
                 self.autoDestroy()
             return
-
-        if self.chapters[self.cn]["currentState"] != 5:  # 当前房间状态
+        # self.chapters 牌局信息
+        if self.chapters[self.cn]["currentState"] != 5:  # 当前房间状态  self.cn 当前局数下标
             self.changeChapterState(5)
 
     # 获取玩家距离
@@ -2736,7 +2768,7 @@ class RoomType13(RoomBase):
         :param account_id:
         :return:
         """
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         player_entity_id_s = []
         player_in_game = _chapter["playerInGame"]
         distance_info = {}
@@ -2815,7 +2847,7 @@ class RoomType13(RoomBase):
 
     # 聊天
     def send_chat(self, accountEntityId, content):
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         player_chat_data = {accountEntityId: content}
         if len(chapter["chatHistory"]) > 10:
             del chapter["chatHistory"][0]
@@ -2863,7 +2895,7 @@ class RoomType13(RoomBase):
         :param accountId:
         :return:
         """
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         # 1 正在解散状态中
         if self.is_disbanding:
             return
@@ -2903,7 +2935,7 @@ class RoomType13(RoomBase):
         :return:
         """
 
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         # 有一人拒绝就解散失败
         if result == 0:
             args = {"accountId": accountId, "result": result}
@@ -2963,7 +2995,7 @@ class RoomType13(RoomBase):
         _py_dic = json.loads(jsonData)
         _func = _py_dic["func"]
         _data = _py_dic["args"]
-        _playerInGame = self.chapters[self.cn]["playerInGame"]
+        _playerInGame = self.chapters[self.cn]["playerInGame"]  # self.chapters 牌局信息  self.cn 当前局数下标
         # 玩家准备
         if _func == "Ready":
             self.player_ready(account_entity_id)  # 玩家准备
@@ -2977,29 +3009,36 @@ class RoomType13(RoomBase):
                     return
                 if self.total_settlement_ed:  # 总结算设置位
                     return
-                self.chapter_start()
+                self.chapter_start()  # 修改房间状态为开始
                 # 改变牌局状态机状态(流程移交状态机)
-                self.changeChapterState(1)
+                self.changeChapterState(1)  # 牌局开始、发牌状态
+        # 观战中下局可以开始游戏的玩家
         elif _func == "NextGameSit":
             self.want_next_game_seat(account_entity_id)
+        # 玩家出牌
         elif _func == "PlayCards":
             self.player_play_cards(account_entity_id, _data["cards"])
         elif _func == "PlayTips":
             self.play_tips(account_entity_id)
+        # 玩家离开房间
         elif _func == "LeaveRoom":
             self.onLeave(account_entity_id, _data)
+        # 玩家点击继续
         elif _func == "ContinueNextChapter":
             self.start_next_chapter(account_entity_id)
         # 1 表情
         elif _func == "SendEmotion":
             self.send_emotion(account_entity_id, _data["index"])
+        # 聊天
         elif _func == "SendChat":
             self.send_chat(account_entity_id, _data["content"])
         # 1 快捷语广播
         elif _func == "SendCommonChat":
             self.send_common_chat(account_entity_id, _data["index"])
+        # 重连
         elif _func == "Reconnect":
             self.reconnect(account_entity_id)
+        # 换桌
         elif _func == "ChangeTable":
             self.change_table(account_entity_id)
         elif _func == "GetPlayersRemainCards":
@@ -3009,21 +3048,25 @@ class RoomType13(RoomBase):
             self.bless(account_entity_id, _data["type"])
         elif _func == 'FreeBlessCount':
             self.free_bless_count(account_entity_id)
+        # 发送表情
         elif _func == "EmotionChat":
             self.emotion_chat(account_entity_id, _data["index"], _data["type"])
-            # 解散房间相关操作
+        # 解散房间相关操作
         elif _func == "DisbandRoom":
             if self.is_forbid_disband_room():
                 self.callClientFunction(account_entity_id, 'Notice', ['该房间禁止中途解散'])
                 return
             self.quest_disband_room(account_entity_id)
+        # 解散房间回应
         elif _func == "DisbandRoomOperation":
             self.response_disband_room(account_entity_id, _data["result"])
+        # 语音聊天
         elif _func == "VoiceChat":
             self.voiceChat(account_entity_id, _data["url"])
             # 1 分享到微信
         elif _func == 'ShareToWX':
             self.share_to_wx(account_entity_id)
+        # 获取玩家距离
         elif _func == 'distanceFromEveryone':
             self.get_distance_relation(account_entity_id)
         elif _func == 'CancelAutoPlay':
@@ -3034,7 +3077,7 @@ class RoomType13(RoomBase):
         game_type = '跑得快'
         current_chapter = self.settlement_count
         max_chapter_count = self.info['maxChapterCount']
-        chapter = self.chapters[self.cn]
+        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _plays = chapter['playerInGame']
         total_settlement_info = []
         for p in _plays.values():
@@ -3050,7 +3093,7 @@ class RoomType13(RoomBase):
         :param modify_count:
         :return:
         """
-        _chapter = self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标  self.cn 当前局数下标
         if self.info["roomType"] == "gameCoin":
             for k, v in _chapter["playerInRoom"].items():
                 if v["entity"].info["dataBaseId"] == account_db_id:

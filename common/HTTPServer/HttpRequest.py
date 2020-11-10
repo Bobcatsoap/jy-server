@@ -6,7 +6,7 @@ import hashlib
 import json
 import ssl
 
-
+# 短信配置 微信配置
 # --------------------------------------------------------------------------------------------
 #                              第三方短信服务相关
 # --------------------------------------------------------------------------------------------
@@ -98,9 +98,12 @@ def reqAlipayOI(_orders_id, _amount, _subject="金币", _type="app"):
 #                              微信登录
 # --------------------------------------------------------------------------------------------
 def req_wx_asset_token(_code):
+    """
+    E微信登录配置
+    """
     # 发送请求
-    _app_id = "wx2c2894c77fc7986b"
-    _secret = "8477ec88f8ab5ab6e50f4d88373b4c94"
+    _app_id = "wx79e1754e75d03ecf"
+    _secret = "9fc7322dd26611939861cd18b725253a"
     _url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code" % (
         _app_id, _secret, _code)
     context = ssl._create_unverified_context()

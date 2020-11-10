@@ -157,6 +157,7 @@ class Account(KBEngine.Entity):
         更新玩家的游戏阶段
         观战、未准备、已准备、游戏中
         """
+
         if play_stage < self.playing_stage:
             return
         self.playing_stage = play_stage

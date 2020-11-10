@@ -99,7 +99,8 @@ class TeaHouseManager(Manger):
 
         tea_house = KBEngine.createEntityLocally("TeaHouse", {'rank': {}})
         while True:
-            tea_house_id = random.randint(100000, 999999)
+            # tea_house_id = random.randint(100000, 999999)
+            tea_house_id = random.randint(500000, 999999)
             if tea_house_id % 111111 == 0:
                 continue
             # 是否存在该随机ID
