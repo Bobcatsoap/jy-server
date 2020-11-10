@@ -1991,6 +1991,12 @@ class TeaHouse(KBEngine.Entity):
                 if k in self.performance_detail.keys():
                     performance_detail = self.performance_detail[k]
 
+                # 如果玩家实体有客户端，视为在线
+                account_entity = get_account_entity_with_db_id(k)
+                status = 0
+                if account_entity:
+                    status = 1
+
                 yesterday_performance, today_performance = self.get_today_and_yesterday(performance_detail)
                 p = {"name": v.name, "headImageUrl": v.head_image, "belongTo": v.belong_to,
                      "invitationCode": v.invitation_code, "proportion": v.proportion,
@@ -2000,6 +2006,7 @@ class TeaHouse(KBEngine.Entity):
                      'todayData': round(today_performance, 2),
                      'yesterdayData': round(yesterday_performance, 2),
                      "turnInPerformance": round(v.turn_in_performance, 2),
+                     "status": status
                      }
                 partner_info.append(p)
 
