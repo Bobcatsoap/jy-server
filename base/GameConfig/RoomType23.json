@@ -5,9 +5,10 @@
       "10": [0, 0],
       "16": [0, 0]
     },
-    "LandlordGameType": {
-      "0": true,
-      "1": true
+    "stakeRange": {
+      "0": [1,5],
+      "1": [3,20],
+      "2": [5,30]
     },
     "refreshButtonVisible": true,
     "timeDown": [0,15,20,25,30,45,60,90,120]
@@ -18,9 +19,10 @@
       "10": [0, 0],
       "16": [0, 0]
     },
-    "LandlordGameType": {
-      "0": true,
-      "1": true
+    "stakeRange": {
+      "0": [1,5],
+      "1": [3,20],
+      "2": [5,30]
     },
     "refreshButtonVisible": true,
     "timeDown": [0,15,20,25,30,45,60,90,120]
@@ -31,9 +33,10 @@
       "10": [0, 0],
       "16": [0, 0]
     },
-    "LandlordGameType": {
-      "0": true,
-      "1": true
+    "stakeRange": {
+      "0": [1,5],
+      "1": [3,20],
+      "2": [5,30]
     },
     "refreshButtonVisible": true,
     "timeDown": [0,15,20,25,30,45,60,90,120]
@@ -44,9 +47,10 @@
       "10": [0, 0],
       "16": [0, 0]
     },
-    "LandlordGameType": {
-      "0": true,
-      "1": true
+    "stakeRange": {
+      "0": [1,5],
+      "1": [3,20],
+      "2": [5,30]
     },
     "refreshButtonVisible": true,
     "timeDown": [0,15,20,25,30,45,60,90,120]

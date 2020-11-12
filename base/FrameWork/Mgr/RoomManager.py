@@ -641,7 +641,22 @@ class RoomManager(Manger):
             _room.info['timeDown'] = _config['timeDown']
             # 倍数
             _room.info['multiple'] = _config['multiple']
-
+        # 十点半
+        elif _type == Const.RoomType.RoomType23:
+            # 大小 数组 [1,5]
+            _room.info["stakeRange"] = _config["stakeRange"]
+            # 抢庄方式 int 0：抢庄 1：轮庄
+            _room.info["grabBankerType"] = _config["grabBankerType"]
+            # 明暗牌 bool 明：true 暗：false
+            _room.info["lightType"] = _config["lightType"]
+            # 最大局数 int
+            _room.info["maxChapterCount"] = _config["maxChapterCount"]
+            # 赔付类型 int 0：全额赔付 1：一倍赔付
+            _room.info['loseType']=_config['loseType']
+            # 庄家底分 int
+            _room.info['bankerLimit']=_config['bankerLimit']
+            # 倒计时 int
+            _room.info['timeDown'] = _config['timeDown']
         if _roomType == "card":
             # todo:其他游戏类型开房门槛
             self.rooms[_type].roominfos[_roomType][_room.info["roomId"]] = _room

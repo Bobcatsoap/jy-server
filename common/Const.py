@@ -16,7 +16,7 @@ room_list_page_item = 10
 class CanWatchGame:
     can_watch_game = ["RoomType8", 'RoomType6', "RoomType1", 'RoomType10', 'RoomType4', 'RoomType11', 'RoomType13',
                       'RoomType12', 'RoomType14', 'RoomType16', 'RoomType5', 'RoomType15', 'RoomType18', 'RoomType21',
-                      'RoomType22'
+                      'RoomType22','RoomType23'
                       ]
 
 
@@ -104,6 +104,8 @@ class RoomType:
     RoomType21 = 'RoomType21'
     # 济源麻将
     RoomType22 = 'RoomType22'
+    # 十点半
+    RoomType23 = 'RoomType23'
 
 
 def get_name_by_type(room_type):
@@ -163,6 +165,8 @@ def get_name_by_type(room_type):
         return "商丘麻将"
     elif room_type == "RoomType22":
         return "济源麻将"
+    elif room_type == "RoomType23":
+        return "十点半"
     else:
         return "游戏"
 
