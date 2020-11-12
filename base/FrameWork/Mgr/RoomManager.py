@@ -144,7 +144,7 @@ class RoomManager(Manger):
             else:
                 _room.info["witness"] = False
 
-        if _type == Const.RoomType.RoomType1:   # 炸金花房间
+        if _type == Const.RoomType.RoomType1:  # 炸金花房间
             _room.info["hasAnthorizeBuying"] = _config["hasAnthorizeBuying"]
             _room.info["maxRound"] = _config["maxRound"]
             # 1 特殊玩法的   顺子大于金花
@@ -178,7 +178,7 @@ class RoomManager(Manger):
                 _room.info['timeDown'] = _config['timeDown']
             else:
                 _room.info['timeDown'] = 45
-        elif _type == Const.RoomType.RoomType4:   # 牛牛房间
+        elif _type == Const.RoomType.RoomType4:  # 牛牛房间
             _room.info["betBase"] = _config["betBase"]
             # 游戏模式
             _room.info["playMode"] = _config["playMode"]
@@ -233,7 +233,7 @@ class RoomManager(Manger):
             # 少人模式
             _room.info["fewPersonPattern"] = _config["fewPersonPattern"]
             self.room5_conflict(_room.info)
-        elif _type == Const.RoomType.RoomType6:   # 斗地主
+        elif _type == Const.RoomType.RoomType6:  # 斗地主
             # 1 房间底分
             _room.info["baseScore"] = _config["baseScore"]
             # 1 抢地主的方式  随机先叫  赢家先叫
@@ -289,7 +289,7 @@ class RoomManager(Manger):
             else:
                 _room.info['setStakeLimit'] = -1
             self.room8_conflict(_room.info)
-        elif _type == Const.RoomType.RoomType10:   # 八叉
+        elif _type == Const.RoomType.RoomType10:  # 八叉
             # 钓鱼开关
             _room.info['canFishing'] = _config['canFishing']
             # 最大局数
@@ -347,9 +347,13 @@ class RoomManager(Manger):
             # 红中赖子 bool
             _room.info['magicRed'] = _config['magicRed']
             # 258 将 bool
-            _room.info['j258'] = _config['j258']
+            _room.info['j258'] = False
             # 过胡只能自摸    bool
             _room.info['onlySelfAfterPass'] = _config['onlySelfAfterPass']
+            # 漏碰漏胡
+            _room.info['passHuAndPeng'] = _config['passHuAndPeng']
+            # 逢胡必胡
+            _room.info['mustHu'] = _config['mustHu']
             # 最大局数
             _room.info["maxChapterCount"] = _config["maxChapterCount"]
             # 倒计时
@@ -652,9 +656,9 @@ class RoomManager(Manger):
             # 最大局数 int
             _room.info["maxChapterCount"] = _config["maxChapterCount"]
             # 赔付类型 int 0：全额赔付 1：一倍赔付
-            _room.info['loseType']=_config['loseType']
+            _room.info['loseType'] = _config['loseType']
             # 庄家底分 int
-            _room.info['bankerLimit']=_config['bankerLimit']
+            _room.info['bankerLimit'] = _config['bankerLimit']
             # 倒计时 int
             _room.info['timeDown'] = _config['timeDown']
         if _roomType == "card":
