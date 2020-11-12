@@ -67,8 +67,8 @@ class RoomManager(Manger):
         Const.RoomType.RoomType16: RoomInfo(),
         Const.RoomType.RoomType18: RoomInfo(),
         Const.RoomType.RoomType21: RoomInfo(),
-        Const.RoomType.RoomType22: RoomInfo()
-
+        Const.RoomType.RoomType22: RoomInfo(),
+        Const.RoomType.RoomType23: RoomInfo()
     }
 
     def __init__(self):

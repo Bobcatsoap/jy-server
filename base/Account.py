@@ -3764,6 +3764,7 @@ class Account(KBEngine.Proxy):
             Account.log_filter.add('RoomType18JsonConfig')
             Account.log_filter.add('RoomType21JsonConfig')
             Account.log_filter.add('RoomType22JsonConfig')
+            Account.log_filter.add('RoomType23JsonConfig')
             Account.log_filter.add('TeaHouseJsonConfig')
             Account.log_filter.add('HallJsonConfig')
             Account.log_filter.add('GetChallengeRollNotice')
