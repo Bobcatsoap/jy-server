@@ -1000,9 +1000,13 @@ class RoomType12(RoomBase):
             for k, v in _players.items():
                 self.on_player_ready(v['entity'].id, False)
 
+            # 如果牌局结束 cn从0开始
+            # 给base发送房间结束消息，并发送得分信息
             if self.info["maxChapterCount"] == self.cn + 1:
-                # 如果牌局结束 cn从0开始
-                # 给base发送房间结束消息，并发送得分信息
+                self.total_settlement()
+                return
+            # 如果有人不满足离场分，结束游戏
+            elif self.have_player_do_not_meet_end_score():
                 self.total_settlement()
                 return
             else:
@@ -1040,6 +1044,17 @@ class RoomType12(RoomBase):
             "cn": self.cn
         }
         self.base.cellToBase({"func": "chapterEnd", "args": chapter_end_msg})
+
+    def have_player_do_not_meet_end_score(self):
+        """
+        是否有玩家不满足离场分
+        """
+        _chapter=self.chapters[self.cn]
+        for k, v in _chapter[PLAYER_IN_GAME].items():
+            true_gold = v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+            if true_gold < self.info['endScore']:
+                return True
+        return False
 
     def settlement(self):
         """
