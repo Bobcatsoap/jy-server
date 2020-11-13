@@ -83,7 +83,7 @@ class TeaHouse(KBEngine.Entity):
     # 福卡系统开关
     luckyCardSwitch = 0
     # TODO 比赛分开关   0关闭 1开启
-    gameCoinSwitch = 0
+    gameCoinSwitch = 1
     # 福卡
     luckyCard = 0
     # 茶楼排行榜,rank = {'data':{'myself':[id,reward],'rank':[{'head_img':img,'nickname':nickname}],'reward':[]}}
