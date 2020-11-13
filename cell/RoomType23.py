@@ -1287,7 +1287,7 @@ class RoomType23(RoomBase):
                 self.set_base_player_gold(k)
             player_settlement_info.append(
                 {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
-                 "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
+                 "overBilling": v["overBilling"], "otherBilling": v["otherBilling"], "headImageUrl": v["entity"].info["headImageUrl"],
                  "winnerBilling": v["winnerBilling"], 'gold': v['gold']})
         args = {"settlementInfo": player_settlement_info}
         self.callOtherClientsFunction("TotalSettlement", args)
@@ -1418,7 +1418,7 @@ class RoomType23(RoomBase):
             _playerData = {"accountId": k, "accountName": v["entity"].info["name"], "winnerBilling": v["winnerBilling"],
                            "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"], "totalGoldChange":
-                               v["totalGoldChange"], "userId": v["entity"].info["userId"]}
+                               v["totalGoldChange"], "userId": v["entity"].info["userId"], "headImageUrl": v["entity"].info["headImageUrl"]}
             # 1 玩家数据
             _playerInfo.append(_playerData)
             record_players.append(v['entity'].info['userId'])

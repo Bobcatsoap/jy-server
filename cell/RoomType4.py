@@ -1532,7 +1532,7 @@ class RoomType4(RoomBase):
             _playerData = {"accountId": k, "accountName": v["entity"].info["name"], "totalScore": v["totalScore"],
                            "totalGoldChange": v["totalGoldChange"], "userId": v["entity"].info["userId"],
                            "winnerBilling": v["winnerBilling"], "overBilling": v["overBilling"],
-                           "otherBilling": v["otherBilling"],
+                           "otherBilling": v["otherBilling"], "headImageUrl": v["entity"].info["headImageUrl"]
                            }
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])
