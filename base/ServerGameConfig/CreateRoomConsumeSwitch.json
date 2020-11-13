@@ -1,5 +1,8 @@
 {
   "gameCoin": {
+    "RoomType23":{
+      "rSwitch": 1
+    },
     "RoomType22":{
       "rSwitch": 1
     },
@@ -50,6 +53,9 @@
     }
   },
   "normalGameCoin": {
+    "RoomType23":{
+      "rSwitch": 1
+    },
     "RoomType22":{
       "rSwitch": 1
     },
@@ -100,6 +106,9 @@
     }
   },
   "card": {
+    "RoomType23":{
+      "rSwitch": 1
+    },
     "RoomType22":{
       "rSwitch": 1
     },
@@ -150,6 +159,9 @@
     }
   },
   "gold": {
+    "RoomType23":{
+      "rSwitch": 1
+    },
     "RoomType22":{
       "rSwitch": 1
     },
@@ -200,6 +212,9 @@
     }
   },
   "challenge": {
+    "RoomType23":{
+      "rSwitch": 1
+    },
     "RoomType22":{
       "rSwitch": 1
     },

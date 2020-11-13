@@ -99,11 +99,11 @@ def reqAlipayOI(_orders_id, _amount, _subject="金币", _type="app"):
 # --------------------------------------------------------------------------------------------
 def req_wx_asset_token(_code):
     """
-    E微信登录配置
+    微信登录配置
     """
     # 发送请求
-    _app_id = "wx79e1754e75d03ecf"
-    _secret = "9fc7322dd26611939861cd18b725253a"
+    _app_id = "wx88ab5f31ca993bc8"
+    _secret = "1078be709c7976c67c2026b612db2fa4"
     _url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code" % (
         _app_id, _secret, _code)
     context = ssl._create_unverified_context()

@@ -719,6 +719,7 @@ class RoomType12(RoomBase):
                    'continue': False,
                    'special': [],
                    'qiDianPao': False,
+                   'qiPeng': False,
                    'canNotXMGang': [],
                    'totalGoldChange': total_gold_change,
                    # 房间外上币统计
@@ -1746,6 +1747,12 @@ class RoomType12(RoomBase):
             opt_v = OPT_DICT[OPT_HU_DIAN_PAO]
             if (_player[ALLOW_OPT] & opt_v) == opt_v:
                 _player['qiDianPao'] = True
+
+        # 如果玩家能碰，并且玩家选择了过牌，则是为玩家弃掉了碰
+        if _operation_name == OPT_GUO:
+            opt_v = OPT_DICT[OPT_PENG]
+            if (_player[ALLOW_OPT] & opt_v) == opt_v:
+                _player['qiPeng'] = True
 
         # 检查出牌操作
         if OPT_OUT == _operation_name:
@@ -2777,6 +2784,8 @@ class RoomType12(RoomBase):
         player[NOT_HU_PAI].clear()
         # 清除弃点炮胡操作
         player['qiDianPao'] = False
+        # 清除弃碰操作
+        player['qiPeng'] = False
         # 清除不能碰的牌
         player[NOT_PENG_PAI].clear()
         _shou_pai = player[SHOU_PAI]
@@ -2851,6 +2860,11 @@ class RoomType12(RoomBase):
         if _isHu and not is_gang_after_peng:
             self.callClientFunction(player["entity"].id, CLIENT_FUNC_ZIMOHU, _isHu)
             all_not = False
+            # 如果开启了逢胡必胡，自动自摸
+            if self.mustHu:
+                self.del_play_card_timer()
+                self.zi_mo_hu_opt(player)
+                return
         if not all_not:
             self.callClientFunction(player["entity"].id, CLIENT_FUNC_GUO, "")
 
@@ -2895,6 +2909,10 @@ class RoomType12(RoomBase):
                 # if c_op[CHECK_PLAYER]['entity'].client_death:
                 #     self.operation_after_play_card(c_op[CHECK_PLAYER], OPT_GUO, None)
                 # else:
+                # 如果开启了必胡，自动胡
+                if self.mustHu and c_op[CHECK_HU] and c_op[CHECK_HU_QIANG_GANG]:
+                    self.res_out_pai_dian_pao_hu_opt(c_op[CHECK_PLAYER])
+                    return
                 self.send_check_result_item(c_op)
 
             # 添加超时定时器
@@ -3160,7 +3178,7 @@ class RoomType12(RoomBase):
             p[ALLOW_OPT] = 0
             if len(_chi) != 0:
                 p[ALLOW_OPT] |= OPT_CHI_V
-            if p[CAN_PENG]:
+            if p[CAN_PENG] and self.can_peng(p):
                 p[ALLOW_OPT] |= OPT_PENG_V
             if can_da_ming_gang:
                 p[ALLOW_OPT] |= OPT_DAMINGGANG_V
@@ -3174,7 +3192,7 @@ class RoomType12(RoomBase):
             check_result = {
                 CHECK_PLAYER: p,
                 CHECK_CHI: _chi,
-                CHECK_PENG: p[CAN_PENG],
+                CHECK_PENG: p[CAN_PENG] and self.can_peng(p),
                 CHECK_DAMINGGANG: can_da_ming_gang,
                 # 点炮胡
                 CHECK_HU: p[CAN_HU] and self.can_dian_pao(p, out_pai),
@@ -3182,8 +3200,9 @@ class RoomType12(RoomBase):
                 CHECK_PLAYER_OPT: NO_OPT,
                 CHECK_FLAG: CHECK_FLAG_OUTPAI
             }
+
             # 如果能碰，能大明杠、能吃、能胡将所有可以操作的玩家及允许的操作保存起来
-            if p[CAN_PENG] or can_da_ming_gang or (p[CAN_HU] and self.can_dian_pao(p, out_pai)) or len(_chi) != 0:
+            if (p[CAN_PENG] and self.can_peng(p)) or can_da_ming_gang or (p[CAN_HU] and self.can_dian_pao(p, out_pai)) or len(_chi) != 0:
                 # 如果玩家不在线，不考虑能进行的操作
                 if not p['entity'].client_death:
                     check_results.append(check_result)
@@ -3596,6 +3615,16 @@ class RoomType12(RoomBase):
             return True
         return False
 
+    # 逢胡必胡
+    @property
+    def mustHu(self):
+        return self.info['mustHu']
+
+    # 漏碰漏胡
+    @property
+    def passHuAndPeng(self):
+        return self.info['passHuAndPeng']
+
     @property
     def two_people(self):
         return self.info['maxPlayersCount'] == 2
@@ -3912,6 +3941,13 @@ class RoomType12(RoomBase):
 
         return True
 
+    def can_peng(self,player):
+        """
+        能不能碰
+        """
+        return not (self.passHuAndPeng and player['qiPeng'])
+
+
     def can_dian_pao(self, player, out_card):
         """
         能不能点炮
@@ -3925,8 +3961,9 @@ class RoomType12(RoomBase):
         if self.info['onlySelfAfterPass']:
             if player[QI_HU]:
                 return False
+        # 如果没开启过胡只可自摸，玩家弃掉了点炮胡，则一圈内不能再点炮胡
         else:
-            if player['qiDianPao']:
+            if player['qiDianPao'] and self.passHuAndPeng:
                 return False
 
         # 如果开启红中赖子，并且点炮的牌是红中

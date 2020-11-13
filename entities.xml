@@ -24,6 +24,7 @@
 	<RoomType18 hasClient="true"></RoomType18>
 	<RoomType21 hasClient="true"></RoomType21>
 	<RoomType22 hasClient="true"></RoomType22>
+	<RoomType23 hasClient="true"></RoomType23>
 	<MgrObj hasClient="false"></MgrObj>
 	<TeaHouse hasClient="false"></TeaHouse>
 	<GoldSession hasClient="false"></GoldSession>

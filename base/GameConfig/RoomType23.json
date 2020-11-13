@@ -1,0 +1,58 @@
+{
+  "card": {
+    "chapterLimitAndRoomCard": {
+      "5": [0, 0],
+      "10": [0, 0],
+      "16": [0, 0]
+    },
+    "stakeRange": {
+      "0": [1,5],
+      "1": [3,20],
+      "2": [5,30]
+    },
+    "refreshButtonVisible": true,
+    "timeDown": [0,15,20,25,30,45,60,90,120]
+  },
+  "gameCoin": {
+    "chapterLimitAndRoomCard": {
+      "5": [0, 0],
+      "10": [0, 0],
+      "16": [0, 0]
+    },
+    "stakeRange": {
+      "0": [1,5],
+      "1": [3,20],
+      "2": [5,30]
+    },
+    "refreshButtonVisible": true,
+    "timeDown": [0,15,20,25,30,45,60,90,120]
+  },
+  "normalGameCoin": {
+    "chapterLimitAndRoomCard": {
+      "5": [0, 0],
+      "10": [0, 0],
+      "16": [0, 0]
+    },
+    "stakeRange": {
+      "0": [1,5],
+      "1": [3,20],
+      "2": [5,30]
+    },
+    "refreshButtonVisible": true,
+    "timeDown": [0,15,20,25,30,45,60,90,120]
+  },
+  "gold": {
+    "chapterLimitAndRoomCard": {
+      "5": [0, 0],
+      "10": [0, 0],
+      "16": [0, 0]
+    },
+    "stakeRange": {
+      "0": [1,5],
+      "1": [3,20],
+      "2": [5,30]
+    },
+    "refreshButtonVisible": true,
+    "timeDown": [0,15,20,25,30,45,60,90,120]
+  }
+}
