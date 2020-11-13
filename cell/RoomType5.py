@@ -1397,7 +1397,7 @@ class RoomType5(RoomBase):
             _playerData = {"accountId": v['entity'].id, "accountName": v["entity"].info["name"],
                            "winnerBilling": v["winnerBilling"], "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"], "totalGoldChange": v["totalGoldChange"],
-                           "userId": v["entity"].info["userId"]}
+                           "userId": v["entity"].info["userId"], "headImageUrl": v["entity"].info["headImageUrl"]}
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])
         _args = {"createRoomTime": int(time.time()), "roomId": self.info["roomId"],
