@@ -168,11 +168,12 @@ class RoomType1(RoomBase):
         # 是否弃牌
         _player["hasDisCard"] = False
         # 房间类型  card gameCoin normalGameCoin
-        if self.info["roomType"] == "card":  # TODO E 其它游戏类型
+        if self.info["roomType"] == "card":
             _player["score"] = accountEntity.accountMutableInfo["gold"]
-        elif self.info["roomType"] == "gameCoin":  # TODO E 冠名赛
-            _player["score"] = accountEntity.accountMutableInfo["gameCoin"]
-        elif self.info["roomType"] == "normalGameCoin":  # TODO E normalGameCoin
+        elif self.info["roomType"] == "gameCoin":
+            # 比赛分场修改使用比赛分为使用金币
+            _player["score"] = accountEntity.accountMutableInfo["gold"]
+        elif self.info["roomType"] == "normalGameCoin":
             _player["score"] = accountEntity.accountMutableInfo["gold"]
         # 总带入
         _player["totalScore"] = 0

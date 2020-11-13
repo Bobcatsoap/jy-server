@@ -212,7 +212,9 @@ class RoomType6(RoomBase):
         _player["overBilling"] = 0
         # 钻石场默认为0，金币场使用的是大厅金币，比赛分场使用的是账户再朋友圈的比赛分
         if self.info["roomType"] == "gameCoin":
-            _player["gold"] = accountEntity.accountMutableInfo["gameCoin"]
+            # _player["gold"] = accountEntity.accountMutableInfo["gameCoin"]
+            # 比赛分场修改使用比赛分为使用金币
+            _player["gold"] = accountEntity.accountMutableInfo["gold"]
         elif self.info["roomType"] in ['normalGameCoin', 'card', 'gold', 'challenge']:
             _player["gold"] = accountEntity.accountMutableInfo["gold"]
         # 1 同意解散

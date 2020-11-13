@@ -182,7 +182,8 @@ class RoomType7(RoomBase):
         if self.info["roomType"] == "card":
             _player["gold"] = accountEntity.accountMutableInfo["gold"]
         elif self.info["roomType"] == "gameCoin":
-            _player["gold"] = accountEntity.accountMutableInfo["gameCoin"]
+            # 比赛分场修改使用比赛分为使用金币
+            _player["gold"] = accountEntity.accountMutableInfo["gold"]
         elif self.info['roomType'] == 'normalGameCoin':
             _player["gold"] = accountEntity.accountMutableInfo["gold"]
         _player["agreeDisband"] = False

@@ -225,6 +225,7 @@ class TeaHouse(KBEngine.Entity):
         self.createTime = int(time.time())
         self.canReduceGameCoin = 1
         self.haveExchangeMall = 1
+
         tea_house_player = TeaHousePlayer(TeaHousePlayerLevel.Creator, creator_db_id, creator_name, creator_head_image,
                                           creator_db_id, self.random_invitation_code())
         self.luckyCard = tea_house_config()['receiveLuckyCard']
@@ -1009,6 +1010,7 @@ class TeaHouse(KBEngine.Entity):
 
     def get_single_member_info(self, account_db_id):
         """
+        E获取成员信息
         获取单个玩家的成员信息
         :return:
         """
@@ -3118,7 +3120,7 @@ class TeaHousePlayer:
     db_id = -1
     # 名称
     name = ""
-    # 比赛分
+    # TODO E比赛分
     game_coin = 0
     # 福卡数
     lucky_card = 0

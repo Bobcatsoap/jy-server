@@ -740,7 +740,8 @@ class RoomType15(RoomBase):
         if self.info["roomType"] == "card":
             _gold = 0
         elif self.info["roomType"] == "gameCoin":
-            _gold = accountEntity.accountMutableInfo["gameCoin"]
+            # 比赛分场修改使用比赛分为使用金币
+            _gold = accountEntity.accountMutableInfo["gold"]
         DEBUG_MSG('new player totalGoldChange %s' % total_gold_change)
         _player = {'locationIndex': -1,
                    'entity': accountEntity,

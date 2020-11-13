@@ -228,7 +228,8 @@ class RoomType4(RoomBase):
         elif self.info['roomType'] == 'normalGameCoin':
             _player["score"] = accountEntity.accountMutableInfo["gold"]
         elif self.info["roomType"] == "gameCoin":
-            _player["score"] = accountEntity.accountMutableInfo["gameCoin"]
+            # 比赛分场修改使用比赛分为使用金币
+            _player["score"] = accountEntity.accountMutableInfo["gold"]
         return _player
 
     def onEnter(self, accountEntityId):

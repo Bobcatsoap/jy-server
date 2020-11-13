@@ -207,7 +207,8 @@ class RoomType8(RoomBase):
             _player["gold"] = accountEntity.accountMutableInfo["gold"]
         # 比赛分场
         elif self.info["roomType"] == "gameCoin":
-            _player["gold"] = accountEntity.accountMutableInfo["gameCoin"]
+            # 比赛分场修改使用比赛分为使用金币
+            _player["gold"] = accountEntity.accountMutableInfo["gold"]
         # 普通比赛分场
         elif self.info['roomType'] == 'normalGameCoin':
             _player["gold"] = accountEntity.accountMutableInfo["gold"]
