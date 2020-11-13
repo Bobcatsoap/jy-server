@@ -1175,6 +1175,9 @@ class RoomType12(RoomBase):
             # 首局结算抽水
             if self.settlement_count == 0:
                 for _p in players:
+                    if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
+                        DEBUG_MSG('RoomType12 billing_count not enough account_id:%s' % _p['entity'].id)
+                        continue
                     billing_count = self.info['billingCount']
                     _p['totalGoldChange'] -= billing_count
                     DEBUG_MSG('RoomType12 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
