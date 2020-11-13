@@ -2370,7 +2370,7 @@ class Account(KBEngine.Proxy):
             return
 
         self.tea_house_mgr.create(self.databaseID, self.headImageUrl, _args["headImage"], _args["name"],
-                                  _args["teaHouseType"], self.name, self.proxyType,
+                                  _args["teaHouseType"], self.name, self.proxyType, self.gold,
                                   on_create_success, on_create_fail)
 
     def create_tea_house_room(self, _args, auto_create=False, room_end=False, old_room_id=-1, creator_entity=None,

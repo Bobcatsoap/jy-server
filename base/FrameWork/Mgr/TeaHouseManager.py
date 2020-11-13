@@ -70,7 +70,7 @@ class TeaHouseManager(Manger):
         self.check_out_create_tea_house_permission_from_db()
 
     def create(self, creator_db_id, creator_head_image, tea_house_head_image_url, name, tea_house_type, creator_name,
-               creator_proxyType, on_success, on_fail):
+               creator_proxyType, gold, on_success, on_fail):
         """
         创建
         :param creator_db_id:
@@ -113,7 +113,7 @@ class TeaHouseManager(Manger):
                 break
         DEBUG_MSG("tea_house rooms:%s, teahouse dbid:%s" % (tea_house.rooms, tea_house.databaseID))
         tea_house.create(creator_db_id, tea_house_id, creator_head_image, tea_house_head_image_url, name,
-                         tea_house_type,
+                         tea_house_type, gold,
                          creator_name, on_success, on_fail)
 
     def destroy_tea_house_with_id(self, tea_house_id, on_success=None, on_fail=None):

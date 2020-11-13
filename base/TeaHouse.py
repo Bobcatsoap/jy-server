@@ -193,7 +193,7 @@ class TeaHouse(KBEngine.Entity):
             player.luck_score_control = False
 
     def create(self, creator_db_id, tea_house_id, creator_head_image, tea_house_head_image, tea_house_name,
-               tea_house_type, creator_name, on_success, on_fail):
+               tea_house_type, gold, creator_name, on_success, on_fail):
         """
         创建
         :param creator_db_id:
@@ -227,7 +227,7 @@ class TeaHouse(KBEngine.Entity):
         self.haveExchangeMall = 1
 
         tea_house_player = TeaHousePlayer(TeaHousePlayerLevel.Creator, creator_db_id, creator_name, creator_head_image,
-                                          creator_db_id, self.random_invitation_code())
+                                          creator_db_id, self.random_invitation_code(), gold)
         self.luckyCard = tea_house_config()['receiveLuckyCard']
         self.memberInfo[creator_db_id] = tea_house_player
         self.memberInfoJson = self.get_member_info_json()
@@ -993,6 +993,7 @@ class TeaHouse(KBEngine.Entity):
         if joiner_belong_to == -1:
             joiner_belong_to = self.creatorDBID
         # 玩家初始化
+        gold = 10086
         tea_house_player = TeaHousePlayer(TeaHousePlayerLevel.Normal, joiner_db_id, joiner_name, joiner_head_image,
                                           joiner_belong_to, self.random_invitation_code())
         self.memberInfo[joiner_db_id] = tea_house_player
@@ -3157,7 +3158,7 @@ class TeaHousePlayer:
     # 不能同桌
     exclude_players = []
 
-    def __init__(self, level, db_id, name, head_image, belong_to, invitation_code):
+    def __init__(self, level, db_id, name, head_image, belong_to, invitation_code, gold=0):
         self.level = level
         self.db_id = db_id
         self.name = name
@@ -3170,6 +3171,7 @@ class TeaHousePlayer:
         self.origin_game_coin = 0
         self.lucky_card_consume = 0
         self.winner = 0
+        self.game_coin = gold
         self.historyRooms = {}
         # 输赢分控制
         self.score_control = False
