@@ -14,6 +14,8 @@ join_bots_time = 10
 time_disband = 30
 bot_disband_time_max = 10
 PLAYER_IN_GAME = "players"
+# 观战玩家
+PLAYER_OUT_GAME = 'playerOutGame'
 
 
 class RoomBase(KBEngine.Entity):
@@ -41,7 +43,7 @@ class RoomBase(KBEngine.Entity):
     disband_sender = -1
 
     # 没钱解散倒计时
-    ready_gold_disband_timer=-1
+    ready_gold_disband_timer = -1
 
     #
     gifts = []
@@ -1561,6 +1563,22 @@ class RoomBase(KBEngine.Entity):
                 self.base.cellToBase({"func": "Lottery", "args": account_lottery})
         return lottery_in_fu_ka
 
+    def mj_get_settlement_winners(self):
+        """
+        麻将，获取小局的大赢家
+        :return:
+        """
+        winners = {}
+        max_win = 0
+        for k, v in self.chapters[self.cn][PLAYER_IN_GAME].items():
+            if v['goldChange'] >= max_win:
+                max_win = v['goldChange']
+
+        for k, v in self.chapters[self.cn][PLAYER_IN_GAME].items():
+            if v['goldChange'] == max_win:
+                winners[k] = v
+        return winners
+
     def mj_get_winner(self):
         """
         麻将，获取大赢家
@@ -1592,6 +1610,42 @@ class RoomBase(KBEngine.Entity):
             if v['totalGoldChange'] == max_win:
                 winner[k] = v
         return winner
+
+    def mj_get_true_gold(self, account_id):
+        """
+        获得玩家当前真实金币
+        :param account_id:
+        :return:
+        """
+        _chapter = self.get_current_chapter()
+        for k, v in _chapter[PLAYER_IN_GAME].items():
+            if v['entity'].id == account_id:
+                return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+
+        for k, v in _chapter[PLAYER_OUT_GAME].items():
+            if v['entity'].id == account_id:
+                return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+
+    # 麻将总结算抽水
+    def mj_total_settlement_billing(self):
+        chapter = self.chapters[self.cn]
+        total_settlement_winner = self.mj_get_winner()
+        # 获取大赢家
+        for location_index, v in total_settlement_winner.items():
+            total_settlement_winner_account_id = v['entity'].id
+
+            # k:account_id v:winner字典
+            DEBUG_MSG('mj total_settlement_winner%s' % total_settlement_winner_account_id)
+            # 计算大赢家小局抽水
+            total_settlement_winner_true_gold = self.mj_get_true_gold(total_settlement_winner_account_id)
+            total_settlement_winner_billing = total_settlement_winner_true_gold * self.info['totalSettlementBilling']
+            DEBUG_MSG('RoomType12 settlement_winner billing%s' % total_settlement_winner_billing)
+            v['totalGoldChange'] -= total_settlement_winner_billing
+            v['totalGoldChange'] = int(v['totalGoldChange'])
+            # 同步房费给base
+            self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
+                                  "todayGameCoinAdd": total_settlement_winner_billing,
+                                  "userId": v["entity"].info["userId"]})
 
     def mj_lottery(self):
         chapter = self.chapters[self.cn]

@@ -696,6 +696,16 @@ class RoomManager(Manger):
             _room.info["winnerBilling"] = _config["winnerBilling"]
             # 其他玩家抽水
             _room.info["otherBilling"] = _config["otherBilling"]
+
+            # 抽水数额
+            _room.info["billingCount"] = _config["billingCount"]
+            # 大局抽水
+            _room.info["totalSettlementBilling"] = _config["totalSettlementBilling"]
+            # 小局抽水
+            _room.info["settlementBilling"] = _config["settlementBilling"]
+            # 离场分
+            _room.info["endScore"] = _config["endScore"]
+
             # 是否是匿名房间
             _room.info["anonymity"] = _config["anonymity"]
             # 超出收费标准
