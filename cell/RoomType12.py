@@ -1005,8 +1005,8 @@ class RoomType12(RoomBase):
             if self.info["maxChapterCount"] == self.cn + 1:
                 self.total_settlement()
                 return
-            # 如果有人不满足离场分，结束游戏
-            elif self.have_player_do_not_meet_end_score():
+            # 如果比赛场有人不满足离场分，结束游戏
+            elif self.info["roomType"] == "gameCoin" and self.have_player_do_not_meet_end_score():
                 self.total_settlement()
                 return
             else:
