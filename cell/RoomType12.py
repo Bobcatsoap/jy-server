@@ -1171,6 +1171,31 @@ class RoomType12(RoomBase):
             _p["entity"].update_score_control(_p['goldChange'])
             DEBUG_MSG('RoomType12 settlement totalGoldChange%s' % _p['totalGoldChange'])
 
+        if self.info["roomType"] == "gameCoin":
+            # 首局结算抽水
+            if self.settlement_count == 0:
+                for _p in players:
+                    billing_count = self.info['billingCount']
+                    _p['totalGoldChange'] -= billing_count
+                    DEBUG_MSG('RoomType12 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
+
+            # 每小局结算大赢家抽水,保留整数
+            # 获取大赢家
+            settlement_winners = self.mj_get_settlement_winners()
+            for k,v in settlement_winners.items():
+                # k:account_id v:winner字典
+                DEBUG_MSG('RoomType12 settlement_winner%s' % k)
+                # 计算大赢家小局抽水
+                settlement_winner_true_gold = self.get_true_gold(k)
+                settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
+                DEBUG_MSG('RoomType12 settlement_winner billing%s' % settlement_winner_billing)
+                v['totalGoldChange'] -= settlement_winner_billing
+                v['totalGoldChange'] = int(v['totalGoldChange'])
+                # 同步房费给base
+                self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
+                                      "todayGameCoinAdd": settlement_winner_billing,
+                                      "userId": k})
+
         # 封装牌局结算消息
         end_msg = []
         for p in players:
@@ -1269,6 +1294,7 @@ class RoomType12(RoomBase):
         # 扣除额外积分，抽奖
         if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
             self.mj_lottery()
+            self.mj_total_settlement_billing()
 
         # 同步金币变化到房间外
         for p in chapter[PLAYER_IN_GAME].values():
