@@ -1631,11 +1631,13 @@ class RoomBase(KBEngine.Entity):
         chapter = self.chapters[self.cn]
         total_settlement_winner = self.mj_get_winner()
         # 获取大赢家
-        for k, v in total_settlement_winner.items():
+        for location_index, v in total_settlement_winner.items():
+            total_settlement_winner_account_id = v['entity'].id
+
             # k:account_id v:winner字典
-            DEBUG_MSG('mj total_settlement_winner%s' % k)
+            DEBUG_MSG('mj total_settlement_winner%s' % total_settlement_winner_account_id)
             # 计算大赢家小局抽水
-            total_settlement_winner_true_gold = self.mj_get_true_gold(k)
+            total_settlement_winner_true_gold = self.mj_get_true_gold(total_settlement_winner_account_id)
             total_settlement_winner_billing = total_settlement_winner_true_gold * self.info['totalSettlementBilling']
             DEBUG_MSG('RoomType12 settlement_winner billing%s' % total_settlement_winner_billing)
             v['totalGoldChange'] -= total_settlement_winner_billing
@@ -1643,7 +1645,7 @@ class RoomBase(KBEngine.Entity):
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
-                                  "userId": k})
+                                  "userId": v["entity"].info["userId"]})
 
     def mj_lottery(self):
         chapter = self.chapters[self.cn]

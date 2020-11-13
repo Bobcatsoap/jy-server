@@ -1182,11 +1182,12 @@ class RoomType12(RoomBase):
             # 每小局结算大赢家抽水,保留整数
             # 获取大赢家
             settlement_winners = self.mj_get_settlement_winners()
-            for k,v in settlement_winners.items():
+            for location_index,v in settlement_winners.items():
+                settlement_winner_account_id = v['entity'].id
                 # k:account_id v:winner字典
-                DEBUG_MSG('RoomType12 settlement_winner%s' % k)
+                DEBUG_MSG('RoomType12 settlement_winner%s' % settlement_winner_account_id)
                 # 计算大赢家小局抽水
-                settlement_winner_true_gold = self.get_true_gold(k)
+                settlement_winner_true_gold = self.get_true_gold(settlement_winner_account_id)
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
                 DEBUG_MSG('RoomType12 settlement_winner billing%s' % settlement_winner_billing)
                 v['totalGoldChange'] -= settlement_winner_billing
@@ -1194,7 +1195,7 @@ class RoomType12(RoomBase):
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
-                                      "userId": k})
+                                      "userId": v["entity"].info["userId"]})
 
         # 封装牌局结算消息
         end_msg = []
