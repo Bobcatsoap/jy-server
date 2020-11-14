@@ -118,9 +118,14 @@ class RoomType13(RoomBase):
             self.settlement()
             for k, v in _chapter["playerInGame"].items():
                 self.player_ready(k, False)
-            # 如果是正常大结算
-            if self.cn + 1 >= self.info["maxChapterCount"]:  # E self.cn 当前局数下标   E maxChapterCount 最大局数
+            # 如果超过局数，总结算。锅子模式没有局数限制
+            if not self.pot and self.settlement_count >= self.info["maxChapterCount"]:
                 self.changeChapterState(5)
+                return
+            # 如果比赛场有人不满足离场分，结束游戏
+            elif self.info["roomType"] == "gameCoin" and self.have_player_do_not_meet_end_score():
+                self.changeChapterState(5)
+                return
             else:
                 # 整理结算信息
                 self.cl_card_chapter()
@@ -178,7 +183,7 @@ class RoomType13(RoomBase):
         elif timer_handle == _chapter["settlementTimer"]:
             self.delTimer(timer_handle)
             _chapter["settlementTimer"] = -1
-            if self.cn + 1 >= self.info["maxChapterCount"]:  # self.cn 当前局数下标
+            if not self.pot and self.settlement_count >= self.info["maxChapterCount"]:  # self.cn 当前局数下标
                 pass
             else:
                 self.chapter_clear()
@@ -468,6 +473,9 @@ class RoomType13(RoomBase):
             _player["gold"] = accountEntity.accountMutableInfo["gold"]
         elif self.info["roomType"] == "gameCoin":
             _player["gold"] = accountEntity.accountMutableInfo["gameCoin"]
+            # 如果是锅子模式，分数等于锅子分
+            if self.pot:
+                _player['gold'] = self.potScore
         elif self.info["roomType"] == "normalGameCoin":
             _player["gold"] = accountEntity.accountMutableInfo["gold"]
         # 1 同意解散
@@ -1951,7 +1959,12 @@ class RoomType13(RoomBase):
         _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInRoom = _chapter["playerInRoom"]
         _player = _playerInRoom[accountId]
-        _player["entity"].accountMutableInfo["gameCoin"] = self.round_int(_player['gold'])
+        # 如果是锅子模式，恢复比赛分
+        if self.pot:
+            remain_score = _player["entity"].accountMutableInfo["gameCoin"] - self.potScore
+            _player["entity"].accountMutableInfo["gameCoin"] = remain_score + self.round_int(_player['gold'])
+        else:
+            _player["entity"].accountMutableInfo["gameCoin"] = self.round_int(_player['gold'])
         _player["entity"].base.cellToBase({"func": "setAccountMutableInfo", "dic": {
             "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
             "gameCoin": _player["entity"].accountMutableInfo["gameCoin"]}})
@@ -2002,7 +2015,10 @@ class RoomType13(RoomBase):
     def set_time_for_total(self):
         _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         # 如果是正常大结算
-        if self.settlement_count >= self.info["maxChapterCount"]:
+        if not self.pot and self.settlement_count >= self.info["maxChapterCount"]:
+            self.total_settlement()
+        # 如果比赛场有人不满足离场分，结束游戏
+        elif self.info["roomType"] == "gameCoin" and self.have_player_do_not_meet_end_score():
             self.total_settlement()
         else:
             self.total_settlement(is_disband=True)
@@ -2987,6 +3003,16 @@ class RoomType13(RoomBase):
         _args = {"accountId": accountId, "url": url}
         self.callOtherClientsFunction("VoiceChat", _args)
 
+    def have_player_do_not_meet_end_score(self):
+        """
+        是否有玩家不满足离场分
+        """
+        chapter=self.chapters[self.cn]
+        for k, v in chapter['playerInGame'].items():
+            if v['gold'] < self.info['endScore']:
+                return True
+        return False
+
     # ==================================================================================================================
     #                                                 玩家操作
     # ==================================================================================================================
@@ -3131,6 +3157,16 @@ class RoomType13(RoomBase):
         if v > 0:
             return int(v + 0.51)
         return int(v)
+
+    # 锅子开关
+    @property
+    def pot(self):
+        return self.info['pot']
+
+    # 锅子分数
+    @property
+    def potScore(self):
+        return self.info['potScore']
 
     @property
     def single_max(self):

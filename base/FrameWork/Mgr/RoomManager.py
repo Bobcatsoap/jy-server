@@ -383,8 +383,11 @@ class RoomManager(Manger):
             _room.info["baseScore"] = _config["baseScore"]
             # 最大人数
             _room.info["maxPlayersCount"] = _config["maxPlayersCount"]
+            # 锅子开关
+            _room.info['pot'] = _config['pot']
+            # 锅子分数
+            _room.info['potScore'] = _config['potScore']
             # 高级选项
-
             # 允许三张
             _room.info["haveThree"] = _config["haveThree"]
             # 三带一
@@ -738,6 +741,7 @@ class RoomManager(Manger):
             self.rooms[_type].roominfos[_roomType][_room.info["roomId"]] = _room
 
         self.room12_conflict(_room.info)
+        self.room13_conflict(_room.info)
 
         # 通过房间信息获取房间钻石消耗
         self.room_card_consume_init(_room)
@@ -1943,6 +1947,21 @@ class RoomManager(Manger):
             info['j258'] = False
         else:
             info['singleColor'] = -1
+
+        if info['pot']:
+            # 锅子玩法入场分等于锅子分
+            info['gameLevel'] = info['potScore']
+            # 锅子玩法离场分为0
+            info['endScore'] = 0
+
+    def room13_conflict(self, info):
+        """
+        跑得快开房规则自洽
+        :param info:
+        :return:
+        """
+        if info['type'] != Const.RoomType.RoomType13:
+            return
 
         if info['pot']:
             # 锅子玩法入场分等于锅子分
