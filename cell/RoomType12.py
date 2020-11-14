@@ -955,7 +955,7 @@ class RoomType12(RoomBase):
                     self.addPlayerInSD(_player)
                     # 广播金币
                     self.retGolds()
-                    self.sync_gold()
+                    self.sync_true_gold()
 
             # for k, v in _players.items():
             #     self.on_player_ready(v['entity'].id)
@@ -1051,7 +1051,7 @@ class RoomType12(RoomBase):
         """
         _chapter=self.chapters[self.cn]
         for k, v in _chapter[PLAYER_IN_GAME].items():
-            true_gold = v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+            true_gold = self.get_true_gold(v['entity'].id)
             if true_gold < self.info['endScore']:
                 return True
         return False
@@ -1236,7 +1236,7 @@ class RoomType12(RoomBase):
 
         # 统计全局数据
         self.global_data(players)
-        self.sync_gold()
+        self.sync_true_gold()
         self.settlement_count += 1
         if self.settlement_count == 1:
             self.base.cellToBase({'func': 'addTodayRoom'})
@@ -1403,7 +1403,7 @@ class RoomType12(RoomBase):
                            "name": v["entity"].info["name"],
                            "userId": v["entity"].info["userId"],
                            'goldChange': v['goldChange'],
-                           'gold': v['gold'] + total_gold_change + v['baseSyncGoldChange'],
+                           'gold': self.get_true_gold(v['entity'].id),
                            "headImageUrl": v["entity"].info["headImageUrl"]}
                 player_info[int(v['locationIndex'])] = _player
 
@@ -1657,7 +1657,7 @@ class RoomType12(RoomBase):
                 self.send_check_result_item(player[CHECK_RESULT])
         # 同步剩余牌的数量
         self.syncLeftPaiCount(_chapter[LEFT_PAI_COUNT])
-        self.sync_gold()
+        self.sync_true_gold()
 
     def send_check_result_item(self, cr):
         """
@@ -2017,7 +2017,7 @@ class RoomType12(RoomBase):
                        'addOn': v['entity'].info['addOn'],
                        'seat': k,
                        'agreeLessMode': v["entity"].id in self.agree_less_person_mode_players,
-                       'gold': v['gold'] + total_gold_change + v['baseSyncGoldChange'],
+                       'gold': self.get_true_gold(v['entity'].id),
                        "headImageUrl": v["entity"].info["headImageUrl"],
                        "ready": v["isReady"]}
             _player_in_game[v["entity"].info["userId"]] = _player
@@ -2035,7 +2035,7 @@ class RoomType12(RoomBase):
                        'goldChange': v['goldChange'],
                        'addOn': v['entity'].info['addOn'],
                        'seat': v['locationIndex'],
-                       'gold': v['gold'] + total_gold_change + v['baseSyncGoldChange'],
+                       'gold': self.get_true_gold(v['entity'].id),
                        "headImageUrl": v["entity"].info["headImageUrl"],
                        "ready": v["isReady"]}
             _player_out_game[v["entity"].info["userId"]] = _player
@@ -2070,7 +2070,7 @@ class RoomType12(RoomBase):
                        'goldChange': v['goldChange'],
                        'addOn': v['entity'].info['addOn'],
                        'seat': v['locationIndex'],
-                       'gold': v['gold'] + total_gold_change + v['baseSyncGoldChange'],
+                       'gold': self.get_true_gold(v['entity'].id),
                        "headImageUrl": v["entity"].info["headImageUrl"],
                        "ready": v["isReady"]}
             _player_out_room[v["entity"].info["userId"]] = _player
@@ -3108,9 +3108,9 @@ class RoomType12(RoomBase):
         """
         self.callOtherClientsFunction('syncTimerCountDown', {'time': t})
 
-    def sync_gold(self):
+    def sync_true_gold(self):
         """
-        同步金币变化、金币以及金币总变化
+        同步最新分数信息给客户端
         scores = [{"locationIndex": locationIndex, "score": score},...]
         :return:
         """
@@ -3118,8 +3118,7 @@ class RoomType12(RoomBase):
         _gold_info = {}
         for k, v in _chapter[PLAYER_IN_GAME].items():
             total_gold_change = v['totalGoldChange']
-            base_sync_gold_change = v['baseSyncGoldChange']
-            _g = {'gold': v['gold'] + total_gold_change + base_sync_gold_change,
+            _g = {'gold': self.get_true_gold(v['entity'].id),
                   # 'goldChange': v['goldChange'],
                   'totalGoldChange': total_gold_change}
             _gold_info[v['entity'].info['userId']] = _g
@@ -3127,18 +3126,31 @@ class RoomType12(RoomBase):
 
     def get_true_gold(self, account_id):
         """
-        获得玩家当前真实金币
+        获得玩家当前真实分数
+        不开锅时：玩家分数+base上分+牌局输赢
+        开锅时：锅底+base上分+牌局输赢
         :param account_id:
         :return:
         """
         _chapter = self.get_current_chapter()
-        for k, v in _chapter[PLAYER_IN_GAME].items():
-            if v['entity'].id == account_id:
-                return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+        # 开锅时分数=锅底+base上分+牌局输赢
+        if self.pot:
+            for k, v in _chapter[PLAYER_IN_GAME].items():
+                if v['entity'].id == account_id:
+                    return self.potScore + v['baseSyncGoldChange'] + v['totalGoldChange']
 
-        for k, v in _chapter[PLAYER_OUT_GAME].items():
-            if v['entity'].id == account_id:
-                return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+            for k, v in _chapter[PLAYER_OUT_GAME].items():
+                if v['entity'].id == account_id:
+                    return self.potScore + v['baseSyncGoldChange'] + v['totalGoldChange']
+        # 不开锅时分数=玩家分数+base上分+牌局输赢
+        else:
+            for k, v in _chapter[PLAYER_IN_GAME].items():
+                if v['entity'].id == account_id:
+                    return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+
+            for k, v in _chapter[PLAYER_OUT_GAME].items():
+                if v['entity'].id == account_id:
+                    return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
 
     def sync_banker_index(self, locationIndex):
         """
@@ -3660,6 +3672,16 @@ class RoomType12(RoomBase):
             return True
         return False
 
+    # 锅子开关
+    @property
+    def pot(self):
+        return self.info['pot']
+
+    # 锅子分数
+    @property
+    def potScore(self):
+        return self.info['potScore']
+
     # 逢胡必胡
     @property
     def mustHu(self):
@@ -3802,7 +3824,7 @@ class RoomType12(RoomBase):
                     if isModify:
                         v["baseSyncGoldChange"] += count
                     break
-        self.sync_gold()
+        self.sync_true_gold()
 
     def refresh_game_coin(self, account_db_id, modify_count):
         """
@@ -3817,7 +3839,7 @@ class RoomType12(RoomBase):
                 if v["entity"].info["dataBaseId"] == account_db_id:
                     v["baseSyncGoldChange"] += modify_count
                     break
-        self.sync_gold()
+        self.sync_true_gold()
 
         # 如果都满足准备条件，关闭倒计时
         all_can_ready = self.check_ready_gold_disband()
