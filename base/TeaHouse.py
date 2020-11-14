@@ -990,12 +990,12 @@ class TeaHouse(KBEngine.Entity):
         joiner_head_image = self.applicationList[joiner_db_id]["headImage"]
         joiner_name = self.applicationList[joiner_db_id]["playerName"]
         joiner_belong_to = self.applicationList[joiner_db_id]["inviterDBID"]
+        joiner_gold = self.applicationList[joiner_db_id]["gold"]
         if joiner_belong_to == -1:
             joiner_belong_to = self.creatorDBID
         # 玩家初始化
-        gold = 10086
         tea_house_player = TeaHousePlayer(TeaHousePlayerLevel.Normal, joiner_db_id, joiner_name, joiner_head_image,
-                                          joiner_belong_to, self.random_invitation_code())
+                                          joiner_belong_to, self.random_invitation_code(), joiner_gold)
         self.memberInfo[joiner_db_id] = tea_house_player
         self.memberInfoJson = self.get_member_info_json()
         self.joinAndExitHistory.append(
@@ -1119,7 +1119,7 @@ class TeaHouse(KBEngine.Entity):
         self.memberInfoJson = self.get_member_info_json()
         self.update_single_member_info_to_client(modify_player)
 
-    def application_join(self, joiner_db_id, name, head_image, inviter_db_id, on_success=None, on_fail=None):
+    def application_join(self, joiner_db_id, name, head_image, inviter_db_id, gold, on_success=None, on_fail=None):
         """
         申请列表
         :param joiner_db_id:
@@ -1131,13 +1131,13 @@ class TeaHouse(KBEngine.Entity):
         :return:
         """
         self.applicationList[joiner_db_id] = {"accountDBID": joiner_db_id, "playerName": name,
-                                              "headImage": head_image, "inviterDBID": inviter_db_id}
+                                              "headImage": head_image, "inviterDBID": inviter_db_id, "gold": gold}
         self.update_tea_house_info_to_client()
         on_success()
 
-    def application_exit(self, exit_db_id, name, head_image, on_success=None, on_fail=None):
+    def application_exit(self, exit_db_id, name, head_image, gold, on_success=None, on_fail=None):
         self.exitApplicationList[exit_db_id] = {"accountDBID": exit_db_id, "playerName": name,
-                                                "headImage": head_image}
+                                                "headImage": head_image, "gold": gold}
         self.update_tea_house_info_to_client()
         if on_success:
             on_success()

@@ -1039,7 +1039,7 @@ class Account(KBEngine.Proxy):
                 for k, v in tea_house_entity.memberInfo.items():
                     if v.invitation_code == inviter_db_id:
                         inviter_db_id = v.db_id
-                tea_house_entity.application_join(self.databaseID, self.name, self.headImageUrl, inviter_db_id,
+                tea_house_entity.application_join(self.databaseID, self.name, self.headImageUrl, inviter_db_id, self.gold,
                                                   on_success=application_success)
             else:
                 self.call_client_func("JoinTeaHouseResp", ["找不到此冠名赛"])
@@ -2120,7 +2120,7 @@ class Account(KBEngine.Proxy):
                 return
             self.call_client_func("JoinTeaHouseResp", ["申请已提交,请等待老板同意"])
             # 加入冠名赛申请列表
-            tea_house_entity.application_join(self.databaseID, self.name, self.headImageUrl, _args["inviterDBID"],
+            tea_house_entity.application_join(self.databaseID, self.name, self.headImageUrl, _args["inviterDBID"], self.gold,
                                               on_success=application_success)
         else:
             self.call_client_func("JoinTeaHouseResp", ["找不到此冠名赛"])
@@ -2133,7 +2133,7 @@ class Account(KBEngine.Proxy):
             self.call_client_func("ExitTeaHouseResp", ["找不到此冠名赛"])
             return
         # 加入冠名赛申请列表
-        tea_house_entity.application_exit(self.databaseID, self.name, self.headImageUrl)
+        tea_house_entity.application_exit(self.databaseID, self.name, self.headImageUrl, self.gold)
         self.call_client_func("ExitTeaHouseResp", [""])
         self.call_client_func('Notice', ['申请已提交，请等待老板同意'])
 
