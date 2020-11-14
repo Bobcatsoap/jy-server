@@ -491,6 +491,7 @@ class Account(KBEngine.Proxy):
             if key == "gold":
                 self.gold = int(pyDic["gold"])
                 self.ret_gold()
+                self.ret_gold()
             elif key == 'score':
                 self.gold = int(pyDic["score"])
                 self.ret_gold()
@@ -512,18 +513,23 @@ class Account(KBEngine.Proxy):
         _type = pyDic['type']
         _tea_house_id = pyDic['teaHouseId']
         _total_gold_change = pyDic['totalGoldChange']
+        DEBUG_MSG('[set_account_total_gold_change type %s]------>cellToBase jsonData %s %s' % (str(_type), _tea_house_id, _total_gold_change))
         if _type == 'gold':
             self.gold += _total_gold_change
             self.ret_gold()
         elif _type == 'gameCoin':
             tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_tea_house_id)
+            DEBUG_MSG('[set_account_total_gold_change]------>tea_house_entity.gameCoinSwitch %s' % (str(tea_house_entity.gameCoinSwitch)))
             if tea_house_entity:
                 # 如果比赛币功能没开，不同步比赛币
-                if not tea_house_entity.gameCoinSwitch:
-                    return
+                # if not tea_house_entity.gameCoinSwitch:
+                #     return
                 player = tea_house_entity.get_tea_house_player(self.databaseID)
                 _game_coin = player.game_coin + _total_gold_change
+                # TODO 修改
+                self.gold = _game_coin
                 tea_house_entity.set_game_coin(self.databaseID, _game_coin)
+                self.ret_gold()
 
     # --------------------------------------------------------------------------------------------
     #                              通信相关的方法
@@ -946,6 +952,7 @@ class Account(KBEngine.Proxy):
         elif _func_name == "SingleTeaHouseInfo":
             self.get_tea_house_info(_args["teaHouseId"])
         elif _func_name == "OnOpenTeaHousePanel":
+            # 更新冠名赛中玩家的金币
 
             # 如果冠名赛不存在
             tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args["teaHouseId"])
@@ -954,6 +961,9 @@ class Account(KBEngine.Proxy):
                 self.call_client_func("DestroyTeaHouseSuccess", {})
                 self.get_joined_tea_house_list()
                 return
+
+            # 同步大厅金币到冠名赛
+            tea_house_entity.set_game_coin(self.databaseID, self.gold)
 
             player = tea_house_entity.get_tea_house_player(self.databaseID)
             # 如果玩家不在冠名赛里，返回大厅
