@@ -354,11 +354,14 @@ class RoomManager(Manger):
             _room.info['passHuAndPeng'] = _config['passHuAndPeng']
             # 逢胡必胡
             _room.info['mustHu'] = _config['mustHu']
+            # 锅子开关
+            _room.info['pot'] = _config['pot']
+            # 锅子分数
+            _room.info['potScore'] = _config['potScore']
             # 最大局数
             _room.info["maxChapterCount"] = _config["maxChapterCount"]
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
-            self.room12_conflict(_room.info)
         elif _type == Const.RoomType.RoomType13:  # 跑的快
             # Special为True是15人场，Flae 是经典场   类型：bool
             _room.info["special"] = _config["special"]
@@ -446,7 +449,6 @@ class RoomManager(Manger):
             _room.info["robGangHu"] = _config["robGangHu"]
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
-            # self.room12_conflict(_room.info)
             # 双混只能自摸，必带风
             # 带跑时，杠跑才有意义
         elif _type == Const.RoomType.RoomType15:  # 点炮胡
@@ -498,7 +500,6 @@ class RoomManager(Manger):
             _room.info['compensateMax'] = _config['compensateMax']
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
-            # self.room12_conflict(_room.info)
         elif _type == Const.RoomType.RoomType16:  # 晃晃麻将
             # 胡牌类型 int  0：点炮，1：自摸
             _room.info['huType'] = _config['huType']
@@ -735,6 +736,8 @@ class RoomManager(Manger):
             # 是否是匿名房间
             _room.info["anonymity"] = _config["anonymity"]
             self.rooms[_type].roominfos[_roomType][_room.info["roomId"]] = _room
+
+        self.room12_conflict(_room.info)
 
         # 通过房间信息获取房间钻石消耗
         self.room_card_consume_init(_room)
@@ -1897,6 +1900,7 @@ class RoomManager(Manger):
         if 4 not in info['playingMethod']:
             info['xiaMi'] = 0
 
+
     def room8_conflict(self, info):
         """
         牌九房间规则自洽
@@ -1939,6 +1943,14 @@ class RoomManager(Manger):
             info['j258'] = False
         else:
             info['singleColor'] = -1
+
+        # 锅子玩法没有局数限制
+        if info['pot']:
+            info['maxChapterCount'] = 99999
+
+        # 锅子玩法离场分为0
+        if info['pot']:
+            info['endScore'] = 0
 
     def is_snoring_all_room(self):
         return self.snoring_all_room
