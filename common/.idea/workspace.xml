@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bd2fd1e6-8510-4ccc-87c0-7786b1ed1d27" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../base/FrameWork/Mgr/RoomManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/../base/FrameWork/Mgr/RoomManager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cell/RoomType13.py" beforeDir="false" afterPath="$PROJECT_DIR$/../cell/RoomType13.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
