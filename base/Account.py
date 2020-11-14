@@ -526,7 +526,7 @@ class Account(KBEngine.Proxy):
                 #     return
                 player = tea_house_entity.get_tea_house_player(self.databaseID)
                 _game_coin = player.game_coin + _total_gold_change
-                # TODO 修改
+                # TODO 修改 同步比赛分到大厅金币
                 self.gold = _game_coin
                 tea_house_entity.set_game_coin(self.databaseID, _game_coin)
                 self.ret_gold()
@@ -1443,6 +1443,8 @@ class Account(KBEngine.Proxy):
             self.remove_friend(_args)
         elif _func_name == "getFriends":
             self.get_friend()
+        elif _func_name == "giveGold":  # 赠送金币
+            self.give_gold(_args)
         elif _func_name == "isFriend":
             people_relation = self.is_friend(_args["people"])
             self.call_client_func("isFriend", people_relation)
@@ -3305,6 +3307,37 @@ class Account(KBEngine.Proxy):
             KBEngine.createEntityFromDBID("Account", account_db_id, on_success_callback)
         else:
             self.call_client_func("removeFriendFail", ["删除好友失败"])
+
+    def give_gold(self, _args):
+        """
+        赠送金币
+        """
+        give_gold = _args["gold"]
+        gold = self.gold
+        playerId = _args["playerId"]
+        if gold > self.gold:
+            self.call_client_func('Notice', ['赠送金币大于你所有金币'])
+        playerAccount = self.account_mgr.get_account(playerId)
+        if not playerAccount:
+            self.call_client_func('Notice', ['玩家不存在'])
+        self.account_mgr.modify_gold(playerAccount, give_gold)
+        self.account_mgr.modify_gold(self.databaseID, -give_gold)
+        command_sql = "INSERT INTO tbl_givegoldinfo(userId,playerId,gold,addtime) VALUES (%s, %s, %s, int(time.time()))" % (self.databaseID, playerId, give_gold)
+        if self.gold == gold - give_gold:
+            self.call_client_func("giveGoldSuccess", ["赠送金币成功"])
+            def on_success_callback():
+                pass
+            KBEngine.executeRawDatabaseCommand(command_sql, on_success_callback)
+        else:
+            self.call_client_func("giveGoldFail", ["赠送金币失败"])
+
+    def give_gold_record(self):
+        """
+        赠送金币记录
+        """
+
+
+
 
     def is_friend(self, people):
         people_relation = {}
