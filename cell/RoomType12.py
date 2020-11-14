@@ -2954,7 +2954,7 @@ class RoomType12(RoomBase):
                 #     self.operation_after_play_card(c_op[CHECK_PLAYER], OPT_GUO, None)
                 # else:
                 # 如果开启了必胡，自动胡
-                if self.mustHu and c_op[CHECK_HU] and c_op[CHECK_HU_QIANG_GANG]:
+                if self.mustHu and (c_op[CHECK_HU] or c_op[CHECK_HU_QIANG_GANG]):
                     self.res_out_pai_dian_pao_hu_opt(c_op[CHECK_PLAYER])
                     return
                 self.send_check_result_item(c_op)
