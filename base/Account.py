@@ -112,6 +112,8 @@ class Account(KBEngine.Proxy):
     want_binding_phone = -1
     # 粉丝列表
     friends = []
+    # 赠送金币记录列表
+    giveGoldRecords = []
     todoList = []
     chats = {}
     chat_log = {}
@@ -1445,6 +1447,8 @@ class Account(KBEngine.Proxy):
             self.get_friend()
         elif _func_name == "giveGold":  # 赠送金币
             self.give_gold(_args)
+        elif _func_name == "giveGoldRecord":  # 赠送金币记录
+            self.give_gold_record()  # 赠送金币记录
         elif _func_name == "isFriend":
             people_relation = self.is_friend(_args["people"])
             self.call_client_func("isFriend", people_relation)
@@ -3335,6 +3339,19 @@ class Account(KBEngine.Proxy):
         """
         赠送金币记录
         """
+        give_gold_record_info = {}
+        def callback(result, rows, insertid, error):
+            for info in result:
+                id = str(info[0], "utf-8")
+                user_id = str(info[1], "utf-8")
+                player_id = str(info[2], "utf-8")
+                gold = str(info[3], "utf-8")
+                add_time = str(info[4], "utf-8")
+                give_gold_record_info[user_id] = {"id": id, "user_id": user_id, "player_id": player_id, "gold": gold, "add_time": add_time}
+            self.call_client_func("getGiveGoldRecords", give_gold_record_info)
+
+        command_sql = 'select id,userId,playerId, gold, addtime from tbl_givegoldinfo where userId=%s' % self.databaseID
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
 
 
