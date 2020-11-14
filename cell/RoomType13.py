@@ -1834,8 +1834,9 @@ class RoomType13(RoomBase):
             self.normal_lottery()
 
         for k, v in chapter["playerInGame"].items():
+            # 同步玩家比赛分给base
             if self.info["roomType"] == "gameCoin":
-                self.set_base_player_game_coin(k)  # 设置玩家比赛分数量
+                self.set_base_player_game_coin(k)
             else:
                 self.set_base_player_gold(k)  # 设置玩家金币数量
 

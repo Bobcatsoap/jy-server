@@ -1945,8 +1945,6 @@ class RoomManager(Manger):
             info['singleColor'] = -1
 
         if info['pot']:
-            # 锅子玩法没有局数限制
-            info['maxChapterCount'] = 99999
             # 锅子玩法入场分等于锅子分
             info['gameLevel'] = info['potScore']
             # 锅子玩法离场分为0

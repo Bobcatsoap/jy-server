@@ -1000,9 +1000,8 @@ class RoomType12(RoomBase):
             for k, v in _players.items():
                 self.on_player_ready(v['entity'].id, False)
 
-            # 如果牌局结束 cn从0开始
-            # 给base发送房间结束消息，并发送得分信息
-            if self.info["maxChapterCount"] == self.cn + 1:
+            # 超出局数，总结算。开启锅子，没有局数限制
+            if not self.pot and self.info["maxChapterCount"] == self.cn + 1:
                 self.total_settlement()
                 return
             # 如果比赛场有人不满足离场分，结束游戏
