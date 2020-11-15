@@ -2258,9 +2258,42 @@ class Account(KBEngine.Proxy):
             self.call_client_func('Notice', ['找不到此玩家'])
     def get_player_battle_score(self, tea_house_id, account_db_id, page_index):
         """
-        查询战绩记录
+        E查询战绩记录
         """
-        pass
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            self.call_client_func("playerBattleScoreRecord", {"partnerInfo": [], "totalPages": 0, "memberCount": 0})
+            return
+        player = tea_house_entity.get_tea_house_player(account_db_id)
+        if not player:
+            self.call_client_func("playerBattleScoreRecord", {"chargeInfo": [], "startTime": -1})
+        def on_success(charge_info):
+            if tea_house_entity:
+                charge_record_list = []
+                for item in charge_info:
+                    charge_item = {}
+                    charge_item["roomId"] = item["roomId"]
+                    charge_item["accountDBID"] = item["accountDBID"]
+                    charge_item["typeName"] = item["typeName"]
+                    charge_item["totalGoldChange"] = item["totalGoldChange"]
+                    charge_item["BringInGold"] = item["BringInGold"]
+                    charge_item["SurPlusGold"] = item["SurPlusGold"]
+                    charge_item["settleTime"] = item["settleTime"]
+                    charge_record_list.append(charge_item)
+                member_count = len(charge_record_list)
+                # 计算总页数
+                total_pages = math.ceil(len(charge_record_list) / Const.partner_list_page_item)
+                page_start = page_index * Const.partner_list_page_item
+                page_end = page_start + Const.partner_list_page_item
+                partner_info_list = charge_record_list[page_start:page_end]
+
+                self.call_client_func("playerBattleScoreRecord", {
+                    'partnerInfo': partner_info_list,
+                    "totalPages": int(total_pages),
+                    "memberCount": member_count
+                })
+        DBCommand.check_out_get_player_battle_score(account_db_id, tea_house_id, on_success=on_success)
+
 
 
     def get_partner_info_with_page_index(self, tea_house_id, account_db_id, page_index, level_filter=0):
@@ -2304,7 +2337,7 @@ class Account(KBEngine.Proxy):
 
     def get_single_member_info(self, tea_house_id, account_db_id):
         """
-        获取指定冠名赛指定用户的信息
+        E获取指定冠名赛指定用户的信息
         :param tea_house_id:
         :param account_db_id:
         :return:
@@ -3784,7 +3817,7 @@ class Account(KBEngine.Proxy):
         invited_entity = self.account_mgr.get_account(invited_user_id)
         if invited_entity and invited_entity.client and invited_entity.playing_stage != PlayerStage.PLAYING:
             if invited_entity.scene and invited_entity.scene.roomId == room_id:
-                self.call_client_func("Notice", ["无法邀请同房间玩家"])
+                self.call_client_func("Notice", ["无法邀f请同房间玩家"])
                 return
 
             # 被邀请玩家在线

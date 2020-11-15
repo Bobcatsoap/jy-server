@@ -11,6 +11,7 @@ import Functor
 # import Const
 import DateUtil
 import random
+import Const
 
 # 上一次抽成时间（年月日）
 lastCutTime = DateUtil.get_str_now_timestamp_ymd(time.time())
@@ -208,6 +209,30 @@ def check_out_game_coin_charge_history(account_db_id, tea_house_id, start_time=0
 
     KBEngine.executeRawDatabaseCommand(sql_command, callback)
 
+def check_out_get_player_battle_score(account_db_id, tea_house_id, on_success=None):
+    """
+    E查询战绩记录
+    """
+    sql_command = "select * from player_battle_score WHERE teaHouseId=%s AND playerId=%s order by settleTime desc" % (tea_house_id, account_db_id)
+    def callback(result, rows, insertid, error):
+        if result and len(result) != 0:
+            charge_info = []
+            for row in result:
+                room_type = str(row[3], 'utf-8')
+                item_info = {"roomId": int(row[1]), "accountDBID": int(row[2]), "typeName": Const.get_name_by_type(room_type),
+                             "totalGoldChange": int(row[4]),  # 比赛币
+                             "BringInGold": int(row[9]),  # 带入金币
+                             "SurPlusGold": int(row[10]), # 剩余金币
+                             "settleTime": int(row[11])# 结算时间
+                             }
+                charge_info.append(item_info)
+            if on_success:
+                on_success(charge_info)
+        else:
+            if on_success:
+                on_success([])
+
+    KBEngine.executeRawDatabaseCommand(sql_command, callback)
 
 def checkOutCornFromDBByUid(uid, _call_back):
     """
