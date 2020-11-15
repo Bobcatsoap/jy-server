@@ -1001,12 +1001,10 @@ class RoomType13(RoomBase):
         card_type = RoomType13Calculator.CardType.Com_Invalid
         return False, card_type
 
-    # 判断玩家手中是否有大过的牌
     def have_big_in_player(self, account_id) -> bool:
         """
-
+        判断玩家手中是否有大过的牌
         """
-
         chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         chapter["playerInGame"][account_id]["cards"].sort()
         #  获取card2中与card1牌型一样的牌或者大的牌型
@@ -1046,13 +1044,13 @@ class RoomType13(RoomBase):
             DEBUG_MSG("failed to out card because this is other player out card time")
             return
 
-        # 玩家不出牌
-        # 有牌必出判断； 首发判断
+        # 客户端发送不出请求
         if not len(client_cards):
+            # 上个出牌玩家是自己或者没有上个出牌玩家，不能不出
             if chapter["prePlayer"] == -1 or chapter["prePlayer"] == account_id:
                 self.send_player_cards(account_id, -1, client_cards, RoomType13Calculator.CardType.Com_Invalid)
                 return
-            # 是不是有牌必出
+            # 如果是有牌必出并且能压住，不能不出
             if self.info["haveCardMustCome"]:
                 if self.have_big_in_player(account_id):
                     return
@@ -1060,9 +1058,10 @@ class RoomType13(RoomBase):
             self.send_player_cards(account_id, 0, client_cards, RoomType13Calculator.CardType.Com_Invalid)
             return
 
-        # TODO 获取玩家出的牌型 如单张 一对 三带一 炸弹
+        # 获取玩家出的牌型 如单张 一对 三带一 炸弹
         server_cards_type = RoomType13Calculator.get_cards_type(server_cards, self.info)
 
+        # 无效牌，出牌失败
         if server_cards_type == RoomType13Calculator.CardType.Com_Invalid and server_cards:
             self.send_player_cards(account_id, -1, client_cards, server_cards_type)
             return
@@ -1210,12 +1209,12 @@ class RoomType13(RoomBase):
                 return False
         return True
 
-    # 发送玩家出牌
     def send_player_cards(self, account_id, result, client_cards, cards_type):
         """
-        TODO 发送玩家出牌
+        发送玩家出牌
         """
         chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
+        # 不出
         if result == 0:
             client_cards = []
             cards_type = RoomType13Calculator.CardType.Com_Invalid
@@ -1244,8 +1243,11 @@ class RoomType13(RoomBase):
         server_cards = self.change_value_to_server(client_cards)
         # 如果玩家成功出牌
         if result == 1:
-            # 计算牌型分值
-            self.boom_score_for_total(server_cards, cards_type, account_id)
+            # 如果开启空炸不算分并且是空炸，不调用炸弹算分
+            if self.initiative_bomb_not_score and (chapter["prePlayer"] == -1 or chapter["prePlayer"] == account_id):
+                DEBUG_MSG("initiative_bomb_not_score account_id:%s server_cards:%s" % (account_id, server_cards))
+            else:
+                self.boom_score_for_total(server_cards, cards_type, account_id)
             # 将上个出牌玩家置为当前玩家
             if chapter['prePlayer'] == account_id:
                 chapter['letPlayer'] = -1
@@ -1258,7 +1260,7 @@ class RoomType13(RoomBase):
             for i in server_cards:
                 if i in player_cards:
                     player_cards.remove(i)
-                player_played_cards.append(i)  # E玩家已出牌堆
+                player_played_cards.append(i)
             # 此玩家的出牌次数更新
             chapter["playerInGame"][account_id]["playCount"] += 1
             count_time = chapter["playerInGame"][account_id]["playCount"]
@@ -1267,7 +1269,7 @@ class RoomType13(RoomBase):
         self.delTimer(chapter["playCardTimer"])
         chapter["playCardTimer"] = -1
 
-        # 记录出牌步骤
+        # 回放记录出牌步骤
         record = {"accountId": account_id, "operationType": 2, "operationArgs": {"clientCards": client_cards.copy(),
                                                                                  "cardsType": cards_type.value}}
         chapter["operationRecord"].append(record)
@@ -1286,13 +1288,16 @@ class RoomType13(RoomBase):
         # 切换下个出牌玩家
         self.change_play_card_player(nex_player_out_card_id)
 
-    # 统计炸弹分(待优化)
     def boom_score_for_total(self, server_cards, cards_type, account_id):
-        chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
+        """
+        统计炸弹分
+        """
+        chapter = self.chapters[self.cn]
         if cards_type == RoomType13Calculator.CardType.Lin_FourBoom or \
                 cards_type == RoomType13Calculator.CardType.Lin_MaxBoomForFour or \
                 cards_type == RoomType13Calculator.CardType.Lin_MaxBoomWithSingle or \
                 cards_type == RoomType13Calculator.CardType.Lin_FourBoomWithSingle:
+            # 炸弹翻倍模式
             if self.info["boomSettlementType"] == 1:
                 if self.info["boomScore"] == -1:
                     chapter["playerInGame"][account_id]["boomCount"] += 1
@@ -1307,6 +1312,7 @@ class RoomType13(RoomBase):
                     chapter["playerInGame"][account_id]["boomCount"] += 1
                     chapter["multiple"] *= 2
                 chapter["boomCount"] += 1
+            # 炸弹算分模式
             else:
                 # chapter["playerInGame"][account_id]["boomCount"] += 1
                 if not len(chapter["max_boom"]):
@@ -3199,3 +3205,10 @@ class RoomType13(RoomBase):
         :return:
         """
         return 'loseAll' in self.info and self.info['loseAll']
+
+    @property
+    def initiative_bomb_not_score(self):
+        """
+        空炸不算分
+        """
+        return self.info['initiativeBombNotScore']
