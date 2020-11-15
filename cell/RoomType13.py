@@ -1028,9 +1028,11 @@ class RoomType13(RoomBase):
         if chapter['currentState'] != 3:  # 当前房间状态
             return
         # 转换成服务端的牌值
-        server_cards = self.change_value_to_server(client_cards)
+        this_play_cards = self.change_value_to_server(client_cards)
+        # 玩家手牌
+        player_cards = chapter["playerInGame"][account_id]["cards"]
         # 出的牌不是手中有的牌
-        for s_card in server_cards:
+        for s_card in this_play_cards:
             if s_card not in chapter["playerInGame"][account_id]["cards"]:
                 DEBUG_MSG("failed to out card because there no these cards in player's cards")
                 self.send_player_cards(account_id, -1, client_cards, RoomType13Calculator.CardType.Com_Invalid)
@@ -1058,24 +1060,37 @@ class RoomType13(RoomBase):
             self.send_player_cards(account_id, 0, client_cards, RoomType13Calculator.CardType.Com_Invalid)
             return
 
-        # 获取玩家出的牌型 如单张 一对 三带一 炸弹
-        server_cards_type = RoomType13Calculator.get_cards_type(server_cards, self.info)
+        # 获取玩家出的牌型
+        server_cards_type = RoomType13Calculator.get_cards_type(this_play_cards, self.info)
 
         # 无效牌，出牌失败
-        if server_cards_type == RoomType13Calculator.CardType.Com_Invalid and server_cards:
+        if server_cards_type == RoomType13Calculator.CardType.Com_Invalid and this_play_cards:
             self.send_player_cards(account_id, -1, client_cards, server_cards_type)
             return
 
-        # 报单顶大
-        if self.single_max and len(server_cards) == 1 and self.is_only_left_one_for_next_player(account_id, chapter):
+        # 检测报单顶大
+        if self.single_max and len(this_play_cards) == 1 and self.is_only_left_one_for_next_player(account_id, chapter):
             for cv in chapter["playerInGame"][account_id]["cards"]:
-                if int(server_cards[-1]) < int(cv):
+                if int(this_play_cards[-1]) < int(cv):
                     self.send_player_cards(account_id, -1, client_cards, server_cards_type)
                     self.callClientFunction(account_id, 'Notice', ["报单顶大"])
                     return
 
+        # 检测是否满足单A必出2
+        if not self.check_single_1_must_2(chapter["prePlayerPlayCards"], this_play_cards, player_cards):
+            self.send_player_cards(account_id, -1, client_cards, server_cards_type)
+            self.callClientFunction(account_id, 'Notice', ["单A必出2"])
+            return
+
+        # 检测是否满足单K必出A
+        if self.single_k_must_a and \
+                not self.check_single_k_must_1(chapter["prePlayerPlayCards"], this_play_cards, player_cards):
+            self.send_player_cards(account_id, -1, client_cards, server_cards_type)
+            self.callClientFunction(account_id, 'Notice', ["单K必出A"])
+            return
+
         # 在炸弹不可拆模式下，如果玩家打出的牌不是四带，不是三带二，并且含有炸弹元素的牌型则出牌失败(出牌拆离)
-        if self.is_split_boom(server_cards, chapter["playerInGame"][account_id]["cards"], server_cards_type) and \
+        if self.is_split_boom(this_play_cards, chapter["playerInGame"][account_id]["cards"], server_cards_type) and \
                 self.info["bombCannotSeparate"]:
             self.send_player_cards(account_id, 100, client_cards, server_cards_type)
             DEBUG_MSG("is_split_boom")
@@ -1096,13 +1111,13 @@ class RoomType13(RoomBase):
             server_cards_type == RoomType13Calculator.CardType.Com_PlaneWithSingle
         ) and self.info["bombCannotSeparate"]:
             # 将玩家炸弹中的非炸弹牌拉出，判断其是否是炸弹中的一个
-            if not self.is_dai_card_in_boom(server_cards, chapter["playerInGame"][account_id]["cards"]):
+            if not self.is_dai_card_in_boom(this_play_cards, chapter["playerInGame"][account_id]["cards"]):
                 self.send_player_cards(account_id, 100, client_cards, server_cards_type)
                 DEBUG_MSG("is_dai_card_in_boom")
                 return
 
         # 如果打出通过，判断剩下的牌，如果将炸弹拆离（四代一为炸弹：普通四代一，和AAA带一），那么出牌失败（剩余牌拆离）
-        find_c_p_type = RoomType13Calculator.remove_c_list_from_p_list(server_cards,
+        find_c_p_type = RoomType13Calculator.remove_c_list_from_p_list(this_play_cards,
                                                                        chapter["playerInGame"][account_id]["cards"])
         # 玩家手中无此牌，将刷新玩家手牌
         if find_c_p_type is None:
@@ -1138,12 +1153,12 @@ class RoomType13(RoomBase):
             if chapter["prePlayer"] == -1:
                 # 如果抢庄类型是红桃3，并且存在
                 if chapter["OverLocalOutCard"] == 12:
-                    if not server_cards.count(3.3):
+                    if not this_play_cards.count(3.3):
                         self.send_player_cards(account_id, 12, client_cards, server_cards_type)
                         return
                 # 如果是黑桃3，且存在
                 if chapter["OverLocalOutCard"] == 15:
-                    if not server_cards.count(3.4):
+                    if not this_play_cards.count(3.4):
                         self.send_player_cards(account_id, 15, client_cards, server_cards_type)
                         return
             # 有效牌型出牌成功
@@ -1151,7 +1166,7 @@ class RoomType13(RoomBase):
             return
 
         # 如果比之前出牌大，出牌成功；否则失败
-        if self.is_current_card_greater(server_cards, chapter["prePlayerPlayCards"]):
+        if self.is_current_card_greater(this_play_cards, chapter["prePlayerPlayCards"]):
             self.send_player_cards(account_id, 1, client_cards, server_cards_type)
         else:
             self.send_player_cards(account_id, -1, client_cards, server_cards_type)
@@ -2029,14 +2044,28 @@ class RoomType13(RoomBase):
         else:
             self.total_settlement(is_disband=True)
 
-    # 获取下家手牌长度仅一张（此处为保单顶大辅助函数）
     def is_only_left_one_for_next_player(self, account_id, _cp) -> bool:
+        """
+        下家的手牌数是否为1
+        """
         # 获取下个玩家的id
         next_account = self.get_next_player_with_account_id(account_id)
         # DEBUG_MSG("is_only_left_one_for_next_player %s %s %s" % (account_id, next_account, len(_cp["playerInGame"])))
         if len(_cp["playerInGame"][next_account]["cards"]) == 1:
             return True
         return False
+
+    def check_single_1_must_2(self, pre_play_cards, this_play_cards, cards):
+        """
+        检测是否满足单A必出2
+        """
+        return RoomType13Calculator.check_single_1_must_2(pre_play_cards, this_play_cards, cards, self.info)
+
+    def check_single_k_must_1(self, pre_play_cards, this_play_cards, cards):
+        """
+        检测是否满足单K必出A
+        """
+        return RoomType13Calculator.check_single_k_must_1(pre_play_cards, this_play_cards, cards, self.info)
 
     # ==================================================================================================================
     #                                                通用方法
@@ -3013,7 +3042,7 @@ class RoomType13(RoomBase):
         """
         是否有玩家不满足离场分
         """
-        chapter=self.chapters[self.cn]
+        chapter = self.chapters[self.cn]
         for k, v in chapter['playerInGame'].items():
             if v['gold'] < self.info['endScore']:
                 return True
@@ -3212,3 +3241,10 @@ class RoomType13(RoomBase):
         空炸不算分
         """
         return self.info['initiativeBombNotScore']
+
+    @property
+    def single_k_must_a(self):
+        """
+        单K必出A
+        """
+        return self.info['singleKMustA']

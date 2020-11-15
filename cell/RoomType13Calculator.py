@@ -102,6 +102,55 @@ class CardType(Enum):
     Com_PlaneWithTwo = 24
 
 
+def check_single_1_must_2(pre_play_cards, this_play_cards, cards,room_info):
+    """
+    检测是否满足单A必出2
+    """
+    # 获取上家出牌数字
+    pre_play_cards_number = convert_cards_to_value(pre_play_cards)
+    # 获取上家出牌类型
+    pre_play_cards_type = get_cards_type(pre_play_cards_number, room_info)
+    # 获取本次出牌数字
+    this_play_cards_number = convert_cards_to_value(this_play_cards)
+    # 获取手牌数字
+    cards_number = convert_cards_to_value(cards)
+    # 获取本次出牌类型
+    this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
+    # 如果上个玩家出牌是单A，并且手里有2，判断本次是否是2
+    if pre_play_cards_type == CardType.Com_Single and pre_play_cards_number[0] == 14 and 15 in cards_number:
+        if this_play_cards_type == CardType.Com_Single and this_play_cards_number[0] == 15:
+            return True
+        else:
+            return False
+    # 如果上个玩家出牌不是单A,一定满足
+    else:
+        return True
+
+def check_single_k_must_1(pre_play_cards, this_play_cards, cards,room_info):
+    """
+    检测是否满足单k必出1
+    """
+    # 获取上家出牌数字
+    pre_play_cards_number = convert_cards_to_value(pre_play_cards)
+    # 获取上家出牌类型
+    pre_play_cards_type = get_cards_type(pre_play_cards_number, room_info)
+    # 获取本次出牌数字
+    this_play_cards_number = convert_cards_to_value(this_play_cards)
+    # 获取手牌数字
+    cards_number=convert_cards_to_value(cards)
+    # 获取本次出牌类型
+    this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
+    # 如果上个玩家出牌是单K，并且手里有A，判断本次是否是A
+    if pre_play_cards_type == CardType.Com_Single and pre_play_cards_number[0] == 13 and 14 in cards_number:
+        if this_play_cards_type == CardType.Com_Single and this_play_cards_number[0] == 14:
+            return True
+        else:
+            return False
+    # 如果上个玩家出牌不是单k,一定满足
+    else:
+        return True
+
+
 # 获取card2中与card1牌型一样的牌或者大的牌型(找到任意合适的牌就返回，待优化)
 def find_greater_cards(card1, _card2, room_info):
     """
@@ -520,14 +569,14 @@ def find_three_with_two_single(pre_card_val, card2, room_info):
     all_itm_cards = []
     for k in card2:
         if k > pre_card_val and card2.count(k) >= 3 and k not in card_filter:
-            itm_cards = [k]*3
+            itm_cards = [k] * 3
             # 找2单
             two = []
             for v in card2:
                 if v != k and v not in two:
                     two.append(v)
                     if len(two) == 2:
-                        itm_cards += [-1]*2
+                        itm_cards += [-1] * 2
                         all_itm_cards.append(itm_cards)
                         card_filter.add(k)
                         break
@@ -650,10 +699,10 @@ def find_planeWithSingle(card1, card2, room_info):
     bigger = []
     itm_cards = _find_bigger_continues_single(card_1_plane, card_2_plane)
     for v in itm_cards:
-        if len(v)*4 <= len(card2):
+        if len(v) * 4 <= len(card2):
             single_count = len(v)
             v *= 3
-            v.extend([-1]*single_count)
+            v.extend([-1] * single_count)
             bigger.append(v)
     return bigger
 
@@ -695,7 +744,7 @@ def find_planWithDouble(card1, card2, room_info):
         if find_pair_count(card2, v) >= len(v):
             _pair_count = len(v)
             v *= 3
-            v.extend([1]*_pair_count)
+            v.extend([1] * _pair_count)
             bigger.append(v)
     return bigger
 
@@ -730,10 +779,10 @@ def find_planeWithTwo(card1, card2, room_info):
     itm_cards = _find_bigger_continues_single(card_1_plane, card_2_plane)
     for v in itm_cards:
         # 单的个数必须够
-        if len(v)*5 <= len(card2):
+        if len(v) * 5 <= len(card2):
             single_count = 2 * len(v)
             v *= 3
-            v.extend([-1]*single_count)
+            v.extend([-1] * single_count)
             bigger.append(v)
     return bigger
 
@@ -770,8 +819,8 @@ def _compare_cards(cards1, cards2, card_type):
             return True
         return False
     elif card_type == CardType.Spc_OnlyThree \
-        or card_type == CardType.Com_ThreeWithSingle \
-        or card_type == CardType.Lin_ThreeWithDouble \
+            or card_type == CardType.Com_ThreeWithSingle \
+            or card_type == CardType.Lin_ThreeWithDouble \
             or card_type == CardType.Lin_ThreeWithTwo:
         # 3带
         if get_cards_value(cards1, 3) > get_cards_value(cards2, 3):
@@ -783,7 +832,7 @@ def _compare_cards(cards1, cards2, card_type):
             return True
         return False
     elif card_type == CardType.Com_PlaneWithSingle \
-        or card_type == CardType.Lin_PlaneWithDouble \
+            or card_type == CardType.Lin_PlaneWithDouble \
             or card_type == CardType.Com_PlaneWithTwo:
         # 带的牌里面也可能有3张，需要先找出飞机，再比较大小
         three_dai_count = 5
@@ -843,11 +892,11 @@ def compare_cards(_cards1, _cards2, room_info):
     else:
         if room_info["threeAndDouble"] and room_info["threeAndTwoSingle"]:
             # 3带2、3带对都开时，可以胡压
-            if (cards1_type == CardType.Lin_ThreeWithTwo or cards1_type == CardType.Lin_ThreeWithDouble)\
+            if (cards1_type == CardType.Lin_ThreeWithTwo or cards1_type == CardType.Lin_ThreeWithDouble) \
                     and (cards2_type == CardType.Lin_ThreeWithTwo or cards2_type == CardType.Lin_ThreeWithDouble):
                 if get_cards_value(cards1, 3) > get_cards_value(cards2, 3):
                     return True
-            elif (cards1_type == CardType.Com_PlaneWithTwo or cards1_type == CardType.Lin_PlaneWithDouble)\
+            elif (cards1_type == CardType.Com_PlaneWithTwo or cards1_type == CardType.Lin_PlaneWithDouble) \
                     and (cards2_type == CardType.Com_PlaneWithTwo or cards2_type == CardType.Lin_PlaneWithDouble):
                 if get_cards_value(cards1, 3) > get_cards_value(cards2, 3):
                     return True
@@ -1044,9 +1093,9 @@ def is_plane(cards, three_and_dai_count, three_cards=None):
     # 组织返回3张的值
     if three_cards is not None:
         if max_count > plane_count:
-            start_val += (max_count-plane_count)
+            start_val += (max_count - plane_count)
         for i in range(plane_count):
-            three_cards.append(start_val+i)
+            three_cards.append(start_val + i)
     return True
 
 
@@ -1144,6 +1193,7 @@ def get_cards_value(cards, count):
             if value < v:
                 value = v
     return value
+
 
 # # 牌型辅助函数
 # def get_value_c1_and_c2_max(card1, card2, number):
@@ -1249,6 +1299,7 @@ def change_to_card_for_one(one_list, card_list, room_info):
     整型换算成具体牌
     3带-1，换算成一个单张牌
     """
+
     def move_one_card(src_list, dest_list, int_val):
         """
         根据3，把3.1从一个列表移动到另一个列表
