@@ -490,6 +490,7 @@ class Account(KBEngine.Proxy):
         :return:
         """
         for key in pyDic.keys():
+            DEBUG_MSG('[setAccountMutableInfo key %s]------>cellToBase jsonData %s' % (str(key), str(pyDic)))
             if key == "gold":
                 self.gold = int(pyDic["gold"])
                 self.ret_gold()
@@ -501,9 +502,12 @@ class Account(KBEngine.Proxy):
                 tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(int(pyDic["teaHouseId"]))
                 # 如果比赛币功能没开，不同步比赛币
                 if tea_house_entity:
-                    if not tea_house_entity.gameCoinSwitch:
-                        return
+                    # if not tea_house_entity.gameCoinSwitch:
+                    #     return
+                    self.gold = int(pyDic["gameCoin"])
+                    DEBUG_MSG('[setAccountMutableInfo]------>cellToBase self.gold %s' % str(self.gold))
                     tea_house_entity.set_game_coin(self.databaseID, int(pyDic["gameCoin"]))
+                    self.ret_gold()
 
     def set_account_total_gold_change(self, pyDic):
         """
@@ -524,8 +528,8 @@ class Account(KBEngine.Proxy):
             DEBUG_MSG('[set_account_total_gold_change]------>tea_house_entity.gameCoinSwitch %s' % (str(tea_house_entity.gameCoinSwitch)))
             if tea_house_entity:
                 # 如果比赛币功能没开，不同步比赛币
-                # if not tea_house_entity.gameCoinSwitch:
-                #     return
+                if not tea_house_entity.gameCoinSwitch:
+                    return
                 player = tea_house_entity.get_tea_house_player(self.databaseID)
                 _game_coin = player.game_coin + _total_gold_change
                 # TODO 修改 同步比赛分到大厅金币

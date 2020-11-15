@@ -3174,9 +3174,9 @@ class TeaHousePlayer:
         self.origin_game_coin = 0
         self.lucky_card_consume = 0
         self.winner = 0
-        self.game_coin = gold
         self.historyRooms = {}
         # 输赢分控制
+        self.game_coin = gold
         self.score_control = False
         self.recent_score = 0
         # 输分开始干预阈值,赢分停止干预阈值，倍数

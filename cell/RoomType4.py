@@ -2085,6 +2085,8 @@ class RoomType4(RoomBase):
         _player["entity"].accountMutableInfo["gameCoin"] = _player["score"]
         _player["entity"].base.cellToBase({"func": "setAccountMutableInfo", "dic": {
             "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
+            "type": "gameCoin",
+            "totalGoldChange": _player["totalGoldChange"],
             "gameCoin": _player["entity"].accountMutableInfo["gameCoin"]}})
 
     def set_base_player_gold(self, account):
@@ -2101,6 +2103,8 @@ class RoomType4(RoomBase):
         _player["entity"].accountMutableInfo["score"] = _player["score"]
         _player["entity"].base.cellToBase({"func": "setAccountMutableInfo", "dic": {
             "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
+            "type": "gold",
+            "totalGoldChange": _player["totalGoldChange"],
             "score": _player["entity"].accountMutableInfo["score"]}})
 
     def tea_house_disband_room_by_creator(self):
