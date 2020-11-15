@@ -143,7 +143,7 @@ def check_big_bomb_and_small_bomb(pre_play_cards, this_play_cards, cards, room_i
             return False
     # 如果压不住，满足
     else:
-        return False
+        return True
 
 
 def check_2_must_bomb(pre_play_cards, this_play_cards, cards, room_info):
