@@ -1452,7 +1452,7 @@ class Account(KBEngine.Proxy):
         elif _func_name == "giveGold":  # 赠送金币
             self.give_gold(_args)
         elif _func_name == "giveGoldRecord":  # 赠送金币记录
-            self.give_gold_record()  # 赠送金币记录
+            self.give_gold_record(_args['pageIndex'])  # 赠送金币记录
         elif _func_name == "isFriend":
             people_relation = self.is_friend(_args["people"])
             self.call_client_func("isFriend", people_relation)
@@ -3379,26 +3379,38 @@ class Account(KBEngine.Proxy):
         else:
             self.call_client_func("giveGoldFail", ["赠送金币失败"])
 
-    def give_gold_record(self):
+    def give_gold_record(self, page_index):
         """
         赠送金币记录
         """
-        give_gold_record_info = {}
         def callback(result, rows, insertid, error):
+            give_gold_record_info_list = []
             for info in result:
                 id = str(info[0], "utf-8")
                 user_id = str(info[1], "utf-8")
                 player_id = str(info[2], "utf-8")
                 gold = str(info[3], "utf-8")
                 add_time = str(info[4], "utf-8")
-                give_gold_record_info[user_id] = {"id": id, "user_id": user_id, "player_id": player_id, "gold": gold, "add_time": add_time}
-            self.call_client_func("getGiveGoldRecords", give_gold_record_info)
-
+                give_gold_record_info_item = {}
+                give_gold_record_info_item["id"] = id
+                give_gold_record_info_item["accountDBID"] = user_id
+                give_gold_record_info_item["playerId"] = player_id
+                give_gold_record_info_item["gold"] = gold
+                give_gold_record_info_item["addTime"] = add_time
+                give_gold_record_info_list.append(give_gold_record_info_item)
+            member_count = len(give_gold_record_info_list)
+            # 计算总页数
+            total_pages = math.ceil(len(give_gold_record_info_list) / Const.partner_list_page_item)
+            page_start = page_index * Const.partner_list_page_item
+            page_end = page_start + Const.partner_list_page_item
+            partner_info_list = give_gold_record_info_list[page_start:page_end]
+            self.call_client_func("getGiveGoldRecords", {
+                'partnerInfo': partner_info_list,
+                "totalPages": int(total_pages),
+                "memberCount": member_count
+            })
         command_sql = 'select id,userId,playerId, gold, addtime from tbl_givegoldinfo where userId=%s' % self.databaseID
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
-
-
-
 
     def is_friend(self, people):
         people_relation = {}
