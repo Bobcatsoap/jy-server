@@ -1202,6 +1202,8 @@ class RoomType12(RoomBase):
                                       "todayGameCoinAdd": settlement_winner_billing,
                                       "userId": v["entity"].info["userId"]})
 
+
+
         # 封装牌局结算消息
         end_msg = []
         for p in players:
@@ -1368,7 +1370,9 @@ class RoomType12(RoomBase):
                            "winnerBilling": v["winnerBilling"], "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"],
                            "totalGoldChange": v["totalGoldChange"], "userId": v["entity"].info["userId"],
-                           "headImageUrl": v["entity"].info["headImageUrl"]
+                           "headImageUrl": v["entity"].info["headImageUrl"],
+                           "gold": v["gold"],
+                           "totalGold": v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
                            }
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])

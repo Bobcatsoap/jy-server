@@ -823,6 +823,7 @@ class TeaHouse(KBEngine.Entity):
         组长比例50%，贡献值增加32
 
         :param origin_player: 被抽取的起始玩家
+               add: 抽成的数量
         :return:
         """
 

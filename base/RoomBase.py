@@ -301,6 +301,7 @@ class RoomBase(KBEngine.Entity):
         elif _func_name == "todayGameBilling":
             tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(pyDic["teaHouseId"])
             if tea_house_entity:
+                # pyDic["todayGameCoinAdd"] 抽成的数量
                 tea_house_entity.add_today_game_coin_billing(pyDic["userId"], pyDic["todayGameCoinAdd"])
         elif _func_name == "todayBillStatic":
             tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(pyDic["teaHouseId"])
@@ -395,13 +396,19 @@ class RoomBase(KBEngine.Entity):
         for v in chapterInfos["playerInfo"]:
             bill_score = v['otherBilling'] + v['winnerBilling']
             win_score = v['totalGoldChange'] - bill_score
-            value_item = "(%s,%s,'%s',%s,%s,%s,%s,%s,from_unixtime(%s))," % (
+            gold = 0
+            totalGold = 0
+            if v.get("gold"):
+                gold = v["gold"]
+            if v.get("totalGold"):
+                totalGold = v["totalGold"]
+            value_item = "(%s,%s,'%s',%s,%s,%s,%s,%s,%s,%s,from_unixtime(%s))," % (
                 tea_house_id, v['userId'], room_type, v['totalGoldChange'], self.roomId,
-                1 if win_score == max_win else 0, win_score, bill_score, settle_time)
+                1 if win_score == max_win else 0, win_score, bill_score, gold, totalGold, settle_time)
             values += value_item
             players_score[v['userId']] = v['totalGoldChange']
 
-        sql = "INSERT IGNORE into player_battle_score(teaHouseId,playerId,roomType,totalGoldChange,roomId,winner,winScore,bill,settleTime) values"
+        sql = "INSERT IGNORE into player_battle_score(teaHouseId,playerId,roomType,totalGoldChange,roomId,winner,winScore,bill, gold, totalGold, settleTime) values"
         sql += values[:-1]
         DBCommand.exec_normal_sql(sql)
 
