@@ -1492,6 +1492,9 @@ class Account(KBEngine.Proxy):
         elif _func_name == 'GetPartnerInfoWithPageIndex':
             self.get_partner_info_with_page_index(_args['teaHouseId'], _args['accountDBID'],
                                                   _args['pageIndex'], _args['levelFilter'])
+        # 增加查询战绩函数
+        elif _func_name == 'GetPlayerBattleScore':
+            self.get_player_battle_score(_args['teaHouseId'], _args['accountDBID'], _args['pageIndex'])
         elif _func_name == "GetTeaHouseRoomsWithPageIndex":
             self.tea_house_mgr.get_tea_house_rooms_with_page_index(self.databaseID, _args)
         elif _func_name == 'GetUrlAddress':
@@ -2253,7 +2256,11 @@ class Account(KBEngine.Proxy):
             self.call_client_func('SearchMember', {'memberInfo': member_info})
         else:
             self.call_client_func('Notice', ['找不到此玩家'])
-
+    def get_player_battle_score(self, tea_house_id, account_db_id, page_index):
+        """
+        查询战绩记录
+        """
+        pass
 
 
     def get_partner_info_with_page_index(self, tea_house_id, account_db_id, page_index, level_filter=0):
