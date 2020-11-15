@@ -1031,6 +1031,8 @@ class RoomType13(RoomBase):
         this_play_cards = self.change_value_to_server(client_cards)
         # 玩家手牌
         player_cards = chapter["playerInGame"][account_id]["cards"]
+        # 上家出牌
+        pre_playa_cards = chapter["prePlayerPlayCards"]
         # 出的牌不是手中有的牌
         for s_card in this_play_cards:
             if s_card not in chapter["playerInGame"][account_id]["cards"]:
@@ -1077,16 +1079,27 @@ class RoomType13(RoomBase):
                     return
 
         # 检测是否满足单A必出2
-        if not self.check_single_1_must_2(chapter["prePlayerPlayCards"], this_play_cards, player_cards):
+        if not self.check_single_1_must_2(pre_playa_cards, this_play_cards, player_cards):
             self.send_player_cards(account_id, -1, client_cards, server_cards_type)
             self.callClientFunction(account_id, 'Notice', ["单A必出2"])
             return
 
         # 检测是否满足单K必出A
-        if self.single_k_must_a and \
-                not self.check_single_k_must_1(chapter["prePlayerPlayCards"], this_play_cards, player_cards):
+        if self.single_k_must_a and not self.check_single_k_must_1(pre_playa_cards, this_play_cards, player_cards):
             self.send_player_cards(account_id, -1, client_cards, server_cards_type)
             self.callClientFunction(account_id, 'Notice', ["单K必出A"])
+            return
+
+        # 检测是否满足对K必出对A
+        if self.double_k_must_a and not self.check_double_k_must_1(pre_playa_cards, this_play_cards, player_cards):
+            self.send_player_cards(account_id, -1, client_cards, server_cards_type)
+            self.callClientFunction(account_id, 'Notice', ["对K必出对A"])
+            return
+
+        # 检测是否满足A不能连
+        if self.straight_not_a and not self.check_straight_not_a(pre_playa_cards, this_play_cards, player_cards):
+            self.send_player_cards(account_id, -1, client_cards, server_cards_type)
+            self.callClientFunction(account_id, 'Notice', ["A不能连"])
             return
 
         # 在炸弹不可拆模式下，如果玩家打出的牌不是四带，不是三带二，并且含有炸弹元素的牌型则出牌失败(出牌拆离)
@@ -2066,6 +2079,19 @@ class RoomType13(RoomBase):
         检测是否满足单K必出A
         """
         return RoomType13Calculator.check_single_k_must_1(pre_play_cards, this_play_cards, cards, self.info)
+
+    def check_double_k_must_1(self, pre_play_cards, this_play_cards, cards):
+        """
+        检测是否满足对K必出对A
+        """
+        return RoomType13Calculator.check_double_k_must_1(pre_play_cards, this_play_cards, cards, self.info)
+
+    def check_straight_not_a(self,pre_play_cards, this_play_cards, cards):
+        """
+        检测是否满足A不能连
+        """
+        return RoomType13Calculator.check_straight_not_a(pre_play_cards, this_play_cards, cards, self.info)
+
 
     # ==================================================================================================================
     #                                                通用方法
@@ -3248,3 +3274,17 @@ class RoomType13(RoomBase):
         单K必出A
         """
         return self.info['singleKMustA']
+
+    @property
+    def double_k_must_a(self):
+        """
+        对K必出A
+        """
+        return self.info['doubleKMustA']
+
+    @property
+    def straight_not_a(self):
+        """
+        A不能连
+        """
+        return self.info['straightNotA']

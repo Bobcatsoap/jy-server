@@ -150,6 +150,47 @@ def check_single_k_must_1(pre_play_cards, this_play_cards, cards,room_info):
     else:
         return True
 
+def check_double_k_must_1(pre_play_cards, this_play_cards, cards,room_info):
+    """
+    检测是否满足对k必出对1
+    """
+    # 获取上家出牌数字
+    pre_play_cards_number = convert_cards_to_value(pre_play_cards)
+    # 获取上家出牌类型
+    pre_play_cards_type = get_cards_type(pre_play_cards_number, room_info)
+    # 获取本次出牌数字
+    this_play_cards_number = convert_cards_to_value(this_play_cards)
+    # 获取手牌数字
+    cards_number=convert_cards_to_value(cards)
+    # 获取本次出牌类型
+    this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
+    # 如果上个玩家出牌是对K，并且手里有两个A，判断本次是否是两个A
+    if pre_play_cards_type == CardType.Com_Double and pre_play_cards_number[0] == 13 and cards_number.count(14) == 2:
+        if this_play_cards_type == CardType.Com_Double and this_play_cards_number[0] == 14:
+            return True
+        else:
+            return False
+    # 如果上个玩家出牌不是对k,一定满足
+    else:
+        return True
+
+def check_straight_not_a(pre_play_cards, this_play_cards, cards,room_info):
+    """
+    检测是否满足A不能连
+    """
+    # 获取本次出牌数字
+    this_play_cards_number = convert_cards_to_value(this_play_cards)
+    # 获取本次出牌类型
+    this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
+    if this_play_cards_type == CardType.Com_LongDouble and 14 in this_play_cards_number:
+        return False
+    elif this_play_cards_type == CardType.Com_ContinuousSingle and 14 in this_play_cards_number:
+        return False
+    elif this_play_cards_type == CardType.Lin_ShortDouble and 14 in this_play_cards_number:
+        return False
+    elif this_play_cards_type == CardType.Spc_OnlyPlan and 14 in this_play_cards_number:
+        return False
+    return True
 
 # 获取card2中与card1牌型一样的牌或者大的牌型(找到任意合适的牌就返回，待优化)
 def find_greater_cards(card1, _card2, room_info):
