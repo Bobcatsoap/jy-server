@@ -367,7 +367,7 @@ class RoomManager(Manger):
             _room.info["special"] = _config["special"]
             # 少人模式
             _room.info["fewPersonPattern"] = _config["fewPersonPattern"]
-            # OutCradType:1为赢家坐庄  12 为红桃3坐庄 15 为黑桃3坐庄  20:随机庄 类型：int
+            # 1为赢家坐庄  12为红桃3坐庄 15为黑桃3坐庄  20为随机庄 int
             _room.info["outCradType"] = _config["outCradType"]
             # 开房局数   maxChapterCount  类型：int
             _room.info["maxChapterCount"] = _config["maxChapterCount"]
@@ -416,6 +416,15 @@ class RoomManager(Manger):
             _room.info["autoCompareTime"] = _config["autoCompareTime"]
             # 是否必要
             _room.info["haveCardMustCome"] = _config["haveCardMustCome"]
+            # 空炸不算分
+            _room.info['initiativeBombNotScore'] = _config['initiativeBombNotScore']
+            # 单K必出A
+            _room.info['singleKMustA'] = _config['singleKMustA']
+            # 对K必出A
+            _room.info['doubleKMustA'] = _config['doubleKMustA']
+            # A不能连
+            _room.info['straightNotA'] = _config['straightNotA']
+            # 倍数
             _room.info["baseMultiple"] = _config["baseMultiple"] if 'baseMultiple' in _config else 1
         elif _type == Const.RoomType.RoomType14:  # 郑州麻将
             # 胡牌类型 int  0：点炮，1：自摸
