@@ -1084,6 +1084,18 @@ class RoomType13(RoomBase):
             self.callClientFunction(account_id, 'Notice', ["单A必出2"])
             return
 
+        # 检测是否满足2必出炸弹
+        if not self.check_2_must_bomb(pre_playa_cards, this_play_cards, player_cards):
+            self.send_player_cards(account_id, -1, client_cards, server_cards_type)
+            self.callClientFunction(account_id, 'Notice', ["2必出炸弹"])
+            return
+
+        # 检测是否满足大炸弹压小炸弹
+        if not self.check_big_bomb_and_small_bomb(pre_playa_cards, this_play_cards, player_cards):
+            self.send_player_cards(account_id, -1, client_cards, server_cards_type)
+            self.callClientFunction(account_id, 'Notice', ["大炸弹必炸小炸弹"])
+            return
+
         # 检测是否满足单K必出A
         if self.single_k_must_a and not self.check_single_k_must_1(pre_playa_cards, this_play_cards, player_cards):
             self.send_player_cards(account_id, -1, client_cards, server_cards_type)
@@ -1101,6 +1113,8 @@ class RoomType13(RoomBase):
             self.send_player_cards(account_id, -1, client_cards, server_cards_type)
             self.callClientFunction(account_id, 'Notice', ["A不能连"])
             return
+
+
 
         # 在炸弹不可拆模式下，如果玩家打出的牌不是四带，不是三带二，并且含有炸弹元素的牌型则出牌失败(出牌拆离)
         if self.is_split_boom(this_play_cards, chapter["playerInGame"][account_id]["cards"], server_cards_type) and \
@@ -2073,6 +2087,18 @@ class RoomType13(RoomBase):
         检测是否满足单A必出2
         """
         return RoomType13Calculator.check_single_1_must_2(pre_play_cards, this_play_cards, cards, self.info)
+
+    def check_2_must_bomb(self, pre_play_cards, this_play_cards, cards):
+        """
+        检测是否满足2必出炸弹
+        """
+        return RoomType13Calculator.check_2_must_bomb(pre_play_cards, this_play_cards, cards, self.info)
+
+    def check_big_bomb_and_small_bomb(self, pre_play_cards, this_play_cards, cards):
+        """
+        检测是否满足大炸弹压小炸弹
+        """
+        return RoomType13Calculator.check_big_bomb_and_small_bomb(pre_play_cards, this_play_cards, cards, self.info)
 
     def check_single_k_must_1(self, pre_play_cards, this_play_cards, cards):
         """

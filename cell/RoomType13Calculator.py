@@ -102,7 +102,87 @@ class CardType(Enum):
     Com_PlaneWithTwo = 24
 
 
-def check_single_1_must_2(pre_play_cards, this_play_cards, cards,room_info):
+def cards_is_bomb(cards, room_info):
+    """
+    检测一组牌是否是炸弹
+    """
+    # 牌数字
+    cards_number = convert_cards_to_value(cards)
+    # 牌类型
+    cards_type = get_cards_type(cards_number, room_info)
+    if (cards_type == CardType.Lin_FourBoomWithSingle or
+            cards_type == CardType.Lin_MaxBoomWithSingle or
+            cards_type == CardType.Lin_FourWithTwoSingle or
+            cards_type == CardType.Lin_FourWithThreeSingle or
+            cards_type == CardType.Lin_ThreeWithDouble or
+            cards_type == CardType.Lin_ThreeWithTwo or
+            cards_type == CardType.Com_ThreeWithSingle or
+            cards_type == CardType.Spc_OnlyThree or
+            cards_type == CardType.Lin_PlaneWithDouble or
+            cards_type == CardType.Com_PlaneWithTwo or
+            cards_type == CardType.Com_PlaneWithSingle
+    ):
+        return True
+    else:
+        return False
+
+
+def check_big_bomb_and_small_bomb(pre_play_cards, this_play_cards, cards, room_info):
+    """
+    检测是否满足大炸弹压小炸弹
+    """
+    # 找到比上家大的牌
+    bigger_cards = find_greater_cards(pre_play_cards, cards, room_info)
+    # 如果上家出的是炸弹，并且我手里有能压住的牌
+    if cards_is_bomb(pre_play_cards, room_info) and bigger_cards:
+        # 如果我出的是炸弹，满足
+        if cards_is_bomb(this_play_cards, room_info):
+            return True
+        # 如果能压住没压，不满足
+        else:
+            return False
+    # 如果压不住，满足
+    else:
+        return False
+
+
+def check_2_must_bomb(pre_play_cards, this_play_cards, cards, room_info):
+    """
+    检测是否满足2必出炸弹
+    """
+    # 获取上家出牌数字
+    pre_play_cards_number = convert_cards_to_value(pre_play_cards)
+    # 获取上家出牌类型
+    pre_play_cards_type = get_cards_type(pre_play_cards_number, room_info)
+    # 获取本次出牌数字
+    this_play_cards_number = convert_cards_to_value(this_play_cards)
+    # 获取手牌数字
+    cards_number = convert_cards_to_value(cards)
+    # 获取本次出牌类型
+    this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
+    # 如果上个玩家出牌包含2，并且本玩家手牌里有炸弹
+    if 15 in pre_play_cards_number and find_boom(cards_number, room_info):
+        # 如果是任意一种炸弹，满足
+        if (this_play_cards_type == CardType.Lin_FourBoomWithSingle or
+                this_play_cards_type == CardType.Lin_MaxBoomWithSingle or
+                this_play_cards_type == CardType.Lin_FourWithTwoSingle or
+                this_play_cards_type == CardType.Lin_FourWithThreeSingle or
+                this_play_cards_type == CardType.Lin_ThreeWithDouble or
+                this_play_cards_type == CardType.Lin_ThreeWithTwo or
+                this_play_cards_type == CardType.Com_ThreeWithSingle or
+                this_play_cards_type == CardType.Spc_OnlyThree or
+                this_play_cards_type == CardType.Lin_PlaneWithDouble or
+                this_play_cards_type == CardType.Com_PlaneWithTwo or
+                this_play_cards_type == CardType.Com_PlaneWithSingle
+        ):
+            return True
+        else:
+            return False
+    else:
+        return True
+
+
+def check_single_1_must_2(pre_play_cards, this_play_cards, cards, room_info):
     """
     检测是否满足单A必出2
     """
@@ -126,7 +206,8 @@ def check_single_1_must_2(pre_play_cards, this_play_cards, cards,room_info):
     else:
         return True
 
-def check_single_k_must_1(pre_play_cards, this_play_cards, cards,room_info):
+
+def check_single_k_must_1(pre_play_cards, this_play_cards, cards, room_info):
     """
     检测是否满足单k必出1
     """
@@ -137,7 +218,7 @@ def check_single_k_must_1(pre_play_cards, this_play_cards, cards,room_info):
     # 获取本次出牌数字
     this_play_cards_number = convert_cards_to_value(this_play_cards)
     # 获取手牌数字
-    cards_number=convert_cards_to_value(cards)
+    cards_number = convert_cards_to_value(cards)
     # 获取本次出牌类型
     this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
     # 如果上个玩家出牌是单K，并且手里有A，判断本次是否是A
@@ -150,7 +231,8 @@ def check_single_k_must_1(pre_play_cards, this_play_cards, cards,room_info):
     else:
         return True
 
-def check_double_k_must_1(pre_play_cards, this_play_cards, cards,room_info):
+
+def check_double_k_must_1(pre_play_cards, this_play_cards, cards, room_info):
     """
     检测是否满足对k必出对1
     """
@@ -161,7 +243,7 @@ def check_double_k_must_1(pre_play_cards, this_play_cards, cards,room_info):
     # 获取本次出牌数字
     this_play_cards_number = convert_cards_to_value(this_play_cards)
     # 获取手牌数字
-    cards_number=convert_cards_to_value(cards)
+    cards_number = convert_cards_to_value(cards)
     # 获取本次出牌类型
     this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
     # 如果上个玩家出牌是对K，并且手里有两个A，判断本次是否是两个A
@@ -174,7 +256,8 @@ def check_double_k_must_1(pre_play_cards, this_play_cards, cards,room_info):
     else:
         return True
 
-def check_straight_not_a(pre_play_cards, this_play_cards, cards,room_info):
+
+def check_straight_not_a(pre_play_cards, this_play_cards, cards, room_info):
     """
     检测是否满足A不能连
     """
@@ -191,6 +274,7 @@ def check_straight_not_a(pre_play_cards, this_play_cards, cards,room_info):
     elif this_play_cards_type == CardType.Spc_OnlyPlan and 14 in this_play_cards_number:
         return False
     return True
+
 
 # 获取card2中与card1牌型一样的牌或者大的牌型(找到任意合适的牌就返回，待优化)
 def find_greater_cards(card1, _card2, room_info):
@@ -501,6 +585,24 @@ def find_bigger_boom(V, card2, room_info):
                 card_filter.add(k)
         elif card2.count(k) == 4:
             if k > V and k not in card_filter:
+                itm_cards.append([k, k, k, k])
+                card_filter.add(k)
+    return itm_cards
+
+
+def find_boom(card2, room_info):
+    """
+    找手中的炸弹
+    """
+    card_filter = set()
+    itm_cards = []
+    for k in card2:
+        if room_info["boomType"] == 3:
+            if card2.count(k) == 4 and k not in card_filter:
+                itm_cards.append([k, k, k, k, -1])
+                card_filter.add(k)
+        elif card2.count(k) == 4:
+            if k not in card_filter:
                 itm_cards.append([k, k, k, k])
                 card_filter.add(k)
     return itm_cards
