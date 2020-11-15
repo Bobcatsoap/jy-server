@@ -1366,8 +1366,10 @@ class TeaHouse(KBEngine.Entity):
         if self.memberInfo[operate_player_db_id].level <= self.memberInfo[modify_player_db_id].level:
             on_fail("修改失败，权限不足")
             return
-
         _player = self.get_tea_house_player(modify_player_db_id)
+        if proportion < _player.proportion:
+            on_fail("修改失败，抽水比例不能小于当前比例")
+            return
         _player.proportion = proportion
         self.memberInfoJson = self.get_member_info_json()
         on_success(self)
