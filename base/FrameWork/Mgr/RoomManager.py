@@ -354,17 +354,20 @@ class RoomManager(Manger):
             _room.info['passHuAndPeng'] = _config['passHuAndPeng']
             # 逢胡必胡
             _room.info['mustHu'] = _config['mustHu']
+            # 锅子开关
+            _room.info['pot'] = _config['pot']
+            # 锅子分数
+            _room.info['potScore'] = _config['potScore']
             # 最大局数
             _room.info["maxChapterCount"] = _config["maxChapterCount"]
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
-            self.room12_conflict(_room.info)
         elif _type == Const.RoomType.RoomType13:  # 跑的快
             # Special为True是15人场，Flae 是经典场   类型：bool
             _room.info["special"] = _config["special"]
             # 少人模式
             _room.info["fewPersonPattern"] = _config["fewPersonPattern"]
-            # OutCradType:1为赢家坐庄  12 为红桃3坐庄 15 为黑桃3坐庄  20:随机庄 类型：int
+            # 1为赢家坐庄  12为红桃3坐庄 15为黑桃3坐庄  20为随机庄 int
             _room.info["outCradType"] = _config["outCradType"]
             # 开房局数   maxChapterCount  类型：int
             _room.info["maxChapterCount"] = _config["maxChapterCount"]
@@ -380,8 +383,11 @@ class RoomManager(Manger):
             _room.info["baseScore"] = _config["baseScore"]
             # 最大人数
             _room.info["maxPlayersCount"] = _config["maxPlayersCount"]
+            # 锅子开关
+            _room.info['pot'] = _config['pot']
+            # 锅子分数
+            _room.info['potScore'] = _config['potScore']
             # 高级选项
-
             # 允许三张
             _room.info["haveThree"] = _config["haveThree"]
             # 三带一
@@ -410,6 +416,15 @@ class RoomManager(Manger):
             _room.info["autoCompareTime"] = _config["autoCompareTime"]
             # 是否必要
             _room.info["haveCardMustCome"] = _config["haveCardMustCome"]
+            # 空炸不算分
+            _room.info['initiativeBombNotScore'] = _config['initiativeBombNotScore']
+            # 单K必出A
+            _room.info['singleKMustA'] = _config['singleKMustA']
+            # 对K必出A
+            _room.info['doubleKMustA'] = _config['doubleKMustA']
+            # A不能连
+            _room.info['straightNotA'] = _config['straightNotA']
+            # 倍数
             _room.info["baseMultiple"] = _config["baseMultiple"] if 'baseMultiple' in _config else 1
         elif _type == Const.RoomType.RoomType14:  # 郑州麻将
             # 胡牌类型 int  0：点炮，1：自摸
@@ -446,7 +461,6 @@ class RoomManager(Manger):
             _room.info["robGangHu"] = _config["robGangHu"]
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
-            # self.room12_conflict(_room.info)
             # 双混只能自摸，必带风
             # 带跑时，杠跑才有意义
         elif _type == Const.RoomType.RoomType15:  # 点炮胡
@@ -498,7 +512,6 @@ class RoomManager(Manger):
             _room.info['compensateMax'] = _config['compensateMax']
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
-            # self.room12_conflict(_room.info)
         elif _type == Const.RoomType.RoomType16:  # 晃晃麻将
             # 胡牌类型 int  0：点炮，1：自摸
             _room.info['huType'] = _config['huType']
@@ -735,6 +748,9 @@ class RoomManager(Manger):
             # 是否是匿名房间
             _room.info["anonymity"] = _config["anonymity"]
             self.rooms[_type].roominfos[_roomType][_room.info["roomId"]] = _room
+
+        self.room12_conflict(_room.info)
+        self.room13_conflict(_room.info)
 
         # 通过房间信息获取房间钻石消耗
         self.room_card_consume_init(_room)
@@ -1897,6 +1913,7 @@ class RoomManager(Manger):
         if 4 not in info['playingMethod']:
             info['xiaMi'] = 0
 
+
     def room8_conflict(self, info):
         """
         牌九房间规则自洽
@@ -1939,6 +1956,27 @@ class RoomManager(Manger):
             info['j258'] = False
         else:
             info['singleColor'] = -1
+
+        if info['pot']:
+            # 锅子玩法入场分等于锅子分
+            info['gameLevel'] = info['potScore']
+            # 锅子玩法离场分为0
+            info['endScore'] = 0
+
+    def room13_conflict(self, info):
+        """
+        跑得快开房规则自洽
+        :param info:
+        :return:
+        """
+        if info['type'] != Const.RoomType.RoomType13:
+            return
+
+        if info['pot']:
+            # 锅子玩法入场分等于锅子分
+            info['gameLevel'] = info['potScore']
+            # 锅子玩法离场分为0
+            info['endScore'] = 0
 
     def is_snoring_all_room(self):
         return self.snoring_all_room
