@@ -1452,7 +1452,7 @@ class Account(KBEngine.Proxy):
         elif _func_name == "giveGold":  # 赠送金币
             self.give_gold(_args)
         elif _func_name == "giveGoldRecord":  # 赠送金币记录
-            self.give_gold_record(_args['pageIndex'])  # 赠送金币记录
+            self.give_gold_record(_args["accountDBID"], _args['pageIndex'])  # 赠送金币记录
         elif _func_name == "isFriend":
             people_relation = self.is_friend(_args["people"])
             self.call_client_func("isFriend", people_relation)
@@ -1489,9 +1489,13 @@ class Account(KBEngine.Proxy):
             self.call_client_func('GetCanAddSameTablePlayers', {'memberInfo': members})
             if not members:
                 self.call_client_func("Notice", ["找不到此玩家"])
-        elif _func_name == 'GetPartnerInfoWithPageIndex':
+        elif _func_name == 'GetPartnerInfoWithPageIndex':  # 通过页数获取成员信息
             self.get_partner_info_with_page_index(_args['teaHouseId'], _args['accountDBID'],
-                                                  _args['pageIndex'], _args['levelFilter'])
+                                                  _args['pageIndex'], _args['levelFilter']),
+        elif _func_name == "GetPartnerInfoWithPageIndex2":  # 通过页数获取合伙人信息
+            self.get_partner_info_with_page_index2(_args['teaHouseId'], _args['accountDBID'],
+                                                  _args['pageIndex'], _args['levelFilter']),
+
         # 增加查询战绩函数
         elif _func_name == 'GetPlayerBattleScore':
             self.get_player_battle_score(_args['teaHouseId'], _args['accountDBID'], _args['pageIndex'])
@@ -2266,7 +2270,7 @@ class Account(KBEngine.Proxy):
             return
         player = tea_house_entity.get_tea_house_player(account_db_id)
         if not player:
-            self.call_client_func("playerBattleScoreRecord", {"chargeInfo": [], "startTime": -1})
+            self.call_client_func("playerBattleScoreRecord", {"partnerInfo": [], "totalPages": 0, "memberCount": 0})
         def on_success(charge_info):
             if tea_house_entity:
                 charge_record_list = []
@@ -2279,6 +2283,7 @@ class Account(KBEngine.Proxy):
                     charge_item["BringInGold"] = item["BringInGold"]
                     charge_item["SurPlusGold"] = item["SurPlusGold"]
                     charge_item["settleTime"] = item["settleTime"]
+                    charge_item["accountName"] = item["accountName"]
                     charge_record_list.append(charge_item)
                 member_count = len(charge_record_list)
                 # 计算总页数
@@ -2298,7 +2303,7 @@ class Account(KBEngine.Proxy):
 
     def get_partner_info_with_page_index(self, tea_house_id, account_db_id, page_index, level_filter=0):
         """
-        通过页数获取合伙人信息
+        通过页数获取成员信息
         :return:
         """
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
@@ -2317,6 +2322,15 @@ class Account(KBEngine.Proxy):
                     'totalPages': int(total_pages),
                     'memberCount': members_count,
                 })
+    def get_partner_info_with_page_index2(self, tea_house_id, account_db_id, page_index, level_filter=0):
+        """
+        通过页数获取合伙人信息
+        """
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if tea_house_entity:
+            partner_info, total_pages, members_count = tea_house_entity.get_partner_info_with_page2(account_db_id, page_index, level_filter)
+
+
 
     def get_members_with_page_index(self, tea_house_id, account_db_id, page_index):
         """
@@ -3395,7 +3409,7 @@ class Account(KBEngine.Proxy):
         KBEngine.executeRawDatabaseCommand(sql, _db_callback_count)
         DEBUG_MSG("command_sql 执行----------------")
 
-    def give_gold_record(self, page_index):
+    def give_gold_record(self, account_db_id, page_index):
         """
         赠送金币记录
         """
@@ -3425,7 +3439,7 @@ class Account(KBEngine.Proxy):
                 "totalPages": int(total_pages),
                 "memberCount": member_count
             })
-        command_sql = 'select id,userId,playerId, gold, addtime from tbl_givegoldinfo where userId=%s' % self.databaseID
+        command_sql = 'select id,userId,playerId, gold, addtime from give_gold_info where userId=%s' % account_db_id
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
     def is_friend(self, people):

@@ -396,19 +396,20 @@ class RoomBase(KBEngine.Entity):
         for v in chapterInfos["playerInfo"]:
             bill_score = v['otherBilling'] + v['winnerBilling']
             win_score = v['totalGoldChange'] - bill_score
+            accountName = v['accountName']
             gold = 0
             totalGold = 0
             if v.get("gold"):
                 gold = v["gold"]
             if v.get("totalGold"):
                 totalGold = v["totalGold"]
-            value_item = "(%s,%s,'%s',%s,%s,%s,%s,%s,%s,%s,from_unixtime(%s))," % (
+            value_item = "(%s,%s,'%s',%s,%s,%s,%s,%s,%s,%s,%s,%s)," % (
                 tea_house_id, v['userId'], room_type, v['totalGoldChange'], self.roomId,
-                1 if win_score == max_win else 0, win_score, bill_score, gold, totalGold, settle_time)
+                1 if win_score == max_win else 0, win_score, bill_score, gold, totalGold, accountName, settle_time)
             values += value_item
             players_score[v['userId']] = v['totalGoldChange']
 
-        sql = "INSERT IGNORE into player_battle_score(teaHouseId,playerId,roomType,totalGoldChange,roomId,winner,winScore,bill, gold, totalGold, settleTime) values"
+        sql = "INSERT IGNORE into player_battle_score(teaHouseId,playerId,roomType,totalGoldChange,roomId,winner,winScore,bill, gold, totalGold, accountName, settleTime) values"
         sql += values[:-1]
         DBCommand.exec_normal_sql(sql)
 
