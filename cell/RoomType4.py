@@ -103,6 +103,7 @@ class RoomType4(RoomBase):
         self.player_list = []
         # 观战中的下局可以开始坐下的玩家
         self.wait_to_seat = []
+        self.enter_list = []
 
     def newChapter(self, maxPlayerCount):
         """
