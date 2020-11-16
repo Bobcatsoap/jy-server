@@ -213,6 +213,10 @@ class RoomManager(Manger):
             _room.info['multiple'] = _config['multiple']
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
+            # 锅子
+            _room.info['pot'] = _config['pot']
+            # 锅子分
+            _room.info['potScore'] = _config['potScore']
         elif _type == Const.RoomType.RoomType5:  # 麻将
             # 最大局数
             _room.info["maxChapterCount"] = _config["maxChapterCount"]

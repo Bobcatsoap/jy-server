@@ -826,19 +826,6 @@ class RoomBase(KBEngine.Entity):
             "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
             "gold": _player["entity"].accountMutableInfo["gold"]}})
 
-    def set_base_player_banker_history(self, chapter):
-        """
-        坐庄信息也同步到BASE
-        进入牌局定庄之后到结算完成之前调用
-        因为这段时间chapter["playerInGame"]、chapter["banker"]才存在
-        """
-        # chapter = self.chapters[self.cn]
-        for k, v in chapter["playerInGame"].items():
-            if k == chapter["banker"]:
-                v["entity"].base.cellToBase({"func": "AppendBankerHistory", "banker": 1})
-            else:
-                v["entity"].base.cellToBase({"func": "AppendBankerHistory", "banker": 0})
-
     # 统计局数
     def set_base_player_chapter_count(self):
         _chapter = self.chapters[self.cn]
