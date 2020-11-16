@@ -263,6 +263,31 @@ class AccountMgr(Manger):
 
         KBEngine.createEntityFromDBID("Account", account, callback)
 
+    def give_gold_modify(self, account, modify_count, tea_house_id, on_success=None, on_fail=None):
+        """
+        修改玩家金币
+        :param account:
+        :param modify_count:
+        :param on_success:
+        :param on_fail:
+        :return:
+        """
+
+        def callback(entity, db_id, was_active):
+            if entity:
+                entity.gold += modify_count
+                if entity.gold <= 0:
+                    entity.gold = 0
+
+                if not was_active:
+                    entity.writeToDB()
+                else:
+                    # entity.sync_game_coin(tea_house_id)
+                    entity.ret_gold(isModify=True, modify_count=modify_count)
+                    entity.writeToDB()
+
+        KBEngine.createEntityFromDBID("Account", account, callback)
+
     def call_all_client(self, func_name, args):
         for k, v in self.accounts_dic.items():
             v.call_client_func(func_name, args)
