@@ -1939,6 +1939,30 @@ class TeaHouse(KBEngine.Entity):
 
         return partner_info_list, total_pages, member_count
 
+    def get_partner_info_with_page2(self, account_id, page_index, level_filter):
+        """
+        通过页码获取指定战队信息
+        :param level_filter: 等级过滤
+        :param account_id:
+        :param page_index:
+        :return:
+        """
+        partner_info_list = self.get_partner_all_info2(account_id, level_filter)
+
+        member_count = len(partner_info_list)
+        # 计算总页数
+        total_pages = math.ceil(len(partner_info_list) / Const.partner_list_page_item)
+
+        # 排序优先级,权限>在线状态,权限大的在前，在线状态为True的在前
+        partner_info_list.sort(key=lambda x: -x['level'])
+
+        # 按页码切片
+        page_start = page_index * Const.partner_list_page_item
+        page_end = page_start + Const.partner_list_page_item
+        partner_info_list = partner_info_list[page_start:page_end]
+
+        return partner_info_list, total_pages, member_count
+
     def get_partner_single_member_info(self, account_db_id, operator_db_id):
         """
         更新战队个人分成信息
@@ -2008,6 +2032,49 @@ class TeaHouse(KBEngine.Entity):
                      "invitationCode": v.invitation_code, "proportion": v.proportion,
                      "level": v.level,
                      'userId': v.db_id,
+                     "performance": round(v.performance, 2),
+                     'todayData': round(today_performance, 2),
+                     'yesterdayData': round(yesterday_performance, 2),
+                     "turnInPerformance": round(v.turn_in_performance, 2),
+                     "status": status
+                     }
+                partner_info.append(p)
+
+        return partner_info
+
+    def get_partner_all_info2(self, account_db_id, level_filter):
+        """
+        获取合伙人名下的抽成信息
+        :param level_filter: 等级过滤
+        :param account_db_id:
+        :return:
+        """
+        partner_info = []
+        for k, v in self.memberInfo.items():
+            if k == self.creatorDBID:
+                continue
+            # 如果有等级过滤器，只查看对应等级的成员
+            if level_filter != 0:
+                if v.level != level_filter:
+                    continue
+
+            if v.belong_to == account_db_id or k == account_db_id:
+                performance_detail = []
+                if k in self.performance_detail.keys():
+                    performance_detail = self.performance_detail[k]
+
+                # 如果玩家实体有客户端，视为在线
+                account_entity = get_account_entity_with_db_id(k)
+                status = 0
+                if account_entity:
+                    status = 1
+
+                yesterday_performance, today_performance = self.get_today_and_yesterday(performance_detail)
+                p = {"name": v.name, "headImageUrl": v.head_image, "belongTo": v.belong_to,
+                     "invitationCode": v.invitation_code, "proportion": v.proportion,
+                     "level": v.level,
+                     'userId': v.db_id,
+                     "myGold": v.game_coin,
                      "performance": round(v.performance, 2),
                      'todayData': round(today_performance, 2),
                      'yesterdayData': round(yesterday_performance, 2),
