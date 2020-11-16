@@ -497,12 +497,13 @@ class RoomType4(RoomBase):
                     elif self.keep_banker_count >= 3:
                         _chapter['currentBankerOperatePlayer'] = _chapter['banker']
                         # 提示切锅
-                        self.callOtherClientsFunction("tipSwitchPot", {'timer': _timeSwitchPot})
+                        self.callClientFunction(_chapter['banker'], "tipSwitchPot", {'timer': _timeSwitchPot})
                         # 开启切锅倒计时
                         _chapter['switchPotTime'] = self.addTimer(_timeSwitchPot, 0, 0)
                         _chapter["deadline"] = time.time() + _timeSwitchPot
-                    # 锅子模式非首局，不需要切锅时，继续
+                    # 锅子模式非首局，不需要切锅时，继续，发送庄家信息
                     else:
+                        self.send_banker_result(_chapter['banker'])
                         for k, v in _chapter["playerInGame"].items():
                             self.player_ready(k)
                 # 锅子模式首局，自动准备，阶段2定庄
@@ -511,7 +512,7 @@ class RoomType4(RoomBase):
                         self.player_ready(k)
             # 普通模式
             else:
-                # 普通模式如果不是首局，自动准备，开始
+                # 普通模式如果不是首局，自动准备，开始,阶段2抢庄
                 if self.cn > 0:
                     for k, v in _chapter["playerInGame"].items():
                         self.player_ready(k)
@@ -1982,11 +1983,13 @@ class RoomType4(RoomBase):
         if loop_count < 0:
             return
         chapter = self.chapters[self.cn]
-        # 下个有人的位置
-        next_index = self.get_next_location_have_player(start_location_index)
         # 当前庄家
         old_banker_account_id = self.get_account_id_with_location_index(start_location_index)
         old_banker = chapter['playerInGame'][old_banker_account_id]
+
+        # 下个有人的位置
+        next_index = self.get_next_location_have_player(start_location_index)
+
         if next_index != -1:
             # 下个有人的id
             new_banker_id = self.get_account_id_with_location_index(next_index)
@@ -1995,6 +1998,8 @@ class RoomType4(RoomBase):
             if new_banker['score'] >= self.info['potScore']:
                 # 锅底还给庄家
                 old_banker['score'] += chapter['potStake']
+                # 定新庄家
+                chapter["banker"] = new_banker_id
                 # 锅底重置
                 chapter['potStake'] = self.info['potScore']
                 # 新庄家的钱放入锅底
