@@ -1015,6 +1015,9 @@ class RoomType4(RoomBase):
         chapter = self.chapters[self.cn]
         first_account_id = self.enter_list[0]
         chapter["banker"] = first_account_id
+        banker = chapter['playerInGame'][first_account_id]
+        # 锅底赋值
+        chapter['potStake'] = self.info['potScore']
         # 清除当庄次数
         self.keep_banker_count = 0
         self.send_banker_result(first_account_id)
@@ -1339,7 +1342,11 @@ class RoomType4(RoomBase):
             # 庄家输钱等于自己的钱
             _lose_total_golds -= total_refund
 
-        _playerInGame[_banker]["score"] += _lose_total_golds
+        # 如果是锅子模式
+        if self.pot:
+            _chapter['potStake'] += _lose_total_golds
+        else:
+            _playerInGame[_banker]["score"] += _lose_total_golds
         _playerInGame[_banker]["goldChange"] += _lose_total_golds
 
         for k, v in _winners.items():
@@ -1384,7 +1391,11 @@ class RoomType4(RoomBase):
         #     # 庄家输的钱
         #     _win_total_golds -= total_refund_banker
 
-        _playerInGame[_banker]["score"] -= _win_total_golds
+        # 如果是锅子模式
+        if self.pot:
+            _chapter['potStake'] -= _win_total_golds
+        else:
+            _playerInGame[_banker]["score"] -= _win_total_golds
         _playerInGame[_banker]["goldChange"] -= _win_total_golds
 
         _toBaseArgs = dict()
@@ -1548,6 +1559,13 @@ class RoomType4(RoomBase):
         _newChapter["playerOutGame"] = copy.deepcopy(_playerOutGame)
         _newChapter["playerInRoom"].update(_newChapter["playerInGame"])
         _newChapter["playerInRoom"].update(_newChapter["playerOutGame"])
+
+        # 如果是锅子，用上局的庄家
+        # 继承锅底
+        if self.info["pot"]:
+            _newChapter["potStake"] = _chapter["potStake"]
+            _newChapter["banker"] = _chapter["banker"]
+
         for k, v in _newChapter["playerInRoom"].items():
             # if self.info["tuiZhu"] != 0:
             #     # 闲家上局赢了，下局可以推注，不能连续推注
@@ -1709,6 +1727,8 @@ class RoomType4(RoomBase):
                          "teaHouseId": self.info["teaHouseId"] if "teaHouseId" in self.info.keys() else -1,
                          "isDisbanding": self.is_disbanding, "disbandSender": self.disband_sender,
                          "canStartGame": self.wait_to_seat, "tuiZhuPlayers": _chapter["tuiZhuPlayers"],
+                         "potStake": _chapter['potStake'],
+                         "pot":self.info['pot'],
                          "wildCard": _chapter["wildCard"], "wildCards": _chapter["wildCards"]
                          }
 
