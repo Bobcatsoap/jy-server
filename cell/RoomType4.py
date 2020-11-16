@@ -524,10 +524,9 @@ class RoomType4(RoomBase):
                 _chapter["deadline"] = time.time() + self.info['timeDown']
 
                 for k, v in _chapter['playerInGame'].items():
-                    if self.have_gold_limit():
-                        # 如果金币不到最小下注倍数*底分，不抢庄
-                        if not self.can_join_game(k):
-                            self.grab_banker(k, -1)
+                    # 如果金币不到最小下注倍数*底分，不抢庄
+                    if not self.can_join_game(k):
+                        self.grab_banker(k, -1)
         elif state == 3:
             # 押注
             _args = {"state": state, "Timer": self.info['timeDown']}
@@ -536,17 +535,9 @@ class RoomType4(RoomBase):
             _chapter["deadline"] = time.time() + self.info['timeDown']
 
             for k, v in _chapter['playerInGame'].items():
-                # if v['entity'].info['isBot'] == 1:
-                #     _t = self.addTimer(random.randint(0, 3), 0, k)
-                #     _chapter['botStakeTime'].append(_t)
-                # 如果有比赛币限制，自动给没钱的人下零倍
-                if self.have_gold_limit():
-                    if not self.can_join_game(k):
-                        if v['score'] <= 0:
-                            self.set_stake(k, 0)
-                        else:
-                            max_multiple = self.get_max_multiple_under_score(k)
-                            self.set_stake(k, max_multiple)
+                # 自动给没钱的人下零倍
+                if not self.can_join_game(k):
+                    self.set_stake(k, 0)
         elif state == 4:
             # 配牌
             _args = {"state": state, "Timer": self.info['timeDown']}
@@ -1146,8 +1137,7 @@ class RoomType4(RoomBase):
             DEBUG_MSG('[Room id %i]------>grab_banker, accountId %s, but player is already grab_banker' %
                       (self.id, account_id))
             return
-        if self.have_gold_limit() and result > 0 and \
-                _playerInGame[account_id]['score'] < self.info['grabBankerLevel']:
+        if result > 0 and _playerInGame[account_id]['score'] < self.info['grabBankerLevel']:
             self.callClientFunction(account_id, 'Notice', ['比赛分不足'])
             return
         _playerInGame[account_id]["grabBanker"] = result
@@ -1308,7 +1298,7 @@ class RoomType4(RoomBase):
         # 统计闲家输的钱
         for k, v in _losers.items():
             _loseGold = v["stake"] * self._cardTypeMultiple[_playerInGame[_banker]["cardType"]] * banker_grab_banker
-            if self.have_gold_limit() and _loseGold > v["score"]:
+            if _loseGold > v["score"]:
                 _loseGold = v["score"]
             v["goldChange"] -= _loseGold
             v["score"] += v["goldChange"]
@@ -1907,23 +1897,10 @@ class RoomType4(RoomBase):
             # 押注计时器
             for k, v in _playerInGame.items():
                 if v["stake"] == -1 and k != _chapter["banker"]:
-                    # bet_base = self.info["betBase"]
-                    # if k in _chapter["notAllowStakeSmallPlayers"] or v["isStakeDouble"]:
-                    #     bet_base *= 2
-                    # 有比赛币限制
-                    if self.have_gold_limit():
-                        # 钱不够下零倍
-                        if not self.can_join_game(k):
-                            if v['score'] <= 0:
-                                self.set_stake(k, 0)
-                            else:
-                                # 钱不够最低标准时，下钱足够前提下的最大倍数
-                                max_multiple = self.get_max_multiple_under_score(k)
-                                self.set_stake(k, max_multiple)
-                        # 钱够下最小倍数
-                        else:
-                            self.set_stake(k, self.info['multiple'][0])
-                    # 没有比赛币限制，下最小倍数
+                    # 钱不够下零倍
+                    if not self.can_join_game(k):
+                        self.set_stake(k, 0)
+                    # 钱够下最小倍数
                     else:
                         self.set_stake(k, self.info['multiple'][0])
         elif timerHandle == _chapter["matchTimerId"]:
@@ -2115,9 +2092,6 @@ class RoomType4(RoomBase):
         DEBUG_MSG("player ready account id:%s" % account_id)
         chapter = self.chapters[self.cn]
         _player = chapter["playerInGame"][account_id]
-        # 零分可以准备
-        # if self.have_gold_limit() and _player["score"] < 0:
-        #     return
         if _player["ready"]:
             return
         if self.is_gold_session_room() and _player['score'] < self.info['roomRate']:
@@ -2320,7 +2294,7 @@ class RoomType4(RoomBase):
         """
         chapter = self.chapters[self.cn]
         player = chapter['playerInGame'][entity_id]
-        return player['score'] >= self.info['gameLevel'] and player['score'] > 0
+        return player['score'] > 0
 
     def share_to_wx(self, account_entity_id):
         """
