@@ -487,10 +487,6 @@ class RoomType4(RoomBase):
                 if len(self.emptyLocationIndex) != 0:
                     self.set_seat(k, self.emptyLocationIndex[0])
 
-            # 刷新锅底
-            if self.info['pot']:
-                self.refresh_pot_stake()
-
             # 切锅
             if self.info['pot'] and self.cn > 0:
                 # 如果锅底没钱，切换到下个人
@@ -520,7 +516,7 @@ class RoomType4(RoomBase):
             if self.pot:
                 if self.cn == 0:
                     # 首局定庄
-                    self.pot_mode_banker()
+                    self.pot_mode_first_banker()
                 self.changeChapterState(3)
             else:
                 _chapter["bankerTimerId"] = self.addTimer(self.info['timeDown'], 0, 0)
@@ -580,7 +576,8 @@ class RoomType4(RoomBase):
         _playerOutGameNotEntity = {}
         player_in_game_to_base = {}
         for k, v in _chapter["playerInGame"].items():
-            _player = {"cards": v["cards"], "gold": self.get_true_gold(v['entity'].id), "locationIndex": int(v["locationIndex"]),
+            _player = {"cards": v["cards"], "gold": self.get_true_gold(v['entity'].id),
+                       "locationIndex": int(v["locationIndex"]),
                        "name": v["entity"].info["name"], "grabBanker": v["grabBanker"], "ready": v["ready"],
                        "hasMatchCard": v["hasMatchCard"], "userId": v["entity"].info["userId"],
                        'totalGoldChange': v['totalGoldChange'],
@@ -595,7 +592,8 @@ class RoomType4(RoomBase):
             _playerInGameNotEntity[int(k)] = _player
         for k, v in _chapter["playerOutGame"].items():
             try:
-                _player = {"cards": v["cards"], "gold": self.get_true_gold(v['entity'].id), "locationIndex": int(v["locationIndex"]),
+                _player = {"cards": v["cards"], "gold": self.get_true_gold(v['entity'].id),
+                           "locationIndex": int(v["locationIndex"]),
                            "name": v["entity"].info["name"], "grabBanker": v["grabBanker"],
                            'totalGoldChange': v['totalGoldChange'],
                            "hasMatchCard": v["hasMatchCard"], "ready": v["ready"], "userId": v["entity"].info["userId"],
@@ -688,7 +686,8 @@ class RoomType4(RoomBase):
         _chapter = self.chapters[self.cn]
         _playerOutGameNotEntity = {}
         for k, v in _chapter["playerOutGame"].items():
-            _player = {"cards": v["cards"], "gold": self.get_true_gold(v['entity'].id), "locationIndex": int(v["locationIndex"]),
+            _player = {"cards": v["cards"], "gold": self.get_true_gold(v['entity'].id),
+                       "locationIndex": int(v["locationIndex"]),
                        "name": v["entity"].info["name"], "grabBanker": v["grabBanker"],
                        "hasMatchCard": v["hasMatchCard"], "ready": v["ready"], "userId": v["entity"].info["userId"],
                        # 发送下注倍数
@@ -1012,9 +1011,9 @@ class RoomType4(RoomBase):
         ncount = len(lstval)
         return lstval[msval % ncount]
 
-    def pot_mode_banker(self):
+    def pot_mode_first_banker(self):
         """
-        锅子模式首位当庄家
+        锅子模式第一局首位当庄家
         """
         chapter = self.chapters[self.cn]
         first_account_id = self.enter_list[0]
@@ -1022,9 +1021,14 @@ class RoomType4(RoomBase):
         banker = chapter['playerInGame'][first_account_id]
         # 锅底赋值
         chapter['potStake'] = self.info['potScore']
+        # 庄家的钱放入锅底
+        banker['score'] -= chapter['potStake']
+        self.refresh_pot_stake()
         # 清除当庄次数
         self.keep_banker_count = 0
         self.send_banker_result(first_account_id)
+        # 更新分数信息
+        self.ret_player_in_room_infos()
 
     def random_grab_banker(self):
         """
@@ -1361,10 +1365,12 @@ class RoomType4(RoomBase):
 
             DEBUG_MSG("[RoomType4 id %s]-------> player id : %s,win gold %s" % (self.id, k, _winGold))
 
+        # 锅子模式，庄家输钱上限为锅底
         if self.info['pot']:
-            banker_lose_limit=_chapter['potStake']
+            banker_lose_limit = _chapter['potStake']
+        # 普通模式，庄家输钱上限为自己的钱
         else:
-            banker_lose_limit=_playerInGame[_banker]['score']
+            banker_lose_limit = _playerInGame[_banker]['score']
 
         # 庄家输钱不能超过锅底
         if _win_total_golds > banker_lose_limit:
@@ -1520,7 +1526,8 @@ class RoomType4(RoomBase):
                                       "cardType": v["cardType"],
                                       "dataBaseId": v["entity"].info["dataBaseId"], "grabBanker": v["grabBanker"],
                                       "locationIndex": int(v["locationIndex"]),
-                                      "gold": self.get_true_gold(v['entity'].id), "maiMa": v["maiMa"], "isStakeDouble": v["isStakeDouble"],
+                                      "gold": self.get_true_gold(v['entity'].id), "maiMa": v["maiMa"],
+                                      "isStakeDouble": v["isStakeDouble"],
                                       "goldChange": v["goldChange"], "userId": v["entity"].info["userId"]}
                 # 存储玩家信息
                 replay_single_chapter_data["playerInfo"][k] = replay_player_data
@@ -1969,7 +1976,6 @@ class RoomType4(RoomBase):
             location_index = chapter['playerInGame'][account_id]['locationIndex']
             loop_count = chapter['maxPlayerCount']
             self.find_next_receive_banker_player(location_index, loop_count)
-            # chapter['currentBankerOperatePlayer'] = next_account_id
         else:
             chapter['currentBankerOperatePlayer'] = -1
             # 如果不切锅，自动准备，开始
@@ -1987,17 +1993,28 @@ class RoomType4(RoomBase):
         chapter = self.chapters[self.cn]
         # 下个有人的位置
         next_index = self.get_next_location_have_player(start_location_index)
+        # 当前庄家
+        old_banker_account_id = self.get_account_id_with_location_index(start_location_index)
+        old_banker = chapter['playerInGame'][old_banker_account_id]
         if next_index != -1:
             # 下个有人的id
-            next_account_id = self.get_account_id_with_location_index(next_index)
-            player = chapter['playerInGame'][next_account_id]
+            new_banker_id = self.get_account_id_with_location_index(next_index)
+            new_banker = chapter['playerInGame'][new_banker_id]
             # 查看是否满足锅底
-            if player['score'] >= self.info['potScore']:
-                chapter['potStake'] = 0
-                chapter['potStake'] += self.info['potScore']
-                # 发送庄家结果
+            if new_banker['score'] >= self.info['potScore']:
+                # 锅底还给庄家
+                old_banker['score'] += chapter['potStake']
+                # 锅底重置
+                chapter['potStake'] = self.info['potScore']
+                # 新庄家的钱放入锅底
+                new_banker['score'] -= chapter['potStake']
+                self.refresh_pot_stake()
                 # 清除当庄次数
-                # 自动准备,开始
+                self.keep_banker_count = 0
+                self.send_banker_result(new_banker_id)
+                # 更新分数信息
+                self.ret_player_in_room_infos()
+                return
             # 不满足继续查找
             else:
                 self.find_next_receive_banker_player(next_index, loop_count)
@@ -2282,7 +2299,8 @@ class RoomType4(RoomBase):
                         v["score"] += count
                     else:
                         v["score"] = count
-                    self.callOtherClientsFunction("refreshGold", {"gold": self.get_true_gold(v['entity'].id), "accountId": k})
+                    self.callOtherClientsFunction("refreshGold",
+                                                  {"gold": self.get_true_gold(v['entity'].id), "accountId": k})
                     break
 
     def get_true_gold(self, account_id):
@@ -2291,10 +2309,7 @@ class RoomType4(RoomBase):
         """
         chapter = self.chapters[self.cn]
         player = chapter['playerInGame'][account_id]
-        if self.info['pot'] and account_id == chapter['banker']:
-            return player['score'] - self.info['potScore']
-        else:
-            return player['score']
+        return player['score']
 
     def can_join_game(self, entity_id):
         """
