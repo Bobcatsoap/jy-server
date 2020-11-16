@@ -3361,6 +3361,10 @@ class Account(KBEngine.Proxy):
         赠送金币
         """
         give_gold = _args["gold"]
+        if give_gold < 0:
+            self.call_client_func('Notice', ['赠送金币不能为负数'])
+        if give_gold == 0:
+            self.call_client_func('Notice', ['赠送金币不能为0'])
         gold = self.gold
         playerId = _args["playerId"]
         tea_house_id = _args["teaHouseId"]
