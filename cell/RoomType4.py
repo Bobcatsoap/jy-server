@@ -1296,17 +1296,12 @@ class RoomType4(RoomBase):
         if len(_winners) == 0:
             self.set_losing_streak_history(_playerInGame[_banker], False)
 
-        # 庄家总赢的金币
+        # 闲家总输的金币
         _lose_total_golds = 0
-        # 庄家总输的金币
+        # 闲家总赢的金币
         _win_total_golds = 0
-        # 庄家输钱上限为锅底
-        if self.pot:
-            lose_limit = _chapter['potStake']
-        # 庄家输钱上限为自己的钱
-        else:
-            lose_limit = _playerInGame[_banker]['score']
-        DEBUG_MSG('banker lose_limit %s' % lose_limit)
+
+        # 统计闲家输的钱
         for k, v in _losers.items():
             _loseGold = v["stake"] * self._cardTypeMultiple[_playerInGame[_banker]["cardType"]] * banker_grab_banker
             if self.have_gold_limit() and _loseGold > v["score"]:
@@ -1315,48 +1310,48 @@ class RoomType4(RoomBase):
             v["score"] += v["goldChange"]
             _lose_total_golds += _loseGold
 
-            DEBUG_MSG("[RoomType4 id %s]-------> player id : %s,shu gold %s" % (self.id, k, _loseGold))
-
         # 执行退款操作,庄家赢的钱不能超过限制
-        if _lose_total_golds > lose_limit:
-            # 总退款
-            total_refund = _lose_total_golds - lose_limit
-            # 剩余退款
-            remaining_refund = total_refund
-            proportion_list = []
-            # 遍历玩家，计算退回比例
-            for k, v in _losers.items():
-                proportion = abs(v['goldChange'] / _lose_total_golds)
-                p = [k, proportion]
-                proportion_list.append(p)
-            # 按比例从小到大排序
-            proportion_list = sorted(proportion_list, key=lambda _pro: _pro[1])
-            DEBUG_MSG('settlement proportions:%s' % proportion_list)
-            # 遍历玩家，返还除了最后一个玩家的所有玩家的钱（抹除小数位）
-            for i in range(len(proportion_list) - 1):
-                entity_id = proportion_list[i][0]
-                pro = proportion_list[i][1]
-                # 这个人的退款=这个人的赢钱比例*总退款
-                _refund = int(pro * total_refund)
-                _playerInGame[entity_id]['score'] += _refund
-                _playerInGame[entity_id]['goldChange'] += _refund
-                remaining_refund -= _refund
-            # 找到最后一个玩家，
-            last_entity_id = proportion_list[-1][0]
-            last_player = _playerInGame[last_entity_id]
-            # 最后一个玩家返还的钱等于剩下的钱
-            last_player['score'] += remaining_refund
-            last_player['goldChange'] += remaining_refund
-            # 庄家输钱等于自己的钱
-            _lose_total_golds -= total_refund
+        # if _lose_total_golds > lose_limit:
+        #     # 总退款
+        #     total_refund = _lose_total_golds - lose_limit
+        #     # 剩余退款
+        #     remaining_refund = total_refund
+        #     proportion_list = []
+        #     # 遍历玩家，计算退回比例
+        #     for k, v in _losers.items():
+        #         proportion = abs(v['goldChange'] / _lose_total_golds)
+        #         p = [k, proportion]
+        #         proportion_list.append(p)
+        #     # 按比例从小到大排序
+        #     proportion_list = sorted(proportion_list, key=lambda _pro: _pro[1])
+        #     DEBUG_MSG('settlement proportions:%s' % proportion_list)
+        #     # 遍历玩家，返还除了最后一个玩家的所有玩家的钱（抹除小数位）
+        #     for i in range(len(proportion_list) - 1):
+        #         entity_id = proportion_list[i][0]
+        #         pro = proportion_list[i][1]
+        #         # 这个人的退款=这个人的赢钱比例*总退款
+        #         _refund = int(pro * total_refund)
+        #         _playerInGame[entity_id]['score'] += _refund
+        #         _playerInGame[entity_id]['goldChange'] += _refund
+        #         remaining_refund -= _refund
+        #     # 找到最后一个玩家，
+        #     last_entity_id = proportion_list[-1][0]
+        #     last_player = _playerInGame[last_entity_id]
+        #     # 最后一个玩家返还的钱等于剩下的钱
+        #     last_player['score'] += remaining_refund
+        #     last_player['goldChange'] += remaining_refund
+        #     # 庄家输钱等于自己的钱
+        #     _lose_total_golds -= total_refund
 
-        # 如果是锅子模式
+        # 如果是锅子模式，钱加在锅里
         if self.pot:
             _chapter['potStake'] += _lose_total_golds
         else:
             _playerInGame[_banker]["score"] += _lose_total_golds
+
         _playerInGame[_banker]["goldChange"] += _lose_total_golds
 
+        # 统计闲家赢的钱
         for k, v in _winners.items():
             # 分数 = 闲家下注分数*赢家牌型倍数*庄家抢庄倍数
             _winGold = v["stake"] * self._cardTypeMultiple[v["cardType"]] * banker_grab_banker
@@ -1366,46 +1361,52 @@ class RoomType4(RoomBase):
 
             DEBUG_MSG("[RoomType4 id %s]-------> player id : %s,win gold %s" % (self.id, k, _winGold))
 
-        # 暂无此功能
-        # 庄家赢钱不能超过锅底
-        # if _win_total_golds > banker_origin_gold:
-        #     # 多余要退给庄家的钱
-        #     total_refund_banker = _win_total_golds - banker_origin_gold
-        #     # 剩余退款
-        #     remaining_refund_banker = total_refund_banker
-        #     proportion_list = []
-        #
-        #     for k, v in _winners.items():
-        #         proportion = v['goldChange'] / _win_total_golds
-        #         p = [k, proportion]
-        #         proportion_list.append(p)
-        #     # 按比例从大到小排序
-        #     proportion_list = sorted(proportion_list, key=lambda _pro: _pro[1], reverse=True)
-        #     DEBUG_MSG('settlement proportions:%s' % proportion_list)
-        #     for i in range(len(proportion_list) - 1):
-        #         entity_id = proportion_list[i][0]
-        #         pro = proportion_list[i][1]
-        #         # 这个人的退款=这个人的赢钱比例*总退款
-        #         _refund = int(pro * total_refund_banker)
-        #         _playerInGame[entity_id]['score'] -= _refund
-        #         _playerInGame[entity_id]['goldChange'] -= _refund
-        #         remaining_refund_banker -= _refund
-        #     # 找到最后一个玩家，
-        #     last_entity_id = proportion_list[-1][0]
-        #     last_player = _playerInGame[last_entity_id]
-        #     # 最后一个玩家返还的钱等于剩下的钱
-        #     last_player['score'] -= remaining_refund_banker
-        #     last_player['goldChange'] -= remaining_refund_banker
-        #     # 庄家输的钱
-        #     _win_total_golds -= total_refund_banker
+        if self.info['pot']:
+            banker_lose_limit=_chapter['potStake']
+        else:
+            banker_lose_limit=_playerInGame[_banker]['score']
 
-        # 如果是锅子模式
+        # 庄家输钱不能超过锅底
+        if _win_total_golds > banker_lose_limit:
+            # 多余要退给庄家的钱
+            total_refund_banker = _win_total_golds - banker_lose_limit
+            # 剩余退款
+            remaining_refund_banker = total_refund_banker
+            proportion_list = []
+
+            for k, v in _winners.items():
+                proportion = v['goldChange'] / _win_total_golds
+                p = [k, proportion]
+                proportion_list.append(p)
+            # 按比例从大到小排序
+            proportion_list = sorted(proportion_list, key=lambda _pro: _pro[1], reverse=True)
+            DEBUG_MSG('settlement proportions:%s' % proportion_list)
+            for i in range(len(proportion_list) - 1):
+                entity_id = proportion_list[i][0]
+                pro = proportion_list[i][1]
+                # 这个人的退款=这个人的赢钱比例*总退款
+                _refund = int(pro * total_refund_banker)
+                _playerInGame[entity_id]['score'] -= _refund
+                _playerInGame[entity_id]['goldChange'] -= _refund
+                remaining_refund_banker -= _refund
+            # 找到最后一个玩家，
+            last_entity_id = proportion_list[-1][0]
+            last_player = _playerInGame[last_entity_id]
+            # 最后一个玩家返还的钱等于剩下的钱
+            last_player['score'] -= remaining_refund_banker
+            last_player['goldChange'] -= remaining_refund_banker
+            # 庄家输的钱
+            _win_total_golds -= total_refund_banker
+
+        # 如果是锅子模式,钱从锅里扣
         if self.pot:
             _chapter['potStake'] -= _win_total_golds
         else:
             _playerInGame[_banker]["score"] -= _win_total_golds
+
         _playerInGame[_banker]["goldChange"] -= _win_total_golds
 
+        # 给base的信息
         _toBaseArgs = dict()
         for k, v in _playerInGame.items():
             # 这个玩家的总金币变化 += 这次金币变化
@@ -2205,7 +2206,7 @@ class RoomType4(RoomBase):
         # 如果是锅子模式，恢复比赛分
         if self.pot:
             remain_score = _player["entity"].accountMutableInfo["gameCoin"] - self.info['gameLevel']
-            _player["entity"].accountMutableInfo["gameCoin"] = remain_score + self.round_int(_player['score'])
+            _player["entity"].accountMutableInfo["gameCoin"] = remain_score + int(_player['score'])
         else:
             _player["entity"].accountMutableInfo["gameCoin"] = _player["score"]
         _player["entity"].base.cellToBase({"func": "setAccountMutableInfo", "dic": {
@@ -2291,7 +2292,7 @@ class RoomType4(RoomBase):
         chapter = self.chapters[self.cn]
         player = chapter['playerInGame'][account_id]
         if self.info['pot'] and account_id == chapter['banker']:
-            return player['score'] + chapter['potStake'] - self.info['potScore']
+            return player['score'] - self.info['potScore']
         else:
             return player['score']
 
