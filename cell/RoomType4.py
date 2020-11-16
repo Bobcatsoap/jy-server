@@ -487,23 +487,37 @@ class RoomType4(RoomBase):
                 if len(self.emptyLocationIndex) != 0:
                     self.set_seat(k, self.emptyLocationIndex[0])
 
-            # 切锅
-            if self.info['pot'] and self.cn > 0:
-                # 如果锅底没钱，切换到下个人
-                if _chapter['potStake'] <= 0:
-                    self.switch_pot(_chapter['banker'], True)
-                elif self.keep_banker_count >= 3:
-                    _chapter['currentBankerOperatePlayer'] = _chapter['banker']
-                    # 提示切锅
-                    self.callOtherClientsFunction("tipSwitchPot", {'timer': _timeSwitchPot})
-                    # 开启切锅倒计时
-                    _chapter['switchPotTime'] = self.addTimer(_timeSwitchPot, 0, 0)
-                    _chapter["deadline"] = time.time() + _timeSwitchPot
-
-            # 如果不是首局，自动准备
-            if self.cn > 0:
-                for k, v in _chapter["playerInGame"].items():
-                    self.player_ready(k)
+            # 锅子模式
+            if self.info['pot']:
+                # 锅子模式非首局，定完庄家后开始
+                if self.cn > 0:
+                    # 如果锅底没钱，切换到下个人
+                    if _chapter['potStake'] <= 0:
+                        self.switch_pot(_chapter['banker'], True)
+                    elif self.keep_banker_count >= 3:
+                        _chapter['currentBankerOperatePlayer'] = _chapter['banker']
+                        # 提示切锅
+                        self.callOtherClientsFunction("tipSwitchPot", {'timer': _timeSwitchPot})
+                        # 开启切锅倒计时
+                        _chapter['switchPotTime'] = self.addTimer(_timeSwitchPot, 0, 0)
+                        _chapter["deadline"] = time.time() + _timeSwitchPot
+                    # 锅子模式非首局，不需要切锅时，继续
+                    else:
+                        for k, v in _chapter["playerInGame"].items():
+                            self.player_ready(k)
+                # 锅子模式首局，自动准备，阶段2定庄
+                else:
+                    for k, v in _chapter["playerInGame"].items():
+                        self.player_ready(k)
+            # 普通模式
+            else:
+                # 普通模式如果不是首局，自动准备，开始
+                if self.cn > 0:
+                    for k, v in _chapter["playerInGame"].items():
+                        self.player_ready(k)
+                # 普通模式首局，手动准备
+                else:
+                    pass
 
         elif state == 1:
             # 牌局开始、发牌
@@ -1672,8 +1686,8 @@ class RoomType4(RoomBase):
             self.not_mai_ma(account_entity_id)
         elif _func == "StartGame":
             self.start_game(account_entity_id)
-        elif _func == "switchPot":
-            self.switch_pot(account_entity_id, _data["switchPot"])
+        elif _func == "SwitchPot":
+            self.switch_pot(account_entity_id, _data["pot"])
 
     def voice_chat(self, account_id, url):
         """
@@ -1953,11 +1967,11 @@ class RoomType4(RoomBase):
             location_index = chapter['playerInGame'][account_id]['locationIndex']
             loop_count = chapter['maxPlayerCount']
             self.find_next_receive_banker_player(location_index, loop_count)
-        else:
-            chapter['currentBankerOperatePlayer'] = -1
-            # 如果不切锅，自动准备，开始
-            for k, v in chapter["playerInGame"].items():
-                self.player_ready(k)
+
+        chapter['currentBankerOperatePlayer'] = -1
+        # 自动准备，开始
+        for k, v in chapter["playerInGame"].items():
+            self.player_ready(k)
 
     def find_next_receive_banker_player(self, start_location_index, loop_count):
         """
