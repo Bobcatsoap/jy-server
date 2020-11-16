@@ -228,8 +228,10 @@ class RoomType4(RoomBase):
         elif self.info['roomType'] == 'normalGameCoin':
             _player["score"] = accountEntity.accountMutableInfo["gold"]
         elif self.info["roomType"] == "gameCoin":
-            # 比赛分场修改使用比赛分为使用金币
-            _player["score"] = accountEntity.accountMutableInfo["gold"]
+            _player["score"] = accountEntity.accountMutableInfo["gameCoin"]
+            # 如果是锅子模式, 等于门槛
+            if self.pot:
+                _player["score"] = self.info['gameLevel']
         return _player
 
     def onEnter(self, accountEntityId):
@@ -1398,62 +1400,9 @@ class RoomType4(RoomBase):
         self.total_settlement_ed = True
         chapter = self.chapters[self.cn]
 
+        # todo:大局抽水
         if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            self.lottery()
-
-            # 找到大赢家
-            winner = {}
-            max_win = 0
-            for k, v in self.chapters[self.cn]['playerInGame'].items():
-                if v['totalGoldChange'] >= max_win:
-                    max_win = v['totalGoldChange']
-
-            for k, v in self.chapters[self.cn]['playerInGame'].items():
-                if v['totalGoldChange'] == max_win:
-                    winner[k] = v
-
-            all_bill = {}
-            for k, v in self.chapters[self.cn]['playerInGame'].items():
-                all_bill[k] = {"userId": v["entity"].info["userId"], "todayGameCoinAdd": 0, 'winner': 1 if k in winner else 0, "score": v['totalGoldChange']}
-
-            if self.info["winnerBilling"]:
-                for k, v in winner.items():
-                    winnerBillingCount = 0
-                    for i in range(0, len(self.info["winnerBilling"])):
-                        if self.info["winnerBilling"][i]['interval'][0] <= v["totalGoldChange"] <= \
-                                self.info["winnerBilling"][i]['interval'][1]:
-                            winnerBillingConsume = self.info["winnerBilling"][i]['consume']
-                            v["totalGoldChange"] -= winnerBillingConsume
-                            v["score"] -= winnerBillingConsume
-                            v["winnerBilling"] = -winnerBillingConsume
-                            winnerBillingCount += self.info["winnerBilling"][i]['consume']
-
-                    self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
-                                          "todayGameCoinAdd": winnerBillingCount,
-                                          "userId": v["entity"].info["userId"]})
-                    all_bill[k]["todayGameCoinAdd"] += winnerBillingCount
-
-            if self.info['otherBilling']:
-                for k, v in chapter['playerInGame'].items():
-                    # 如果大赢家开启，其他玩家不扣大赢家
-                    if k in winner and self.info["winnerBilling"]:
-                        continue
-                    otherBillingCount = 0
-                    for i in range(0, len(self.info["otherBilling"])):
-                        if self.info["otherBilling"][i]['interval'][0] <= v["totalGoldChange"] <= \
-                                self.info["otherBilling"][i]['interval'][1]:
-                            otherBillingConsume = self.info["otherBilling"][i]['consume']
-                            v["totalGoldChange"] -= otherBillingConsume
-                            v["score"] -= otherBillingConsume
-                            v["otherBilling"] = -otherBillingConsume
-                            otherBillingCount += self.info["otherBilling"][i]['consume']
-
-                    self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
-                                          "todayGameCoinAdd": otherBillingCount,
-                                          "userId": v["entity"].info["userId"]})
-                    all_bill[k]["todayGameCoinAdd"] += otherBillingCount
-
-            self.base.cellToBase({"func": "todayBillStatic", "teaHouseId": self.info["teaHouseId"], "bill": list(all_bill.values())})
+            pass
 
         # 同步金币到 base
         player_settlement_info = []
@@ -2082,7 +2031,13 @@ class RoomType4(RoomBase):
         _chapter = self.chapters[self.cn]
         _playerInRoom = _chapter["playerInRoom"]
         _player = _playerInRoom[account_id]
-        _player["entity"].accountMutableInfo["gameCoin"] = _player["score"]
+
+        # 如果是锅子模式，恢复比赛分
+        if self.pot:
+            remain_score = _player["entity"].accountMutableInfo["gameCoin"] - self.info['gameLevel']
+            _player["entity"].accountMutableInfo["gameCoin"] = remain_score + self.round_int(_player['score'])
+        else:
+            _player["entity"].accountMutableInfo["gameCoin"] = _player["score"]
         _player["entity"].base.cellToBase({"func": "setAccountMutableInfo", "dic": {
             "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
             "type": "gameCoin",
@@ -2310,3 +2265,7 @@ class RoomType4(RoomBase):
             total_settlement_info.append(_dict)
         self.record_str = self.get_chapter_record_str(game_type, current_chapter,
                                                       max_chapter_count, total_settlement_info)
+
+    @property
+    def pot(self):
+        return self.info['pot']

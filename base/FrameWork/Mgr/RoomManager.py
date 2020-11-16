@@ -749,6 +749,7 @@ class RoomManager(Manger):
             _room.info["anonymity"] = _config["anonymity"]
             self.rooms[_type].roominfos[_roomType][_room.info["roomId"]] = _room
 
+        self.room4_conflict(_room.info)
         self.room12_conflict(_room.info)
         self.room13_conflict(_room.info)
 
@@ -1913,7 +1914,6 @@ class RoomManager(Manger):
         if 4 not in info['playingMethod']:
             info['xiaMi'] = 0
 
-
     def room8_conflict(self, info):
         """
         牌九房间规则自洽
@@ -1977,6 +1977,20 @@ class RoomManager(Manger):
             info['gameLevel'] = info['potScore']
             # 锅子玩法离场分为0
             info['endScore'] = 0
+
+    def room4_conflict(self, info):
+        """
+        牛牛开房规则自洽
+        :param info:
+        :return:
+        """
+        if info['type'] != Const.RoomType.RoomType4:
+            return
+
+        if info['pot']:
+            pass
+            # 锅子玩法离场分为0
+            # info['endScore'] = 0
 
     def is_snoring_all_room(self):
         return self.snoring_all_room
