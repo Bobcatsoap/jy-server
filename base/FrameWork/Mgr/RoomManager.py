@@ -329,7 +329,7 @@ class RoomManager(Manger):
             _room.info['onePersonOnePot'] = _config['onePersonOnePot']
             # 爆锅上限
             _room.info['potMaxMultiple'] = _config['potMaxMultiple']
-        elif _type == Const.RoomType.RoomType12:  # 滑水麻将
+        elif _type == Const.RoomType.RoomType12:  # 划水麻将
             # 胡牌类型 int  0：点炮，1：自摸
             _room.info['huType'] = _config['huType']
             # 少人模式

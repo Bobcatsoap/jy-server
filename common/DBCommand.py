@@ -223,7 +223,7 @@ def check_out_get_player_battle_score(account_db_id, tea_house_id, on_success=No
                              "totalGoldChange": int(row[4]),  # 比赛币
                              "BringInGold": int(row[9]),  # 带入金币
                              "SurPlusGold": int(row[10]), # 剩余金币
-                             "accountName": int(row[11]), # 玩家名称
+                             "accountName": str(row[11], "utf-8"), # 玩家名称
                              "settleTime": int(row[12])# 结算时间
                              }
                 charge_info.append(item_info)

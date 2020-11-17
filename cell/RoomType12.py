@@ -4336,7 +4336,7 @@ class RoomType12(RoomBase):
 
 
     def save_record_str(self):
-        game_type = '滑水麻将'
+        game_type = '划水麻将'
         current_chapter = self.settlement_count
         max_chapter_count = self.info['maxChapterCount']
         chapter = self.get_current_chapter()

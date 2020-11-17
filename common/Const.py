@@ -84,7 +84,7 @@ class RoomType:
     RoomType10 = "RoomType10"
     # 洛阳牌九
     RoomType11 = "RoomType11"
-    # 滑水麻将
+    # 划水麻将
     RoomType12 = 'RoomType12'
     # 跑的快
     RoomType13 = "RoomType13"
@@ -139,9 +139,9 @@ def get_name_by_type(room_type):
     # 洛阳牌九
     elif room_type == "RoomType11":
         return "洛阳牌九"
-    # 滑水麻将
+    # 划水麻将
     elif room_type == 'RoomType12':
-        return "滑水麻将"
+        return "划水麻将"
     # 跑得快
     elif room_type == "RoomType13":
         return "跑得快"
