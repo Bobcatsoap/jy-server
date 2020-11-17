@@ -528,8 +528,8 @@ class Account(KBEngine.Proxy):
             DEBUG_MSG('[set_account_total_gold_change]------>tea_house_entity.gameCoinSwitch %s' % (str(tea_house_entity.gameCoinSwitch)))
             if tea_house_entity:
                 # 如果比赛币功能没开，不同步比赛币
-                if not tea_house_entity.gameCoinSwitch:
-                    return
+                # if not tea_house_entity.gameCoinSwitch:
+                #     return
                 player = tea_house_entity.get_tea_house_player(self.databaseID)
                 _game_coin = player.game_coin + _total_gold_change
                 # TODO 修改 同步比赛分到大厅金币
@@ -2329,7 +2329,11 @@ class Account(KBEngine.Proxy):
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
         if tea_house_entity:
             partner_info, total_pages, members_count = tea_house_entity.get_partner_info_with_page2(account_db_id, page_index, level_filter)
-
+            self.call_client_func('GetPartnerInfoWithPageIndex2', {
+                'partnerInfo': partner_info,
+                'totalPages': int(total_pages),
+                'memberCount': members_count,
+            })
 
 
     def get_members_with_page_index(self, tea_house_id, account_db_id, page_index):
@@ -3398,7 +3402,12 @@ class Account(KBEngine.Proxy):
                 self.account_mgr.give_gold_modify(playerId, give_gold, tea_house_id)
                 DEBUG_MSG("change_player_playerId %s " % str(playerId))
                 addtime = int(time.time())
-                command_sql = "INSERT INTO give_gold_info(user_id,player_id,gold,addtime) VALUES (%s, %s, %s, %s)" % (self.databaseID, playerId, give_gold, addtime)
+                user_name = self.name
+                DEBUG_MSG("change_user_name %s " % str(user_name))
+                player_name = str(result[0][3], 'utf-8')
+                DEBUG_MSG("change_player_name %s " % str(player_name))
+                command_sql = "INSERT INTO give_gold_info(user_id,player_id,gold,user_name,player_name, addtime) VALUES (%s, %s, %s, '%s', '%s', %s)" % (self.databaseID, playerId, give_gold, user_name, player_name, addtime)
+                DEBUG_MSG("change_command_sql %s " % str(command_sql))
                 KBEngine.executeRawDatabaseCommand(command_sql)
                 self.call_client_func("giveGoldSuccess", ["赠送金币成功"])
             else:
@@ -3418,6 +3427,8 @@ class Account(KBEngine.Proxy):
             for info in result:
                 id = str(info[0], "utf-8")
                 user_id = str(info[1], "utf-8")
+                user_name = str(info[4], "utf-8")
+                player_name = str(info[5], "utf-8")
                 player_id = str(info[2], "utf-8")
                 gold = str(info[3], "utf-8")
                 add_time = str(info[4], "utf-8")
@@ -3427,6 +3438,8 @@ class Account(KBEngine.Proxy):
                 give_gold_record_info_item["playerId"] = player_id
                 give_gold_record_info_item["gold"] = gold
                 give_gold_record_info_item["addTime"] = add_time
+                give_gold_record_info_item["user_name"] = user_name
+                give_gold_record_info_item["player_name"] = player_name
                 give_gold_record_info_list.append(give_gold_record_info_item)
             member_count = len(give_gold_record_info_list)
             # 计算总页数
@@ -3437,9 +3450,11 @@ class Account(KBEngine.Proxy):
             self.call_client_func("getGiveGoldRecords", {
                 'partnerInfo': partner_info_list,
                 "totalPages": int(total_pages),
-                "memberCount": member_count
+                "memberCount": member_count,
+                "user_total_gold": 0,
+                "player_total_gold": 0
             })
-        command_sql = 'select id,userId,playerId, gold, addtime from give_gold_info where userId=%s' % account_db_id
+        command_sql = 'select id,userId,playerId, gold, user_name, player_name, addtime from give_gold_info where userId=%s' % account_db_id
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
     def is_friend(self, people):
