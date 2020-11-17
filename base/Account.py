@@ -1452,7 +1452,7 @@ class Account(KBEngine.Proxy):
         elif _func_name == "giveGold":  # 赠送金币
             self.give_gold(_args)
         elif _func_name == "giveGoldRecord":  # 赠送金币记录
-            self.give_gold_record(_args["accountDBID"], _args['pageIndex'])  # 赠送金币记录
+            self.give_gold_record(_args)  # 赠送金币记录
         elif _func_name == "isFriend":
             people_relation = self.is_friend(_args["people"])
             self.call_client_func("isFriend", people_relation)
@@ -3418,20 +3418,24 @@ class Account(KBEngine.Proxy):
         KBEngine.executeRawDatabaseCommand(sql, _db_callback_count)
         DEBUG_MSG("command_sql 执行----------------")
 
-    def give_gold_record(self, account_db_id, page_index):
+    def give_gold_record(self, _args):
         """
         赠送金币记录
         """
+        account_db_id = _args["accountDBID"]
+        page_index = _args['pageIndex']
         def callback(result, rows, insertid, error):
+            user_total_gold = 0
             give_gold_record_info_list = []
             for info in result:
-                id = str(info[0], "utf-8")
-                user_id = str(info[1], "utf-8")
+                id = int(info[0])
+                user_id = int(info[1])
                 user_name = str(info[4], "utf-8")
                 player_name = str(info[5], "utf-8")
-                player_id = str(info[2], "utf-8")
-                gold = str(info[3], "utf-8")
-                add_time = str(info[4], "utf-8")
+                player_id = int(info[2])
+                gold = int(info[3])
+                user_total_gold += gold
+                add_time = int(info[6])
                 give_gold_record_info_item = {}
                 give_gold_record_info_item["id"] = id
                 give_gold_record_info_item["accountDBID"] = user_id
@@ -3447,15 +3451,30 @@ class Account(KBEngine.Proxy):
             page_start = page_index * Const.partner_list_page_item
             page_end = page_start + Const.partner_list_page_item
             partner_info_list = give_gold_record_info_list[page_start:page_end]
+
+            player_total_gold = self.get_total_gold(account_db_id)
             self.call_client_func("getGiveGoldRecords", {
                 'partnerInfo': partner_info_list,
                 "totalPages": int(total_pages),
                 "memberCount": member_count,
-                "user_total_gold": 0,
-                "player_total_gold": 0
+                "user_total_gold": user_total_gold,
+                "player_total_gold": player_total_gold
             })
-        command_sql = 'select id,userId,playerId, gold, user_name, player_name, addtime from give_gold_info where userId=%s' % account_db_id
+        command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where user_id=%s' % account_db_id
+        DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
+
+    def get_total_gold(self, player_id):
+        def callback(result, rows, insertid, error):
+            player_total_gold = 0
+            for info in result:
+                gold = info[3]
+                player_total_gold += int(gold)
+            return player_total_gold
+
+        command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where player_id=%s' % player_id
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
+
 
     def is_friend(self, people):
         people_relation = {}
