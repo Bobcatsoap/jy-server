@@ -9,11 +9,17 @@ def tea_house_manager():
 
 
 class TeaHousePerformance(KBEngine.Entity):
+    # 抽水比例
     proportion = 0
+    # 抽成的数量 保留两位小数
     performanceDetail = 0
+    # 抽成的数量
     count = 0
+    # 时间
     time = 0
+    # 上级
     superior = 0
+    # 用户id
     accountDBID = 0
 
     def __init__(self):

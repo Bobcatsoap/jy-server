@@ -135,6 +135,10 @@ class Account(KBEngine.Proxy):
     history_room = {}
     partnerSwitch = 0
     gpsLocation = False
+    today_commission = 0
+    history_commission = 0
+    surplus_commission = 0
+
 
     def __init__(self):
         KBEngine.Proxy.__init__(self)
@@ -1453,6 +1457,8 @@ class Account(KBEngine.Proxy):
             self.give_gold(_args)
         elif _func_name == "giveGoldRecord":  # 赠送金币记录
             self.give_gold_record(_args)  # 赠送金币记录
+        elif _func_name == "commission":  # 我的佣金
+            self.get_commission(_args)
         elif _func_name == "isFriend":
             people_relation = self.is_friend(_args["people"])
             self.call_client_func("isFriend", people_relation)
@@ -3458,11 +3464,101 @@ class Account(KBEngine.Proxy):
                 "totalPages": int(total_pages),
                 "memberCount": member_count,
                 "user_total_gold": user_total_gold,
-                "player_total_gold": player_total_gold
+                "player_total_gold": 0
             })
         command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where user_id=%s' % account_db_id
         DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
+
+    def get_commission(self, _args):
+        """
+        我的佣金 今日贡献
+        """
+        account_db_id = _args["accountDBID"]
+        tea_house_id = _args["teaHouseId"]
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            self.call_client_func('Notice', ['冠名赛不存在'])
+        self.get_today_commission(account_db_id)
+        self.get_history_commission(account_db_id)
+        self.get_surplus_commission(account_db_id)
+        DEBUG_MSG("[todayCommission]+++++++++++++++++++ %s" % str(self.today_commission))
+        DEBUG_MSG("[historyCommission]+++++++++++++++++++ %s" % str(self.history_commission))
+        DEBUG_MSG("[surplusCommission]+++++++++++++++++++ %s" % str(self.surplusCommission))
+        self.call_client_func("CommissionResult", {
+            "todayCommission": float(self.today_commission),
+            "historyCommission": float(self.history_commission),
+            "surplusCommission": float(self.surplus_commission)
+        })
+
+    def get_today_commission(self, account_db_id):
+        t = time.localtime(time.time())
+        today_zero_time = time.mktime(time.strptime(time.strftime('%Y-%m-%d 00:00:00', t), '%Y-%m-%d %H:%M:%S'))
+        last_today_time = time.mktime(time.strptime(time.strftime('%Y-%m-%d 23:59:59', t), '%Y-%m-%d %H:%M:%S'))
+
+        today_count_commission, today_double_commission = 0.0, 0.0
+
+        def callback(result, rows, insertid, error):
+            today_double_commission = 0
+            for info in result:
+                DEBUG_MSG("[get_today_commission] callback------------")
+                DEBUG_MSG(info)
+                item = dict()
+                item["accountDBID"] = account_db_id
+                item["superiorDBID"] = info[0]
+                double_commission = float(info[3])
+                today_double_commission += double_commission
+            self.today_commission = today_double_commission
+            DEBUG_MSG("[get_today_commission]self.history_commission------%s" % str(self.today_commission))
+        command_sql = "select sm_accountDBID, sm_superior, sm_count,sm_performanceDetail,sm_proportion from " \
+                      "tbl_teahouseperformance where sm_superior=%s and sm_time > %s and sm_time<%s " % (
+                      account_db_id, today_zero_time, last_today_time)
+
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
+        return today_count_commission
+
+    def get_history_commission(self, account_db_id):
+        def callback(result, rows, insertid, error):
+            total_commission = 0
+            for info in result:
+                DEBUG_MSG("[get_history_commission] callback------------")
+                DEBUG_MSG(info)
+                item = dict()
+                item["accountDBID"] = account_db_id
+                item["superiorDBID"] = info[0]
+                double_commission = float(info[3])
+                total_commission += double_commission
+            self.history_commission = total_commission
+            DEBUG_MSG("[get_history_commission]callback 执行返回----------------%s" % str(self.history_commission))
+        command_sql = "select sm_accountDBID, sm_superior, sm_count,sm_performanceDetail,sm_proportion from " \
+                      "tbl_teahouseperformance where sm_superior=%s" % (
+                          account_db_id)
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
+
+
+    def get_surplus_commission(self, account_db_id):
+
+        def callback(result, rows, insertid, error):
+            total_commission = 0
+            for info in result:
+                DEBUG_MSG("[get_surplus_commission] callback------------")
+                DEBUG_MSG(info)
+                item = dict()
+                item["accountDBID"] = account_db_id
+                item["superiorDBID"] = info[0]
+                double_commission = float(info[3])
+                total_commission += double_commission
+            self.surplus_commission = total_commission
+            DEBUG_MSG("[get_surplus_commission]callback 执行返回----------------%s" % str(self.history_commission))
+
+        command_sql = "select sm_accountDBID, sm_superior, sm_count,sm_performanceDetail,sm_proportion from " \
+                      "tbl_teahouseperformance where sm_superior=%s" % (
+                          account_db_id)
+
+        DEBUG_MSG("[get_history_commission]command_sql 执行----------------%s" % str(command_sql))
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
+
+
 
     def get_total_gold(self, player_id):
         def callback(result, rows, insertid, error):
