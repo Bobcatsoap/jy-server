@@ -3490,6 +3490,7 @@ class Account(KBEngine.Proxy):
                 item['time'] = int(info[2])
                 item['count'] = int(info[3])
                 item['double_count'] = float(info[4])
+                item['room_type'] = str(info[6], 'utf-8')
                 record_info_list.append(item)
             member_count = len(record_info_list)
             # 计算总页数
