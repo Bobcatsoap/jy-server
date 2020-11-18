@@ -1954,7 +1954,7 @@ class RoomManager(Manger):
         """
         if info['type'] != Const.RoomType.RoomType12:
             return
-        if info['maxPlayersCount'] == 2:
+        if info['maxPlayersCount'] == 2 and info['singleColor'] != -1:
             info['onlySelfAfterPass'] = False
             info['haveWind'] = True
             info['j258'] = False

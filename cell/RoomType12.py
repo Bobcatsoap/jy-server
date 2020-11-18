@@ -4327,7 +4327,7 @@ class RoomType12(RoomBase):
     def set_losing_streak_count_in_base(self, players_dic):
         """
         连输信息也同步到BASE
-        总结算时同步一次，打牌时在cell端统计
+        总结算totalSettlementBilling时同步一次，打牌时在cell端统计
         """
         for k, v in players_dic.items():
             v["entity"].base.cellToBase({"func": "setLosingStreakCount", "count": v['entity'].info['losingstreak']})

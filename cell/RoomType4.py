@@ -1596,8 +1596,14 @@ class RoomType4(RoomBase):
             #     # 闲家上局赢了，下局可以推注，不能连续推注
             #     if k != _chapter["banker"] and v["goldChange"] > 0 and k not in _chapter["tuiZhuPlayers"].keys():
             #         _newChapter["tuiZhuPlayers"][k] = {"goldChange": v["goldChange"]}
-            v["cards"] = []
             v["grabBanker"] = 0
+            if self.info["pot"]:
+                DEBUG_MSG("potpotpotpotpot")
+                if int(k) == int(_newChapter["banker"]):
+                    DEBUG_MSG("===================================================")
+                    v["grabBanker"] = 1
+
+            v["cards"] = []
             v["hasMatchCard"] = False
             v["stake"] = -1
             v["cardType"] = -1
@@ -1607,7 +1613,14 @@ class RoomType4(RoomBase):
             v["isStakeDouble"] = False
             v["maiMa"] = []
             v["hasMaiMa"] = 0
+
+
         self.changeChapterState(0)
+        # 如果是锅子，用上局的庄家
+        # 继承锅底
+
+
+
         # self.set_current_round(self.cn + 1)
         # self.chapter_ready()
 
