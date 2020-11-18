@@ -1753,7 +1753,7 @@ class RoomBase(KBEngine.Entity):
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
-                                  "userId": v["entity"].info["userId"]})
+                                  "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType4")})
 
 
     def mj_get_settlement_winners(self):
