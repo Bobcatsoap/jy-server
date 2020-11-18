@@ -1857,6 +1857,34 @@ class RoomType13(RoomBase):
             # 更新分数控制
             v["entity"].update_score_control(v['goldChange'])
 
+        if self.info["roomType"] == "gameCoin":
+            # 首局结算抽水
+            if self.settlement_count == 0:
+                for _p in chapter["playerInGame"].items():
+                    if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
+                        DEBUG_MSG('RoomType12 billing_count not enough account_id:%s' % _p['entity'].id)
+                        continue
+                    billing_count = self.info['billingCount']
+                    _p['totalGoldChange'] -= billing_count
+                    DEBUG_MSG('RoomType12 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
+            # 每小局结算大赢家抽水,保留整数
+            # 获取大赢家
+            settlement_winners = self.pdk_get_settlement_winners()
+            for location_index, v in settlement_winners.items():
+                settlement_winner_account_id = v['entity'].id
+                # k:account_id v:winner字典
+                DEBUG_MSG('RoomType13 settlement_winner%s' % settlement_winner_account_id)
+                # 计算大赢家小局抽水
+                settlement_winner_true_gold = self.get_true_gold(settlement_winner_account_id)
+                settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
+                DEBUG_MSG('RoomType13 settlement_winner billing%s' % settlement_winner_billing)
+                v['totalGoldChange'] -= settlement_winner_billing
+                v['totalGoldChange'] = int(v['totalGoldChange'])
+                # 同步房费给base
+                self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
+                                      "todayGameCoinAdd": settlement_winner_billing,
+                                      "userId": v["entity"].info["userId"]})
+
         # 添加小局结算计时器
         # chapter["settlementTimer"] = self.addTimer(settlement_time, 0, 0)
         chapter["deadline"] = time.time() + settlement_time
@@ -1925,6 +1953,12 @@ class RoomType13(RoomBase):
         # 忽略判断，创建一个房间
         self.base.cellToBase({"func": "autoCreateRoom", "roomInfo": self.info, 'ignoreJudge': True, 'onRoomEnd': True})
         self.save_record_str()
+        # 扣除额外积分，抽奖
+        if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
+            self.mj_lottery()
+            self.pdk_total_settlement_billing()
+
+
         # 清理观战的玩家
         _playerOutGameCopy = chapter["playerOutGame"].copy()
         for k, v in _playerOutGameCopy.items():
