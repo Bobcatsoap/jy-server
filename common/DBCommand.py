@@ -288,6 +288,29 @@ def modify_scroll_announcement(call_back, content):
     sql_command = "update msg set body='%s'" % content
     KBEngine.executeRawDatabaseCommand(sql_command, func)
 
+def modify_total_commssion(account_db_id, superior, teaHouseId, addtime, count, performanceDetail):
+    """
+    修改佣金总数
+    """
+    def on_query_over(result, rows, insertid, error):
+        if result is not None and len(result) != 0:
+            DEBUG_MSG('modify_total_commssion:-------------')
+            DEBUG_MSG(result)
+            update_count = int(result[0][0]) + count
+            update_double_count = float(result[0][1]) + performanceDetail
+            # 如果有值修改佣金数量
+            sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (addtime, update_count, update_double_count)
+            DEBUG_MSG('modify_total_commssion update_sql:%s' % sql_command)
+            KBEngine.executeRawDatabaseCommand(sql_command, None)
+        else:
+            sql_command = "insert into commssion_total (accountDBID,superior,teaHouseId, addtime,count,performanceDetail) VALUES (%s,%s,%s,'%s','%s')" % (
+                account_db_id, superior, teaHouseId, addtime, count, performanceDetail)
+            DEBUG_MSG('modify_total_commssion insert_sql:%s' % sql_command)
+            KBEngine.executeRawDatabaseCommand(sql_command, None)
+
+    sql_command = "select count, performanceDetail from commssion_total where superior=%s" % superior
+    DEBUG_MSG('modify_total_commssion select_sql:%s' % sql_command)
+    KBEngine.executeRawDatabaseCommand(sql_command, on_query_over)
 
 def modify_room_card_to_db(account_db_id, modify_count, date_time, account_name, consume_type):
     """

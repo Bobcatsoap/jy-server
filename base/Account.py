@@ -1459,6 +1459,8 @@ class Account(KBEngine.Proxy):
             self.give_gold_record(_args)  # 赠送金币记录
         elif _func_name == "commission":  # 我的佣金
             self.get_commission(_args)
+        elif _func_name == "historyCommission":
+            self.get_history_commission_record(_args)
         elif _func_name == "isFriend":
             people_relation = self.is_friend(_args["people"])
             self.call_client_func("isFriend", people_relation)
@@ -3470,6 +3472,41 @@ class Account(KBEngine.Proxy):
         DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
+    def get_history_commission_record(self, _args):
+        account_db_id = _args["accountDBID"]
+        tea_house_id = _args["teaHouseId"]
+        page_index = _args["pageIndex"]
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            self.call_client_func('Notice', ['冠名赛不存在'])
+        def callback(result, rows, insertid, error):
+            record_info_list = []
+            for info in result:
+                item = dict()
+                item['accountDBID'] = int(info[0])
+                item['time'] = int(info[2])
+                item['count'] = int(info[3])
+                item['double_count'] = float(info[4])
+                record_info_list.append(item)
+            member_count = len(record_info_list)
+            # 计算总页数
+            total_pages = math.ceil(len(record_info_list) / Const.partner_list_page_item)
+            page_start = page_index * Const.partner_list_page_item
+            page_end = page_start + Const.partner_list_page_item
+            partner_info_list = record_info_list[page_start:page_end]
+            self.call_client_func("historyCommissionResult", {
+                'partnerInfo': partner_info_list,
+                "totalPages": int(total_pages),
+                "memberCount": member_count,
+            })
+        command_sql = "select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance " \
+                      "where sm_superior=%s" % account_db_id
+        DEBUG_MSG("[get_history_commission_record]command_sql 执行----------------%s" % str(command_sql))
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
+
+
+
+
     def get_commission(self, _args):
         """
         我的佣金 今日贡献
@@ -3484,7 +3521,7 @@ class Account(KBEngine.Proxy):
         self.get_surplus_commission(account_db_id)
         DEBUG_MSG("[todayCommission]+++++++++++++++++++ %s" % str(self.today_commission))
         DEBUG_MSG("[historyCommission]+++++++++++++++++++ %s" % str(self.history_commission))
-        DEBUG_MSG("[surplusCommission]+++++++++++++++++++ %s" % str(self.surplusCommission))
+        DEBUG_MSG("[surplusCommission]+++++++++++++++++++ %s" % str(self.surplus_commission))
         self.call_client_func("CommissionResult", {
             "todayCommission": float(self.today_commission),
             "historyCommission": float(self.history_commission),
