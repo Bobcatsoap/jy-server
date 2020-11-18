@@ -892,6 +892,7 @@ class TeaHouse(KBEngine.Entity):
 
             self.performance_detail[player.db_id] = _performance_detail
             tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
+            DEBUG_MSG('roomType--------------------%s' % roomType)
             tea_house_performance.create_one_item(origin_player.db_id, player.db_id, int(time.time()),
                                                   _add, _performance, player.proportion, self.teaHouseId, roomType)
             tea_house_performance.destroy(False, False)

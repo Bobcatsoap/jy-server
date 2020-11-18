@@ -37,6 +37,12 @@
             <Default>                       </Default>
             <Persistent>        true        </Persistent>
         </proportion>
+        <roomType>
+            <Type>              UNICODE     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </roomType>
 	</Properties>
 </root>
 

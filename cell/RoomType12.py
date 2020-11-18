@@ -9,6 +9,7 @@ import mj.RoomType14Calculator
 import PaiTypeUtil
 import time
 import Account
+import Const
 
 # --------------------------------------------------------------------------------------------
 #                            麻将中牌
@@ -1197,7 +1198,7 @@ class RoomType12(RoomBase):
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
-                                      "userId": v["entity"].info["userId"]})
+                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType12")})
 
 
 

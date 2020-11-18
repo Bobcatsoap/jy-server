@@ -1883,7 +1883,7 @@ class RoomType13(RoomBase):
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
-                                      "userId": v["entity"].info["userId"]})
+                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType13")})
 
         # 添加小局结算计时器
         # chapter["settlementTimer"] = self.addTimer(settlement_time, 0, 0)
@@ -1999,7 +1999,7 @@ class RoomType13(RoomBase):
 
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": winnerBillingCount,
-                                      "userId": v["entity"].info["userId"]})
+                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType13")})
 
         if self.info['otherBilling']:
             for k, v in chapter['playerInGame'].items():
@@ -2018,7 +2018,7 @@ class RoomType13(RoomBase):
 
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": otherBillingCount,
-                                      "userId": v["entity"].info["userId"]})
+                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType13")})
 
     def get_boom_by_lim(self, cards, boom_type):
         itm_card = []

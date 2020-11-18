@@ -32,8 +32,10 @@ class TeaHousePerformance(KBEngine.Entity):
         self.time = time
         self.count = int(count)
         self.performanceDetail = str(performance_count)
-        if not roomType:
+        if roomType:
             self.roomType = roomType
+        else:
+            self.roomType = ''
         self.proportion = proportion
         tea_house_entity = tea_house_manager().get_tea_house_with_id(teaHouseId)
         tea_house_entity.update_team_rank_winner(account_db_id, performance_count)
