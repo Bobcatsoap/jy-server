@@ -1435,7 +1435,13 @@ class RoomType4(RoomBase):
         if self.info["roomType"] == "gameCoin":
             # 首局结算抽水
             if self.settlement_count == 0:
-                for _p in _playerInGame.items():
+                DEBUG_MSG("RoomType4-----------------------------")
+                DEBUG_MSG(_playerInGame)
+                for k, _p in _playerInGame.items():
+                    DEBUG_MSG('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk')
+                    DEBUG_MSG(k)
+                    DEBUG_MSG(_p)
+                    DEBUG_MSG("self.info['billingCount'] %s" % str(self.info['billingCount']))
                     if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
                         DEBUG_MSG('RoomType4 billing_count not enough account_id:%s' % _p['entity'].id)
                         continue
@@ -1447,9 +1453,10 @@ class RoomType4(RoomBase):
             settlement_winners = self.nn_get_settlement_winners()
             for k, v in settlement_winners.items():
                 # k:account_id v:winner字典
-                DEBUG_MSG('RoomType12 settlement_winner%s' % k)
+                settlement_winner_account_id = v['entity'].id
+                DEBUG_MSG('RoomType12 settlement_winner_account_id%s' % str(settlement_winner_account_id))
                 # 计算大赢家小局抽水
-                settlement_winner_true_gold = self.get_true_gold(k)
+                settlement_winner_true_gold = self.nn_get_true_gold(settlement_winner_account_id)
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
                 DEBUG_MSG('RoomType4 settlement_winner billing%s' % settlement_winner_billing)
                 v['totalGoldChange'] -= settlement_winner_billing
@@ -1457,7 +1464,7 @@ class RoomType4(RoomBase):
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
-                                      "userId": k})
+                                      "userId": v["entity"].info["userId"]})
 
         # 刷新锅底
         if self.info['pot']:
@@ -1506,7 +1513,7 @@ class RoomType4(RoomBase):
             else:
                 self.set_base_player_gold(k)
             player_settlement_info.append(
-                {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
+                {"accountId": v['entity'].id, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
                  "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
                  "winnerBilling": v["winnerBilling"], 'gold': self.get_true_gold(v['entity'].id)})
 
@@ -1518,7 +1525,7 @@ class RoomType4(RoomBase):
         self.save_record_str()
         # E大局抽水
         if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            self.mj_lottery()
+           # self.nn_lottery()
             self.nn_total_settlement_billing()
 
 

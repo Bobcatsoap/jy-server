@@ -69,7 +69,7 @@ class TeaHouse(KBEngine.Entity):
     # 是否打烊 0 不打烊 1 打烊
     isSnoring = 0
     # 是否审核 0 不审核 1 审核
-    isReview = 1
+    isReview = 0
     # 业绩详情
     performance_detail = {}
     # 冠名赛类型 0：比赛场， 1：普通场
@@ -804,11 +804,13 @@ class TeaHouse(KBEngine.Entity):
         :param add:抽成的数量
         :return:
         """
-
+        DEBUG_MSG("account_db_id %s  add %s " % (str(account_db_id), str(add)))
         def callback():
             self.update_tea_house_info_to_client()
 
         origin_player = self.get_tea_house_player(account_db_id)
+        DEBUG_MSG("origin_player")
+        DEBUG_MSG(origin_player)
         self.today_game_coin_calculate(origin_player, add, callback)
 
     def today_game_coin_calculate(self, origin_player, add, call_back):

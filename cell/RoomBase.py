@@ -1679,11 +1679,13 @@ class RoomBase(KBEngine.Entity):
         """
         winners = {}
         max_win = 0
-        for k, v in self.chapters[self.cn][PLAYER_IN_GAME].items():
+        DEBUG_MSG('RoomType4 aaaaaaaaaaaaa')
+        DEBUG_MSG(self.chapters[self.cn])
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['goldChange'] >= max_win:
                 max_win = v['goldChange']
 
-        for k, v in self.chapters[self.cn][PLAYER_IN_GAME].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['goldChange'] == max_win:
                 winners[k] = v
         return winners
@@ -1695,11 +1697,11 @@ class RoomBase(KBEngine.Entity):
         """
         winner = {}
         max_win = 0
-        for k, v in self.chapters[self.cn][PLAYER_IN_GAME].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['totalGoldChange'] >= max_win:
                 max_win = v['totalGoldChange']
 
-        for k, v in self.chapters[self.cn][PLAYER_IN_GAME].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['totalGoldChange'] == max_win:
                 winner[k] = v
         return winner
@@ -1711,13 +1713,15 @@ class RoomBase(KBEngine.Entity):
        :return:
        """
         _chapter = self.get_current_chapter()
-        for k, v in _chapter[PLAYER_IN_GAME].items():
+        for k, v in _chapter['playerInGame'].items():
             if v['entity'].id == account_id:
-                return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+                # return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+                return v['totalGoldChange']
 
         for k, v in _chapter["playerInGame"].items():
             if v['entity'].id == account_id:
-                return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+                # return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+                return v['totalGoldChange']
     # 牛牛总结算抽水
     def nn_total_settlement_billing(self):
         chapter = self.chapters[self.cn]
@@ -1735,7 +1739,7 @@ class RoomBase(KBEngine.Entity):
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
-                                  "userId": k})
+                                  "userId": v["entity"].info["userId"]})
 
 
     def mj_get_settlement_winners(self):
@@ -1821,6 +1825,93 @@ class RoomBase(KBEngine.Entity):
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
                                   "userId": v["entity"].info["userId"]})
+
+    def nn_lottery(self):
+        chapter = self.chapters[self.cn]
+        # 福卡抽奖
+        lottery_in_fu_ka = self.mj_fu_ka_lottery()
+        # 找到大赢家
+        winner = self.mj_get_winner()
+
+        # 给web使用的抽奖信息
+        all_bill = {}
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
+            all_bill[k] = {"userId": v["entity"].info["userId"], "todayGameCoinAdd": 0,
+                           'winner': 1 if k in winner else 0, "score": v['totalGoldChange']}
+
+        # 大赢家比赛分抽奖
+        if self.info["winnerBilling"]:
+            for k, v in winner.items():
+                for i in range(0, len(self.info["winnerBilling"])):
+                    if self.info["winnerBilling"][i]['interval'][0] <= v["totalGoldChange"] <= \
+                            self.info["winnerBilling"][i]['interval'][1]:
+                        winner_billing_consume = self.info["winnerBilling"][i]['consume']
+                        v["totalGoldChange"] -= winner_billing_consume
+                        # v["gold"] -= winnerBillingConsume
+                        v["winnerBilling"] = -winner_billing_consume
+
+        # 其余玩家比赛分抽奖
+        if self.info['otherBilling']:
+            for k, v in chapter['playerInGame'].items():
+                # 如果大赢家开启，其他玩家不扣大赢家
+                if k in winner and self.info["winnerBilling"]:
+                    continue
+                for i in range(0, len(self.info["otherBilling"])):
+                    if self.info["otherBilling"][i]['interval'][0] <= v["totalGoldChange"] <= \
+                            self.info["otherBilling"][i]['interval'][1]:
+                        other_billing_consume = self.info["otherBilling"][i]['consume']
+                        v["totalGoldChange"] -= other_billing_consume
+                        # v["gold"] -= otherBillingConsume
+                        v["otherBilling"] = -other_billing_consume
+
+        # 统计总房费
+        total_billing = 0
+        for k, v in chapter['playerInGame'].items():
+            self.debug_msg('k:%s,otherBilling:%s,winnerBilling:%s' % (k, v['otherBilling'], v['winnerBilling']))
+            total_billing += abs(v['otherBilling']) + abs(v['winnerBilling'])
+
+        # 总房费不为 0
+        if total_billing != 0:
+            # 平均房费
+            average_billing = total_billing / len(chapter['playerInGame'])
+            # 发送给 base 的抽奖信息
+            account_lottery = []
+            self.debug_msg('total_billing:%s,average_billing:%s' % (total_billing, average_billing))
+            for k, v in chapter['playerInGame'].items():
+                # 同步房费给base
+                self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
+                                      "todayGameCoinAdd": average_billing, "userId": v["entity"].info["userId"]})
+
+                # 统计要给 web 用到的房费信息
+                all_bill[k]["todayGameCoinAdd"] += abs(v['otherBilling']) + abs(v['winnerBilling'])
+                # 统计奖品
+                # 如果该用户参加过福卡抽奖，不再参加比赛币抽奖
+                # 如果用户抽奖消耗为0，不参与比赛比抽奖
+                if v["entity"].info["userId"] not in lottery_in_fu_ka and \
+                        (v['otherBilling'] + v['winnerBilling']) != 0:
+                    # 发送奖品信息给客户端展示
+                    awards = self.gen_award()
+                    select = self.gen_selected(awards)
+                    self.callClientFunction(v['entity'].id, 'Awards',
+                                            {"awards": awards, 'selected': select, "consume": 0,
+                                             "scoreVisible": self.server_config["scoreVisible"],
+                                             "WinnerConsume": abs(v['otherBilling']) + abs(v['winnerBilling'])})
+                    # 发送奖品信息给 base 发奖
+                    lottery_type = -1
+                    if select["type"] == 'gold':
+                        lottery_type = 0
+                    elif select["type"] == 'diamond':
+                        lottery_type = 1
+                    account_lottery.append({"accountDBID": v["entity"].info["userId"], "consumeLuckyCard": 0,
+                                            "count": select["count"], "type": lottery_type})
+
+            # 同步奖品信息给base
+            self.base.cellToBase({"func": "Lottery", "args": account_lottery})
+
+
+        # 同步 web 需要用到的房费信息
+        self.base.cellToBase(
+            {"func": "todayBillStatic", "teaHouseId": self.info["teaHouseId"], "bill": list(all_bill.values())})
 
     def mj_lottery(self):
         chapter = self.chapters[self.cn]

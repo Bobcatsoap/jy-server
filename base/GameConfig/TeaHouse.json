@@ -1,5 +1,5 @@
 {
-  "winnerRaffleIntervalButton": true,
+  "winnerRaffleIntervalButton": false,
   "recordBillingButton": true,
   "isShowRatio": true,
   "isLevelFour": true

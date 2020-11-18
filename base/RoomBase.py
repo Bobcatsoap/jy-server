@@ -300,6 +300,8 @@ class RoomBase(KBEngine.Entity):
         # 今日比赛分收成
         elif _func_name == "todayGameBilling":
             tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(pyDic["teaHouseId"])
+            DEBUG_MSG('todayGameBilling------------------')
+            DEBUG_MSG(pyDic)
             if tea_house_entity:
                 # pyDic["todayGameCoinAdd"] 抽成的数量
                 tea_house_entity.add_today_game_coin_billing(pyDic["userId"], pyDic["todayGameCoinAdd"])
