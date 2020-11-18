@@ -895,7 +895,8 @@ class TeaHouse(KBEngine.Entity):
             DEBUG_MSG('roomType--------------------%s' % roomType)
             tea_house_performance.create_one_item(origin_player.db_id, player.db_id, int(time.time()),
                                                   _add, _performance, player.proportion, self.teaHouseId, roomType)
-            DBCommand.modify_total_commssion(origin_player.db_id, player.db_id,self.teaHouseId,int(time.time()), _add, _performance)
+
+            DBCommand.modify_total_commssion(player.db_id, player.db_id,self.teaHouseId,int(time.time()), _add, _performance)
 
             tea_house_performance.destroy(False, False)
 

@@ -1459,8 +1459,10 @@ class Account(KBEngine.Proxy):
             self.give_gold_record(_args)  # 赠送金币记录
         elif _func_name == "commission":  # 我的佣金
             self.get_commission(_args)
-        elif _func_name == "historyCommission":
+        elif _func_name == "historyCommission":  # 历史佣金
             self.get_history_commission_record(_args)
+        elif _func_name == "extractCommission":  # 提取佣金
+            self.extract_commission(_args)
         elif _func_name == "isFriend":
             people_relation = self.is_friend(_args["people"])
             self.call_client_func("isFriend", people_relation)
@@ -3484,6 +3486,7 @@ class Account(KBEngine.Proxy):
             for info in result:
                 item = dict()
                 item['accountDBID'] = int(info[0])
+                self.select_user(item['accountDBID'], item)
                 item['time'] = int(info[2])
                 item['count'] = int(info[3])
                 item['double_count'] = float(info[4])
@@ -3501,11 +3504,51 @@ class Account(KBEngine.Proxy):
             })
         command_sql = "select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance " \
                       "where sm_superior=%s" % account_db_id
+
         DEBUG_MSG("[get_history_commission_record]command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
+    def select_user(self, accountDBID, item):
+        command_sql = "select sm_headImageUrl from tbl_account where sm_userId=%s" % accountDBID
+        def callback(result, rows, insertid, error):
+            headImageUrl = result[0][0]
+            item['headImageUrl'] = headImageUrl
+        DEBUG_MSG("[select_user]command_sql 执行----------------%s" % str(command_sql))
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
 
+    def extract_commission(self, _args):
+        """
+        提取佣金
+        """
+        account_db_id = _args["accountDBID"]
+        tea_house_id = _args["teaHouseId"]
+        extractMoney = _args["extractMoney"]
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            self.call_client_func('Notice', ['冠名赛不存在'])
+
+        def callback(result, rows, insertid, error):
+            if not result:
+                self.call_client_func('Notice', ['无佣金记录'])
+            update_count = float(result[0][0]) - extractMoney
+            update_performanceDetail = float(result[0][1]) - extractMoney
+            sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (
+            int(time.time()), update_count, update_performanceDetail)
+            DEBUG_MSG('modify_total_commssion update_sql:%s' % sql_command)
+            KBEngine.executeRawDatabaseCommand(sql_command, None)
+            self.account_mgr.give_gold_modify(self.databaseID, extractMoney, tea_house_id)
+            self.sava_extract_commission(account_db_id, extractMoney)
+            self.call_client_func("extractCommission", ["提取成功"])
+            tea_house_entity.set_game_coin(self.databaseID, self.gold + extractMoney)
+
+        sql_command = "select count, performanceDetail from commssion_total where superior=%s" % account_db_id
+        DEBUG_MSG('modify_total_commssion select_sql:%s' % sql_command)
+        KBEngine.executeRawDatabaseCommand(sql_command, callback)
+
+    def sava_extract_commission(self, account_db_id, extractMoney):
+        sql_command = "INSERT INTO extract_commission(accountDBID, count, addtime)" % (account_db_id, extractMoney, int(time.time()))
+        KBEngine.executeRawDatabaseCommand(sql_command, None)
 
     def get_commission(self, _args):
         """
