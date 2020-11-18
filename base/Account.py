@@ -1463,6 +1463,8 @@ class Account(KBEngine.Proxy):
             self.get_history_commission_record(_args)
         elif _func_name == "extractCommission":  # 提取佣金
             self.extract_commission(_args)
+        elif _func_name == "extractCommissionRecord":  # 佣金提取记录
+            self.extract_commission_record(_args)
         elif _func_name == "isFriend":
             people_relation = self.is_friend(_args["people"])
             self.call_client_func("isFriend", people_relation)
@@ -3507,6 +3509,42 @@ class Account(KBEngine.Proxy):
                       "where sm_superior=%s" % account_db_id
 
         DEBUG_MSG("[get_history_commission_record]command_sql 执行----------------%s" % str(command_sql))
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
+
+
+    def extract_commission_record(self, _args):
+        """
+        佣金提取记录
+        """
+        account_db_id = _args["accountDBID"]
+        page_index = _args['pageIndex']
+        def callback(result, rows, insertid, error):
+            record_list = []
+            if not result:
+                self.call_client_func("extractCommissionRecordResult", {
+                    'partnerInfo': record_list,
+                    "totalPages": 0,
+                    "memberCount": 0,
+                })
+            for info in result:
+                item = dict()
+                item['count'] = float(info[0])
+                item['addtime'] = int(info[1])
+                record_list.append(item)
+            member_count = len(record_list)
+            # 计算总页数
+            total_pages = math.ceil(len(record_list) / Const.partner_list_page_item)
+            page_start = page_index * Const.partner_list_page_item
+            page_end = page_start + Const.partner_list_page_item
+            partner_info_list = record_list[page_start:page_end]
+            self.call_client_func("extractCommissionRecordResult", {
+                'partnerInfo': partner_info_list,
+                "totalPages": int(total_pages),
+                "memberCount": member_count,
+            })
+
+        command_sql = 'select count, addtime from extract_commission where accountDBID=%s' % account_db_id
+        DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
     def select_user(self, accountDBID, item):
