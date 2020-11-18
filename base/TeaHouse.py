@@ -797,7 +797,7 @@ class TeaHouse(KBEngine.Entity):
         if len(self.todayRooms) > 2:
             del self.todayRooms[0]
 
-    def add_today_game_coin_billing(self, account_db_id, add):
+    def add_today_game_coin_billing(self, account_db_id, add, roomType=None):
         """
         增加今日抽成
         :param account_db_id:抽成的玩家
@@ -811,9 +811,9 @@ class TeaHouse(KBEngine.Entity):
         origin_player = self.get_tea_house_player(account_db_id)
         DEBUG_MSG("origin_player")
         DEBUG_MSG(origin_player)
-        self.today_game_coin_calculate(origin_player, add, callback)
+        self.today_game_coin_calculate(origin_player, add, roomType, callback)
 
-    def today_game_coin_calculate(self, origin_player, add, call_back):
+    def today_game_coin_calculate(self, origin_player, add, roomType, call_back):
         """
         计算所有上级需要的抽成
         组员->组员(50%)->队长(80%)->战队长(80%)->群主
@@ -893,7 +893,7 @@ class TeaHouse(KBEngine.Entity):
             self.performance_detail[player.db_id] = _performance_detail
             tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
             tea_house_performance.create_one_item(origin_player.db_id, player.db_id, int(time.time()),
-                                                  _add, _performance, player.proportion, self.teaHouseId)
+                                                  _add, _performance, player.proportion, self.teaHouseId, roomType)
             tea_house_performance.destroy(False, False)
 
             if player.level == TeaHousePlayerLevel.Creator:

@@ -1166,7 +1166,7 @@ class RoomType1(RoomBase):
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
-                                      "userId": v["entity"].info["userId"]})
+                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
 
 
 
@@ -2274,10 +2274,10 @@ class RoomType1(RoomBase):
                             v["score"] -= winnerBillingConsume
                             v["winnerBilling"] = -winnerBillingConsume
                             winnerBillingCount += self.info["winnerBilling"][i]['consume']
-
+                    # E房间类型
                     self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                           "todayGameCoinAdd": winnerBillingCount,
-                                          "userId": v["entity"].info["userId"]})
+                                          "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
                     all_bill[k]["todayGameCoinAdd"] += winnerBillingCount
 
             if self.info['otherBilling']:
@@ -2297,7 +2297,7 @@ class RoomType1(RoomBase):
 
                     self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                           "todayGameCoinAdd": otherBillingCount,
-                                          "userId": v["entity"].info["userId"]})
+                                          "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
                     all_bill[k]["todayGameCoinAdd"] += otherBillingCount
             self.base.cellToBase({"func": "todayBillStatic", "teaHouseId": self.info["teaHouseId"], "bill": list(all_bill.values())})
 
