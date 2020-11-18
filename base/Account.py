@@ -3509,10 +3509,11 @@ class Account(KBEngine.Proxy):
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
     def select_user(self, accountDBID, item):
-        command_sql = "select sm_headImageUrl from tbl_account where sm_userId=%s" % accountDBID
+        command_sql = "select sm_headImageUrl,sm_name from tbl_account where sm_userId=%s" % accountDBID
         def callback(result, rows, insertid, error):
             headImageUrl = result[0][0]
             item['headImageUrl'] = headImageUrl
+            item['name'] = result[0][1]
         DEBUG_MSG("[select_user]command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
