@@ -1875,7 +1875,7 @@ class RoomType13(RoomBase):
                 # k:account_id v:winner字典
                 DEBUG_MSG('RoomType13 settlement_winner%s' % settlement_winner_account_id)
                 # 计算大赢家小局抽水
-                settlement_winner_true_gold = self.get_true_gold(settlement_winner_account_id)
+                settlement_winner_true_gold = self.pdk_get_true_gold(settlement_winner_account_id)
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
                 DEBUG_MSG('RoomType13 settlement_winner billing%s' % settlement_winner_billing)
                 v['totalGoldChange'] -= settlement_winner_billing
@@ -1955,7 +1955,7 @@ class RoomType13(RoomBase):
         self.save_record_str()
         # 扣除额外积分，抽奖
         if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            self.mj_lottery()
+            # self.mj_lottery()
             self.pdk_total_settlement_billing()
 
 
