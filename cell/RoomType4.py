@@ -1448,7 +1448,7 @@ class RoomType4(RoomBase):
                     billing_count = self.info['billingCount']
                     _p['totalGoldChange'] -= billing_count
                     DEBUG_MSG('RoomType4 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
-            # 每小局结算大赢家抽水，保留整数
+            # 每小局结算大赢家抽水，保留整数  E小局抽水
             # 获取大赢家
             settlement_winners = self.nn_get_settlement_winners()
             for k, v in settlement_winners.items():

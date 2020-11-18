@@ -1610,11 +1610,11 @@ class RoomBase(KBEngine.Entity):
        """
         winners = {}
         max_win = 0
-        for k, v in self.chapters[self.cn][PLAYER_IN_GAME].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['goldChange'] >= max_win:
                 max_win = v['goldChange']
 
-        for k, v in self.chapters[self.cn][PLAYER_IN_GAME].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['goldChange'] == max_win:
                 winners[k] = v
         return winners
@@ -1626,11 +1626,11 @@ class RoomBase(KBEngine.Entity):
         """
         winner = {}
         max_win = 0
-        for k, v in self.chapters[self.cn][PLAYER_IN_GAME].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['totalGoldChange'] >= max_win:
                 max_win = v['totalGoldChange']
 
-        for k, v in self.chapters[self.cn][PLAYER_IN_GAME].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['totalGoldChange'] == max_win:
                 winner[k] = v
         return winner
@@ -1642,13 +1642,13 @@ class RoomBase(KBEngine.Entity):
         :return:
         """
         _chapter = self.get_current_chapter()
-        for k, v in _chapter[PLAYER_IN_GAME].items():
+        for k, v in _chapter['playerInGame'].items():
             if v['entity'].id == account_id:
-                return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+                return v['totalGoldChange']
 
         for k, v in _chapter["playerInGame"].items():
             if v['entity'].id == account_id:
-                return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+                return v['totalGoldChange']
 
 
     # 炸金花总结算抽水
@@ -1668,7 +1668,7 @@ class RoomBase(KBEngine.Entity):
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
-                                  "userId": k})
+                                  "userId": v["entity"].info["userId"]})
 
 
 
