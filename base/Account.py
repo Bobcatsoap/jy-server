@@ -3407,10 +3407,10 @@ class Account(KBEngine.Proxy):
         if not tea_house_entity:
             self.call_client_func('Notice', ['冠名赛不存在'])
             return
-        tea_house_entity.set_game_coin(self.databaseID, 0)
         DEBUG_MSG("change_player_give_gold %s " % str(give_gold))
         DEBUG_MSG("change_player_self_gold %s " % str(self.gold))
         if give_gold > self.gold:
+            tea_house_entity.set_game_coin(self.databaseID, self.gold)
             self.call_client_func('Notice', ['赠送金币大于你所有金币'])
             return
 

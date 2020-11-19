@@ -2055,6 +2055,7 @@ class TeaHouse(KBEngine.Entity):
         :param account_db_id:
         :return:
         """
+        level_filter = 50
         partner_info = []
         for k, v in self.memberInfo.items():
             if k == self.creatorDBID:

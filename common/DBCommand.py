@@ -299,7 +299,7 @@ def modify_total_commssion(account_db_id, superior, teaHouseId, addtime, count, 
             update_count = int(result[0][0]) + count
             update_double_count = float(result[0][1]) + performanceDetail
             # 如果有值修改佣金数量
-            sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (addtime, update_count, update_double_count)
+            sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (addtime, update_count, update_double_count, superior)
             DEBUG_MSG('modify_total_commssion update_sql:%s' % sql_command)
             KBEngine.executeRawDatabaseCommand(sql_command, None)
         else:
