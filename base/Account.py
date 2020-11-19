@@ -3488,17 +3488,21 @@ class Account(KBEngine.Proxy):
             self.call_client_func('Notice', ['冠名赛不存在'])
         def callback(result, rows, insertid, error):
             record_info_list = []
-            if not record_info_list:
+            DEBUG_MSG("[get_history_commission_record] result ----------------")
+            DEBUG_MSG(result)
+            if not result or len(result) == 0:
                 self.call_client_func("historyCommissionResult", {
                     'partnerInfo': record_info_list,
                     "totalPages": 0,
                     "memberCount": 0,
                 })
                 return
+
             for info in result:
                 item = dict()
                 item['accountDBID'] = int(info[0])
-                self.select_user(item['accountDBID'], item)
+                item['name'] = tea_house_entity.get_tea_house_player(item['accountDBID']).name
+                item['headImageUrl'] = tea_house_entity.get_tea_house_player(item['accountDBID']).head_image
                 item['time'] = int(info[2])
                 item['count'] = int(info[3])
                 item['double_count'] = float(info[4])
@@ -3506,10 +3510,12 @@ class Account(KBEngine.Proxy):
                 record_info_list.append(item)
             member_count = len(record_info_list)
             # 计算总页数
+            DEBUG_MSG("========================================")
+            DEBUG_MSG(record_info_list)
             total_pages = math.ceil(len(record_info_list) / Const.partner_list_page_item)
             page_start = page_index * Const.partner_list_page_item
             page_end = page_start + Const.partner_list_page_item
-            partner_info_list = record_info_list[page_start:page_end]
+            partner_info_list = record_info_list[int(page_start):int(page_end)]
             self.call_client_func("historyCommissionResult", {
                 'partnerInfo': partner_info_list,
                 "totalPages": int(total_pages),
@@ -3547,7 +3553,7 @@ class Account(KBEngine.Proxy):
             total_pages = math.ceil(len(record_list) / Const.partner_list_page_item)
             page_start = page_index * Const.partner_list_page_item
             page_end = page_start + Const.partner_list_page_item
-            partner_info_list = record_list[page_start:page_end]
+            partner_info_list = record_list[int(page_start):int(page_end)]
             self.call_client_func("extractCommissionRecordResult", {
                 'partnerInfo': partner_info_list,
                 "totalPages": int(total_pages),
@@ -3556,15 +3562,6 @@ class Account(KBEngine.Proxy):
 
         command_sql = 'select count, addtime from extract_commission where accountDBID=%s' % account_db_id
         DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
-        KBEngine.executeRawDatabaseCommand(command_sql, callback)
-
-    def select_user(self, accountDBID, item):
-        command_sql = "select sm_headImageUrl,sm_name from tbl_account where sm_userId=%s" % accountDBID
-        def callback(result, rows, insertid, error):
-            headImageUrl = result[0][0]
-            item['headImageUrl'] = headImageUrl
-            item['name'] = result[0][1]
-        DEBUG_MSG("[select_user]command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
 
@@ -3581,22 +3578,22 @@ class Account(KBEngine.Proxy):
 
         def callback(result, rows, insertid, error):
             if not result:
-                self.call_client_func('Notice', ['无佣金记录'])
+                self.call_client_func('extractCommissionResult', ['无佣金记录'])
+                return
             try:
                 update_count = float(result[0][0]) - extractMoney
                 update_performanceDetail = float(result[0][1]) - extractMoney
                 if float(extractMoney) > float(result[0][0]):
                     self.call_client_func('Notice', ['提取佣金不能大于当前佣金'])
                     return
-
                 sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (
-                int(time.time()), update_count, update_performanceDetail)
+                int(time.time()), int(update_count), update_performanceDetail, account_db_id)
                 DEBUG_MSG('modify_total_commssion update_sql:%s' % sql_command)
                 KBEngine.executeRawDatabaseCommand(sql_command, None)
                 self.sava_extract_commission(account_db_id, extractMoney)
                 self.call_client_func("extractCommissionResult", ["提取成功"])
-                self.account_mgr.give_gold_modify(self.databaseID, extractMoney, tea_house_id)
-                tea_house_entity.set_game_coin(self.databaseID, self.gold + extractMoney)
+                self.account_mgr.give_gold_modify(self.databaseID, int(extractMoney), tea_house_id)
+                tea_house_entity.set_game_coin(self.databaseID, self.gold + int(extractMoney))
             except:
                 self.call_client_func("extractCommissionResult", ["提取失败"])
 
@@ -3606,7 +3603,8 @@ class Account(KBEngine.Proxy):
         KBEngine.executeRawDatabaseCommand(sql_command, callback)
 
     def sava_extract_commission(self, account_db_id, extractMoney):
-        sql_command = "INSERT INTO extract_commission(accountDBID, count, addtime)" % (account_db_id, extractMoney, int(time.time()))
+        sql_command = "INSERT INTO extract_commission(accountDBID, count, addtime) VALUES(%s, '%s', %s) " % (account_db_id, str(extractMoney), int(time.time()))
+        DEBUG_MSG('sava_extract_commission update_sql:%s' % sql_command)
         KBEngine.executeRawDatabaseCommand(sql_command, None)
 
     def get_commission(self, _args):
