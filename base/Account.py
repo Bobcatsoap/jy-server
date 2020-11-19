@@ -139,6 +139,9 @@ class Account(KBEngine.Proxy):
     history_commission = 0
     surplus_commission = 0
 
+    user_give_gold = 0  # 总赠送金币
+    player_give_gold = 0  # 总被赠送金币
+
 
     def __init__(self):
         KBEngine.Proxy.__init__(self)
@@ -3457,17 +3460,15 @@ class Account(KBEngine.Proxy):
                 give_gold_record_info_item["user_name"] = user_name
                 give_gold_record_info_item["player_name"] = player_name
                 give_gold_record_info_list.append(give_gold_record_info_item)
+            self.user_give_gold = user_total_gold
             member_count = len(give_gold_record_info_list)
             # 计算总页数
             total_pages = math.ceil(len(give_gold_record_info_list) / Const.partner_list_page_item)
             page_start = page_index * Const.partner_list_page_item
             page_end = page_start + Const.partner_list_page_item
             partner_info_list = give_gold_record_info_list[page_start:page_end]
-            map ={'partnerInfo': partner_info_list,"totalPages": int(total_pages),"memberCount": member_count,"user_total_gold": user_total_gold,"player_total_gold": 0}
-            try:
-                self.get_total_gold(account_db_id, map)
-            except:
-                pass
+            self.get_total_gold(account_db_id)
+            map ={'partnerInfo': partner_info_list,"totalPages": int(total_pages),"memberCount": member_count,"user_total_gold": user_total_gold,"player_total_gold": self.player_give_gold}
             self.call_client_func("getGiveGoldRecords", map)
         command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where user_id=%s' % account_db_id
         DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
@@ -3693,15 +3694,16 @@ class Account(KBEngine.Proxy):
 
 
 
-    def get_total_gold(self, player_id, map):
+    def get_total_gold(self, player_id):
         def callback(result, rows, insertid, error):
             player_total_gold = 0
             for info in result:
                 gold = info[3]
                 player_total_gold += int(gold)
-            map["player_total_gold"] = player_total_gold
+            self.player_give_gold = player_total_gold
 
         command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where player_id=%s' % player_id
+
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
 
