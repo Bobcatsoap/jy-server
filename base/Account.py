@@ -3463,15 +3463,12 @@ class Account(KBEngine.Proxy):
             page_start = page_index * Const.partner_list_page_item
             page_end = page_start + Const.partner_list_page_item
             partner_info_list = give_gold_record_info_list[page_start:page_end]
-
-            player_total_gold = self.get_total_gold(account_db_id)
-            self.call_client_func("getGiveGoldRecords", {
-                'partnerInfo': partner_info_list,
-                "totalPages": int(total_pages),
-                "memberCount": member_count,
-                "user_total_gold": user_total_gold,
-                "player_total_gold": 0
-            })
+            map ={'partnerInfo': partner_info_list,"totalPages": int(total_pages),"memberCount": member_count,"user_total_gold": user_total_gold,"player_total_gold": 0}
+            try:
+                self.get_total_gold(account_db_id, map)
+            except:
+                pass
+            self.call_client_func("getGiveGoldRecords", map)
         command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where user_id=%s' % account_db_id
         DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
@@ -3485,6 +3482,13 @@ class Account(KBEngine.Proxy):
             self.call_client_func('Notice', ['冠名赛不存在'])
         def callback(result, rows, insertid, error):
             record_info_list = []
+            if not record_info_list:
+                self.call_client_func("historyCommissionResult", {
+                    'partnerInfo': record_info_list,
+                    "totalPages": 0,
+                    "memberCount": 0,
+                })
+                return
             for info in result:
                 item = dict()
                 item['accountDBID'] = int(info[0])
@@ -3526,6 +3530,7 @@ class Account(KBEngine.Proxy):
                     "totalPages": 0,
                     "memberCount": 0,
                 })
+                return
             for info in result:
                 item = dict()
                 item['count'] = float(info[0])
@@ -3571,16 +3576,24 @@ class Account(KBEngine.Proxy):
         def callback(result, rows, insertid, error):
             if not result:
                 self.call_client_func('Notice', ['无佣金记录'])
-            update_count = float(result[0][0]) - extractMoney
-            update_performanceDetail = float(result[0][1]) - extractMoney
-            sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (
-            int(time.time()), update_count, update_performanceDetail)
-            DEBUG_MSG('modify_total_commssion update_sql:%s' % sql_command)
-            KBEngine.executeRawDatabaseCommand(sql_command, None)
-            self.account_mgr.give_gold_modify(self.databaseID, extractMoney, tea_house_id)
-            self.sava_extract_commission(account_db_id, extractMoney)
-            self.call_client_func("extractCommission", ["提取成功"])
-            tea_house_entity.set_game_coin(self.databaseID, self.gold + extractMoney)
+            try:
+                update_count = float(result[0][0]) - extractMoney
+                update_performanceDetail = float(result[0][1]) - extractMoney
+                if float(extractMoney) > float(result[0][0]):
+                    self.call_client_func('Notice', ['提取佣金不能大于当前佣金'])
+                    return
+
+                sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (
+                int(time.time()), update_count, update_performanceDetail)
+                DEBUG_MSG('modify_total_commssion update_sql:%s' % sql_command)
+                KBEngine.executeRawDatabaseCommand(sql_command, None)
+                self.sava_extract_commission(account_db_id, extractMoney)
+                self.call_client_func("extractCommissionResult", ["提取成功"])
+                self.account_mgr.give_gold_modify(self.databaseID, extractMoney, tea_house_id)
+                tea_house_entity.set_game_coin(self.databaseID, self.gold + extractMoney)
+            except:
+                self.call_client_func("extractCommissionResult", ["提取失败"])
+
 
         sql_command = "select count, performanceDetail from commssion_total where superior=%s" % account_db_id
         DEBUG_MSG('modify_total_commssion select_sql:%s' % sql_command)
@@ -3680,13 +3693,13 @@ class Account(KBEngine.Proxy):
 
 
 
-    def get_total_gold(self, player_id):
+    def get_total_gold(self, player_id, map):
         def callback(result, rows, insertid, error):
             player_total_gold = 0
             for info in result:
                 gold = info[3]
                 player_total_gold += int(gold)
-            return player_total_gold
+            map["player_total_gold"] = player_total_gold
 
         command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where player_id=%s' % player_id
         KBEngine.executeRawDatabaseCommand(command_sql, callback)

@@ -303,7 +303,7 @@ def modify_total_commssion(account_db_id, superior, teaHouseId, addtime, count, 
             DEBUG_MSG('modify_total_commssion update_sql:%s' % sql_command)
             KBEngine.executeRawDatabaseCommand(sql_command, None)
         else:
-            sql_command = "insert into commssion_total (accountDBID,superior,teaHouseId, addtime,count,performanceDetail) VALUES (%s,%s,%s,'%s','%s')" % (
+            sql_command = "insert into commssion_total (accountDBID,superior,teaHouseId, addtime,count,performanceDetail) VALUES (%s,%s,%s,'%s','%s', %s)" % (
                 account_db_id, superior, teaHouseId, addtime, count, performanceDetail)
             DEBUG_MSG('modify_total_commssion insert_sql:%s' % sql_command)
             KBEngine.executeRawDatabaseCommand(sql_command, None)

@@ -255,7 +255,7 @@ class RoomType1(RoomBase):
         # 1 定庄 设置庄家
         self.setBanker()
         # 坐庄信息同步到BASE
-        self.set_base_player_banker_history(_chapter)
+        # self.set_base_player_banker_history(_chapter)
         # 因为炸金花一个房间会进行多局游戏，庄信息只在进房间同步一次，所以庄需要自己记录
         self.set_banker_history_in_cell(_chapter)
         # 1 设置当前轮数
@@ -1190,6 +1190,14 @@ class RoomType1(RoomBase):
         if self.cn >= int(self.info["maxChapterCount"]) - 1:
             _chapter['toToTalSettlementTime'] = self.addTimer(_timeToTotalSettlement, 0, 0)
             return
+
+    def get_true_gold(self, account_id):
+        """
+        获取玩家真实金币
+        """
+        chapter = self.chapters[self.cn]
+        player = chapter['playerInGame'][account_id]
+        return player['score']
 
     def lookCard(self, accountId):
         """

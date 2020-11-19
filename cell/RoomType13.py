@@ -1900,6 +1900,14 @@ class RoomType13(RoomBase):
             player_record[k] = record
         chapter["roomRecord"] = player_record
 
+    def get_true_gold(self, account_id):
+        """
+        获取玩家真实金币
+        """
+        chapter = self.chapters[self.cn]
+        player = chapter['playerInGame'][account_id]
+        return player['score']
+
     # 总结算
     def total_settlement(self, is_disband=False):
         """
