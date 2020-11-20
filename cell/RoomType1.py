@@ -212,6 +212,10 @@ class RoomType1(RoomBase):
         _playerInRoom = _chapter["playerInRoom"]    # 在房间中的玩家
         _playerOutGame = _chapter["playerOutGame"]  # 在游戏中观战的玩家
         _newChapter = self.newChapter(_chapter["maxPlayerCount"])  # 游戏中最大的玩家人数
+        if self.cn >= int(self.info["maxChapterCount"]):
+            self.total_settlement()
+            self.write_chapter_info_to_db()
+            return
         # 使用 deepcopy 避免每局战绩的玩家赢钱数相同
         _newChapter["playerInGame"] = copy.deepcopy(_playerInGame)
         _newChapter["playerOutGame"] = copy.deepcopy(_playerOutGame)
@@ -968,6 +972,10 @@ class RoomType1(RoomBase):
         _playerInGame = _chapter["playerInGame"]
         _player = _playerInGame[accountId]
         # 1 下注金额大于玩家的钱减去加注的钱
+        DEBUG_MSG('betSum-----------------------%s ' % str(betSum))
+        DEBUG_MSG('_player["score"]-----------------------%s ' % str(_player["score"]))
+        DEBUG_MSG('_player["totalBet"]-----------------------%s ' % str(_player["totalBet"]))
+        DEBUG_MSG(_player)
         if self.have_gold_limit() and betSum > _player["score"] - _player["totalBet"]:
             # 带入比赛分
             self.callClientFunction(accountId, "Notice", ["%s不足,请继续带入" % self.gold_name])
@@ -1119,17 +1127,19 @@ class RoomType1(RoomBase):
             v["score"] = v["score"] - v["totalBet"]
             _userId = v["entity"].info["userId"]
             _toBaseArgs[_userId] = {"goldChange": -v["totalBet"]}
+        # for k, v in _playerInGame.items():
+
         self.callOtherClientsFunction("Settlement", _args)
         self.base.cellToBase({"func": "settlement", "playerData": _toBaseArgs})
         self.changeChapterState(2)
         # 金币场结算后检测玩家的金币数是否为零
-        # if self.info["roomType"] == "gold":
-        #     # self.check_gold()
-        #     pass
-        # else:
-        #     for k, v in _playerInGame.items():
-        #         if v["score"] <= 0:
-        #             self.callClientFunction(k, "Notice", ["积分不足，请充值"])
+        if self.info["roomType"] == "gold":
+            self.check_gold()
+            pass
+        else:
+            for k, v in _playerInGame.items():
+                if v["score"] <= 0:
+                    self.callClientFunction(k, "Notice", ["金币不足"])
         _chapterHistory = _chapter["chapterHistory"]
         _chapterData = {}
         for k, v in _playerInGame.items():
@@ -1143,8 +1153,8 @@ class RoomType1(RoomBase):
         if self.info["roomType"] == "gameCoin":
             # 首局结算抽水
             if self.settlement_count == 0:
-                for _p in _playerInGame.items():
-                    if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
+                for k, _p in _playerInGame.items():
+                    if self.jh_get_true_gold(_p['entity'].id) < self.info['billingCount']:
                         DEBUG_MSG('RoomType1 billing_count not enough account_id:%s' % _p['entity'].id)
                         continue
                     billing_count = self.info['billingCount']
@@ -1652,7 +1662,8 @@ class RoomType1(RoomBase):
                            "winnerBilling": v["winnerBilling"], "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"],
                            "totalGoldChange": v["totalGoldChange"], "userId": v["entity"].info["userId"], "headImageUrl": v["entity"].info["headImageUrl"],
-                           "totalGold": v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+                           # "totalGold": v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']  TODO----
+                           "totalGold": v["score"] + v['baseSyncGoldChange'] + v['totalGoldChange']
                            }
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])
@@ -2254,7 +2265,7 @@ class RoomType1(RoomBase):
         # 抽奖
 
         if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            self.lottery()
+            # self.lottery()
 
             # 找到大赢家
             winner = {}

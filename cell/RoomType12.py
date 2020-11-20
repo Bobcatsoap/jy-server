@@ -230,6 +230,8 @@ IS_HUANG_ZHUANG = 'isHuangZhuang'
 IS_GANG_SHANG_KAI_HUA = "isGangShangKaiHua"
 # 本局中剩余牌的数量
 LEFT_PAI_COUNT = "leftPaiCount"
+# 有玩家金币为0 ；
+LEFT_PLANY_COUNT = False
 # 房主，第一个进入房间的玩家，默认为房主
 ROOM_MASTER = "roomMaster"
 # 胡牌的类型 -1:表示没有结束;0:荒庄;1:自摸;2:点炮;3:抢杠
@@ -1005,6 +1007,9 @@ class RoomType12(RoomBase):
             if not self.pot and self.info["maxChapterCount"] == self.cn + 1:
                 self.total_settlement()
                 return
+            if LEFT_PLANY_COUNT == True:
+                self.total_settlement()
+                return
             # 如果比赛场有人不满足离场分，结束游戏
             elif self.info["roomType"] == "gameCoin" and self.have_player_do_not_meet_end_score():
                 self.total_settlement()
@@ -1052,7 +1057,7 @@ class RoomType12(RoomBase):
         _chapter=self.chapters[self.cn]
         for k, v in _chapter[PLAYER_IN_GAME].items():
             true_gold = self.get_true_gold(v['entity'].id)
-            if true_gold < self.info['endScore']:
+            if true_gold <= self.info['endScore']:
                 return True
         return False
 
@@ -1095,6 +1100,7 @@ class RoomType12(RoomBase):
                     hu_score = 0
                     fish_range = []
 
+
                 lose_range = fish_range
 
                 # 根据特殊规则翻倍
@@ -1110,17 +1116,26 @@ class RoomType12(RoomBase):
                 DEBUG_MSG('hu_player:%s,hu_score:%s' % (hu_player['entity'].info['name'], hu_score))
 
                 # 扣胡牌分
-                for _p in lose_range:
-                    _p['goldChange'] -= hu_score
-                    hu_player['goldChange'] += hu_score
+            #    for _p in lose_range:
+            #        _p['goldChange'] -= hu_score
+           #         hu_player['goldChange'] += hu_score
                     # _p['ziMoGold'] -= zi_mo_fen
                     # hu_player['ziMoGold'] += zi_mo_fen
-
-                # 扣鱼子分
                 fish_score = self.info['fish'] if self.single_fish else self.info['fish'] * 2
-                for fish_player in fish_range:
-                    fish_player['goldChange'] -= fish_score
-                    hu_player['goldChange'] += fish_score
+                for _player in _chapter[PLAYER_IN_GAME].values():
+                    for _v in lose_range:
+                        if _player['entity'].id == _v['entity'].id :
+                            _player['goldChange'] -= hu_score
+                            _player['goldChange'] -= fish_score
+                # 扣鱼子分
+                for _player in _chapter[PLAYER_IN_GAME].values():
+                    for _v in hu_players:
+                        if _player['entity'].id == _v['entity'].id:
+                            _player['goldChange'] += hu_score
+                            _player['goldChange'] += fish_score
+            #    for fish_player in fish_range:
+            #        fish_player['goldChange'] -= fish_score
+             #       hu_player['goldChange'] += fish_score
 
             # 扣多少杠分
             gang_di = self.info['baseScore']
@@ -1161,13 +1176,34 @@ class RoomType12(RoomBase):
                         _gang_p['goldChange'] += an_score
                         _p['anGangGold'] -= an_score
                         _gang_p['anGangGold'] += an_score
-
+            for _p in _chapter[PLAYER_IN_GAME].values():
+                for _v in  no_hu_players:
+                    if _p['entity'].id == _v['entity'].id:
+                        DEBUG_MSG('*****************************************************')
+                        DEBUG_MSG(_p)
+                        DEBUG_MSG("gold %s" % str(_p['gold']))
+                        DEBUG_MSG("goldChange %s" % str(_p['goldChange']))
+                        DEBUG_MSG("11111111111111111111111111111111goldChange %s" % str(_p['totalGoldChange'] * -1 + _p['goldChange'] * -1))
+                        if _p['gold'] <= _p['totalGoldChange'] * -1  + _p['goldChange'] *-1 :
+                            DEBUG_MSG("9999999999999999999999999999999999")
+                            _p['goldChange'] = _p['gold'] + _p['totalGoldChange']
+                            _p['goldChange'] = _p['goldChange'] * -1
+                            DEBUG_MSG("999999999999999999999999999 %s" % str(_p['goldChange']))
+                            LEFT_PLANY_COUNT = True
+                            for _k in _chapter[PLAYER_IN_GAME].values():
+                                for _j in hu_players:
+                                    DEBUG_MSG("888888888888888888888")
+                                    DEBUG_MSG(_j)
+                                    if _k['entity'].id == _j['entity'].id:
+                                       _k['goldChange'] = _p['gold'] + _p['totalGoldChange']
+                                    DEBUG_MSG("88888888888888888888888888 %s" % str( _k['goldChange']))
         else:
             pass
 
         # 赋值总金币改变
-        for _p in players:
+        for _p in _chapter[PLAYER_IN_GAME].values():
             _p['totalGoldChange'] += _p['goldChange']
+          #  _p['gold'] = _p['gold'] +_p['goldChange']
             _p["entity"].update_score_control(_p['goldChange'])
             DEBUG_MSG('RoomType12 settlement totalGoldChange%s' % _p['totalGoldChange'])
 

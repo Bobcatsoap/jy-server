@@ -1724,18 +1724,29 @@ class RoomType13(RoomBase):
 
                     basic_gold_change *= self.info["baseMultiple"]
                     lose_gold *= self.info["baseMultiple"]
-                    lose_player["basicScoreChange"] += basic_gold_change
-                    lose_player["basicScore"] += basic_gold_change
-                    lose_player["boomScoresChange"] += lose_gold - basic_gold_change
-                    lose_player["boomScores"] += lose_gold - basic_gold_change
-                    lose_player["goldChange"] += lose_gold
-                    lose_player["totalGoldChange"] += lose_gold
+
+                    if lose_player["gold"] < lose_gold * -1:
+                        lose_player["basicScoreChange"] -= lose_player["gold"]
+                        lose_player["basicScore"] -= lose_player["gold"]
+                        lose_player["boomScoresChange"] -= lose_player["gold"]
+                        lose_player["boomScores"] -= lose_player["gold"]
+                        lose_player["goldChange"] -= lose_player["gold"]
+                        lose_player["totalGoldChange"] -= lose_player["gold"]
+                        lose_player["gold"] -= lose_player["gold"]
+                    else:
+                        lose_player["basicScoreChange"] += basic_gold_change
+                        lose_player["basicScore"] += basic_gold_change
+                        lose_player["boomScoresChange"] += lose_gold - basic_gold_change
+                        lose_player["boomScores"] += lose_gold - basic_gold_change
+                        lose_player["goldChange"] += lose_gold
+                        lose_player["totalGoldChange"] += lose_gold
+                        lose_player["gold"] += lose_gold
                     if abs(lose_player["singMax"]) < abs(lose_player["goldChange"]):
                         lose_player["singMax"] = lose_player["goldChange"]
                     dealer["basicScore"] += abs(basic_gold_change)
                     dealer["boomScores"] += abs(lose_gold - basic_gold_change)
-                    lose_player["gold"] += lose_gold
 
+                    self.debug_msg('player11111 %s, goldChange: %s  totalGoldChange %s' % (v["entity"].info["name"], v['goldChange'], v["totalGoldChange"]))
                     v["lostCount"] += 1
                     v["totalBoomCounts"] += v["boomCount"]
             else:
@@ -1749,14 +1760,20 @@ class RoomType13(RoomBase):
                     if self.bomb_multiple:
                         boom_score *= 2
                     # 扣炸弹分
-                    v['boomScoresChange'] += boom_score
-                    v['boomScores'] += boom_score
-                    v['goldChange'] += boom_score
-                    v['gold'] += boom_score
-                    v["totalGoldChange"] += boom_score
+                    if v["gold"] < boom_score * -1:
+                        v['goldChange'] -= v['gold']
+                        v["totalGoldChange"] -= v['gold']
+                        v['boomScoresChange'] -= v['gold']
+                        v['boomScores'] -= v['gold']
+                        v['gold'] -= v['gold']
+                    else:
+                        v['goldChange'] += boom_score
+                        v["totalGoldChange"] += boom_score
+                        v['boomScoresChange'] += boom_score
+                        v['boomScores'] += boom_score
+                        v['gold'] += boom_score
 
-                    self.debug_msg('player %s, goldChange: %s boomScore %s' % (v["entity"].info["name"],
-                                                                               v['goldChange'], boom_score))
+                    self.debug_msg('player22222 %s, goldChange: %s boomScore %s  totalGoldChange %s' % (v["entity"].info["name"],v['goldChange'], boom_score, v["totalGoldChange"]))
 
                 if k != chapter["winner"]:
                     basic_gold_change = 0
@@ -1788,17 +1805,22 @@ class RoomType13(RoomBase):
                         lose_player = v
 
                     basic_gold_change *= self.info["baseMultiple"]
-                    lose_player["basicScoreChange"] += basic_gold_change
-                    lose_player["basicScore"] += basic_gold_change
-                    dealer["basicScore"] += abs(basic_gold_change)
+                    if lose_player["gold"] < basic_gold_change * -1:
+                        lose_player["goldChange"] -= lose_player["gold"]
+                        lose_player["totalGoldChange"] -= lose_player["gold"]
+                        lose_player["basicScoreChange"] -= lose_player["gold"]
+                        lose_player["basicScore"] -= lose_player["gold"]
+                        dealer["basicScore"] -= lose_player["gold"]
+                        dealer["gold"] -= lose_player["gold"]
+                    else:
+                        lose_player["goldChange"] += basic_gold_change
+                        lose_player["totalGoldChange"] += basic_gold_change
+                        lose_player["basicScoreChange"] += basic_gold_change
+                        lose_player["basicScore"] += basic_gold_change
+                        lose_player["gold"] += basic_gold_change
+                        dealer["basicScore"] += abs(basic_gold_change)
 
-                    lose_player["goldChange"] += basic_gold_change
-                    lose_player["gold"] += basic_gold_change
-                    lose_player["totalGoldChange"] += basic_gold_change
-
-                    DEBUG_MSG('player %s, goldChange: %s %s' % (lose_player["entity"].info["name"],
-                                                                lose_player['goldChange'],
-                                                                basic_gold_change))
+                    DEBUG_MSG('player3333 %s, goldChange: %s totalGoldChange %s' % (lose_player["entity"].info["name"],lose_player['goldChange'], lose_player["totalGoldChange"]))
 
                     if abs(lose_player["singMax"]) < abs(lose_player["goldChange"]):
                         lose_player["singMax"] = lose_player["goldChange"]
@@ -1806,16 +1828,15 @@ class RoomType13(RoomBase):
                     v["lostCount"] += 1
                     v["totalBoomCounts"] += v["boomCount"]
 
-        if self.info['boomSettlementType'] == 1:
             # 统计输赢
+            DEBUG_MSG("-------------------------------------------")
+            DEBUG_MSG(chapter['playerInGame'])
             for k2, v2 in chapter['playerInGame'].items():
+                DEBUG_MSG("888888888888888")
                 if k2 != chapter['winner']:
-                    lost_source_all += v2["goldChange"]
-        else:
-            # 统计输赢
-            for k2, v2 in chapter['playerInGame'].items():
-                if k2 != chapter['winner']:
-                    lost_source_all += v2["basicScoreChange"]
+                    DEBUG_MSG("99999999999999999999")
+                    DEBUG_MSG(v2)
+                    lost_source_all = v2["goldChange"]
 
         # 获胜的玩家的分成
         dealer["goldChange"] += -lost_source_all
@@ -1826,6 +1847,8 @@ class RoomType13(RoomBase):
         if abs(dealer["singMax"]) < abs(dealer["goldChange"]):
             dealer["singMax"] = dealer["goldChange"]
         # 整理发送信息(待优化，特定数值赋值)
+        DEBUG_MSG('整理发送信息-----------------------------')
+        DEBUG_MSG(chapter["playerInGame"])
         for k, v in chapter["playerInGame"].items():
             if len(v["cards"]) != 0:
                 v["cards"].sort()
@@ -1860,7 +1883,11 @@ class RoomType13(RoomBase):
         if self.info["roomType"] == "gameCoin":
             # 首局结算抽水
             if self.settlement_count == 0:
-                for _p in chapter["playerInGame"].items():
+                for k,_p in chapter["playerInGame"].items():
+                    DEBUG_MSG('-----------------------------------')
+                    DEBUG_MSG(self.info)
+                    DEBUG_MSG(_p['entity'].id)
+                    DEBUG_MSG(self.get_true_gold(_p['entity'].id))
                     if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
                         DEBUG_MSG('RoomType12 billing_count not enough account_id:%s' % _p['entity'].id)
                         continue
@@ -1894,6 +1921,8 @@ class RoomType13(RoomBase):
             self.base.cellToBase({'func': 'addTodayRoom'})
         # 记录牌局结果
         player_record = {}
+        DEBUG_MSG('记录牌局结果-----------------------------')
+        DEBUG_MSG(chapter["playerInGame"])
         for k, v in chapter["playerInGame"].items():
             record = {"preGoldChange": v["goldChange"], "totalGoldChange": v["totalGoldChange"],
                       "name": v["entity"].info["name"]}
@@ -1902,11 +1931,18 @@ class RoomType13(RoomBase):
 
     def get_true_gold(self, account_id):
         """
-        获取玩家真实金币
+        跑得快，获得玩家当前真实金币
+        :param account_id:
+        :return:
         """
-        chapter = self.chapters[self.cn]
-        player = chapter['playerInGame'][account_id]
-        return player['score']
+        _chapter = self.get_current_chapter()
+        for k, v in _chapter['playerInGame'].items():
+            if v['entity'].id == account_id:
+                return v['totalGoldChange']
+
+        for k, v in _chapter["playerOutGame"].items():
+            if v['entity'].id == account_id:
+                return v['totalGoldChange']
 
     # 总结算
     def total_settlement(self, is_disband=False):
@@ -1928,6 +1964,8 @@ class RoomType13(RoomBase):
         max_win_gold = -1
         # 整理大结算数据
         # 寻找大赢家
+        DEBUG_MSG('chapter["playerInGame"]--------------')
+        DEBUG_MSG(chapter["playerInGame"])
         for k, v in chapter["playerInGame"].items():
             v["totalGoldChange"] = self.round_int(v["totalGoldChange"])
             if v["totalGoldChange"] > max_win_gold:
@@ -3164,7 +3202,7 @@ class RoomType13(RoomBase):
         """
         chapter = self.chapters[self.cn]
         for k, v in chapter['playerInGame'].items():
-            if v['gold'] < self.info['endScore']:
+            if v['gold'] <= self.info['endScore']:
                 return True
         return False
 

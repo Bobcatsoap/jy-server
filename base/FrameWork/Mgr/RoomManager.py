@@ -1039,11 +1039,18 @@ class RoomManager(Manger):
         tea_house_entity = tea_house_manager().get_tea_house_with_id(tea_house_id)
         if tea_house_entity:
             # 如果没开启比赛币开关，比赛币默认足够
-            if not tea_house_entity.gameCoinSwitch:
-                return True
+          #  if not tea_house_entity.gameCoinSwitch:
+          #      return True
             player = tea_house_entity.get_tea_house_player(account.userId)
-            if player.game_coin < room.info['readyGoldLimit']:
+            DEBUG_MSG(player)
+            DEBUG_MSG(room.info)
+            DEBUG_MSG('########################################%s' % player.game_coin)
+            DEBUG_MSG('########################################%s' % room.info['gameLevel'])
+            if player.game_coin < room.info['gameLevel']:
                 return False
+            if room.info['pot'] == True:
+                if player.game_coin < room.info["potScore"]:
+                    return  False
             return player.game_coin >= room.info['gameLevel']
         return True
 
@@ -1354,7 +1361,7 @@ class RoomManager(Manger):
                 game_coin_enough = self.game_coin_enough_check(_room, _account)
                 if not game_coin_enough:
                     if _account.hasClient:
-                        _account.call_client_func("Notice", ["比赛分不足"])
+                        _account.call_client_func("Notice", ["金币不足"])
                     return
 
         # 如果是AA支付先判断加入游戏者钻石是否足够

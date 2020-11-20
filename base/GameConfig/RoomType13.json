@@ -9,7 +9,7 @@
     "boomScoreSize": [2,5,10,20,30],
     "normalGameBaseScoreList": [1,2,3,4,5,6,7,8,9,10,20,30,40,50],
     "timeDown": [0,15,20,30,45,60,90,120],
-    "baseMultipleList":[0.5,1,2,3]
+    "baseMultipleList":[1,2,3]
   },
   "gameCoin": {
     "chapterLimitAndRoomCard": {
@@ -21,7 +21,7 @@
     "boomScoreSize": [2,5,10,20,30],
     "normalGameBaseScoreList": [1,2,3,4,5,6,7,8,9,10,20,30,40,50],
     "timeDown": [0,15,20,30,45,60,90,120],
-    "baseMultipleList":[0.5,1,2,3]
+    "baseMultipleList":[1,2,3]
   },
   "normalGameCoin": {
     "chapterLimitAndRoomCard": {
@@ -33,6 +33,6 @@
     "boomScoreSize": [2,5,10,20,30],
     "normalGameBaseScoreList": [1,2,3,4,5,6,7,8,9,10,20,30,40,50],
     "timeDown": [0,15,20,30,45,60,90,120],
-    "baseMultipleList":[0.5,1,2,3]
+    "baseMultipleList":[1,2,3]
   }
 }

@@ -120,15 +120,16 @@ def cards_is_bomb(cards, room_info):
     cards_type = get_cards_type(cards_number, room_info)
     if (cards_type == CardType.Lin_FourBoomWithSingle or
             cards_type == CardType.Lin_MaxBoomWithSingle or
-            cards_type == CardType.Lin_FourWithTwoSingle or
-            cards_type == CardType.Lin_FourWithThreeSingle or
-            cards_type == CardType.Lin_ThreeWithDouble or
-            cards_type == CardType.Lin_ThreeWithTwo or
-            cards_type == CardType.Com_ThreeWithSingle or
-            cards_type == CardType.Spc_OnlyThree or
-            cards_type == CardType.Lin_PlaneWithDouble or
-            cards_type == CardType.Com_PlaneWithTwo or
-            cards_type == CardType.Com_PlaneWithSingle
+            cards_type == CardType.Lin_FourBoom
+            # cards_type == CardType.Lin_FourWithTwoSingle or
+           # cards_type == CardType.Lin_FourWithThreeSingle or
+           # cards_type == CardType.Lin_ThreeWithDouble or
+           # cards_type == CardType.Lin_ThreeWithTwo or
+          #  cards_type == CardType.Com_ThreeWithSingle or
+           # cards_type == CardType.Spc_OnlyThree or
+          #  cards_type == CardType.Lin_PlaneWithDouble or
+          #  cards_type == CardType.Com_PlaneWithTwo or
+          #  cards_type == CardType.Com_PlaneWithSingle
     ):
         return True
     else:
@@ -173,15 +174,8 @@ def check_2_must_bomb(pre_play_cards, this_play_cards, cards, room_info):
         # 如果是任意一种炸弹，满足
         if (this_play_cards_type == CardType.Lin_FourBoomWithSingle or
                 this_play_cards_type == CardType.Lin_MaxBoomWithSingle or
-                this_play_cards_type == CardType.Lin_FourWithTwoSingle or
-                this_play_cards_type == CardType.Lin_FourWithThreeSingle or
-                this_play_cards_type == CardType.Lin_ThreeWithDouble or
-                this_play_cards_type == CardType.Lin_ThreeWithTwo or
-                this_play_cards_type == CardType.Com_ThreeWithSingle or
-                this_play_cards_type == CardType.Spc_OnlyThree or
-                this_play_cards_type == CardType.Lin_PlaneWithDouble or
-                this_play_cards_type == CardType.Com_PlaneWithTwo or
-                this_play_cards_type == CardType.Com_PlaneWithSingle
+                this_play_cards_type == CardType.Lin_FourBoom
+
         ):
             return True
         else:
@@ -233,6 +227,12 @@ def check_single_k_must_1(pre_play_cards, this_play_cards, cards, room_info):
     if pre_play_cards_type == CardType.Com_Single and pre_play_cards_number[0] == 13 and 14 in cards_number:
         if this_play_cards_type == CardType.Com_Single and this_play_cards_number[0] == 14:
             return True
+        timeCard = 0
+        for _p in cards_number:
+            if _p == 14:
+                timeCard += 1
+        if timeCard == 3:
+            return True
         else:
             return False
     # 如果上个玩家出牌不是单k,一定满足
@@ -257,6 +257,12 @@ def check_double_k_must_1(pre_play_cards, this_play_cards, cards, room_info):
     # 如果上个玩家出牌是对K，并且手里有两个A，判断本次是否是两个A
     if pre_play_cards_type == CardType.Com_Double and pre_play_cards_number[0] == 13 and cards_number.count(14) == 2:
         if this_play_cards_type == CardType.Com_Double and this_play_cards_number[0] == 14:
+            return True
+        timeCard = 0
+        for _p in cards_number:
+            if _p == 14:
+                timeCard += 1
+        if timeCard == 3:
             return True
         else:
             return False
