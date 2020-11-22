@@ -1626,11 +1626,11 @@ class RoomBase(KBEngine.Entity):
         winners = {}
         max_win = 0
         for k, v in self.chapters[self.cn]['playerInGame'].items():
-            if v['goldChange'] >= max_win:
-                max_win = v['goldChange']
+            if -v["totalBet"] >= max_win:
+                max_win = -v["totalBet"]
 
         for k, v in self.chapters[self.cn]['playerInGame'].items():
-            if v['goldChange'] == max_win:
+            if -v["totalBet"] == max_win:
                 winners[k] = v
         return winners
 
