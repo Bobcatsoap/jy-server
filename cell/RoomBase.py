@@ -1562,7 +1562,7 @@ class RoomBase(KBEngine.Entity):
             if v['goldChange'] >= max_win:
                 max_win = v['goldChange']
 
-        for k, v in self.chapters[self.cn]["playerOutGame"].items():
+        for k, v in self.chapters[self.cn]["playerInGame"].items():
             if v['goldChange'] == max_win:
                 winners[k] = v
         return winners
@@ -1578,7 +1578,7 @@ class RoomBase(KBEngine.Entity):
             if v['totalGoldChange'] >= max_win:
                 max_win = v['totalGoldChange']
 
-        for k, v in self.chapters[self.cn]["playerOutGame"].items():
+        for k, v in self.chapters[self.cn]["playerInGame"].items():
             if v['totalGoldChange'] == max_win:
                 winner[k] = v
         return winner
@@ -1645,7 +1645,7 @@ class RoomBase(KBEngine.Entity):
             if v['totalGoldChange'] >= max_win:
                 max_win = v['totalGoldChange']
 
-        for k, v in self.chapters[self.cn]['playerOutGame'].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['totalGoldChange'] == max_win:
                 winner[k] = v
         return winner
@@ -1700,7 +1700,7 @@ class RoomBase(KBEngine.Entity):
             if v['goldChange'] >= max_win:
                 max_win = v['goldChange']
 
-        for k, v in self.chapters[self.cn]['playerOutGame'].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['goldChange'] == max_win:
                 winners[k] = v
         return winners
@@ -1716,7 +1716,7 @@ class RoomBase(KBEngine.Entity):
             if v['totalGoldChange'] >= max_win:
                 max_win = v['totalGoldChange']
 
-        for k, v in self.chapters[self.cn]['playerOutGame'].items():
+        for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['totalGoldChange'] == max_win:
                 winner[k] = v
         return winner

@@ -1605,6 +1605,7 @@ class RoomType4(RoomBase):
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])
         _args = {"createRoomTime": int(time.time()), "roomId": self.info["roomId"],
+                 "maxChapterCount": self.info["maxChapterCount"],
                  "baseBet": self.info["betBase"], "playerInfo": _playerInfo, "historyRecord": _history_record}
         self._chapterInfos = _args
         self.chapter_replay = replay_data

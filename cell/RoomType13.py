@@ -1688,12 +1688,22 @@ class RoomType13(RoomBase):
                             # 全关
                             if (v["playCount"] == 0 and v["identity"] != 1) or (
                                     v["playCount"] == 1 and v["identity"] == 1):
+
                                 v["overCardLift"] = True
                                 lose_gold = -self.info["baseScore"] * chapter["multiple"] * len(v["cards"]) * 2
+                                DEBUG_MSG(RoomType13Calculator.convert_cards_to_value(v["cards"]))
+                                if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
+                                    lose_gold -= 10
+                                boom_list = RoomType13Calculator.get_boom_cards_value(v["cards"],self.info)
+                                lose_gold -= len(boom_list) *10
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"]) * 2
                             # 非全关
                             else:
                                 lose_gold = -self.info["baseScore"] * chapter["multiple"] * len(v["cards"])
+                                if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
+                                    lose_gold -=10
+                                boom_list = RoomType13Calculator.get_boom_cards_value(v["cards"], self.info)
+                                lose_gold -= len(boom_list) * 10
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"])
                     # 结算2:固定牌数*低分*倍数
                     else:
@@ -1706,10 +1716,19 @@ class RoomType13(RoomBase):
                                     v["playCount"] == 1 and v["identity"] == 1):
                                 v["overCardLift"] = True
                                 lose_gold = - chapter["multiple"] * len(v["cards"]) * self.info["baseScore"] * 2 * 2
+                                if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
+                                    lose_gold -=10
+                                this_play_cards = RoomType13Calculator.convert_cards_to_value(v["cards"])
+                                boom_list = RoomType13Calculator.get_boom_cards_value(this_play_cards, self.info)
+                                lose_gold -= len(boom_list) * 10
                                 basic_gold_change = - len(v["cards"]) * self.info["baseScore"] * 2 * 2
                             # 不全关
                             else:
                                 lose_gold = - chapter["multiple"] * len(v["cards"]) * self.info["baseScore"] * 2
+                                if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
+                                    lose_gold -=10
+                                boom_list = RoomType13Calculator.get_boom_cards_value(v["cards"], self.info)
+                                lose_gold -= len(boom_list) * 10
                                 basic_gold_change = - len(v["cards"]) * self.info["baseScore"] * 2
 
                     self.debug_msg('settlement player:%s lose_gold:%s basic_gold_change%s' % (v["entity"].info["name"],
@@ -1759,21 +1778,26 @@ class RoomType13(RoomBase):
                     boom_score = self.info['boomScoreSize'] * true_boom_count * self.info["baseMultiple"]
                     if self.bomb_multiple:
                         boom_score *= 2
-                    # 扣炸弹分
-                    if v["gold"] < boom_score * -1:
-                        v['goldChange'] -= v['gold']
-                        v["totalGoldChange"] -= v['gold']
-                        v['boomScoresChange'] -= v['gold']
-                        v['boomScores'] -= v['gold']
-                        v['gold'] -= v['gold']
-                    else:
-                        v['goldChange'] += boom_score
-                        v["totalGoldChange"] += boom_score
-                        v['boomScoresChange'] += boom_score
-                        v['boomScores'] += boom_score
-                        v['gold'] += boom_score
-
-                    self.debug_msg('player22222 %s, goldChange: %s boomScore %s  totalGoldChange %s' % (v["entity"].info["name"],v['goldChange'], boom_score, v["totalGoldChange"]))
+                    #boom_count 判断是谁的炸弹。玩家输赢的炸弹可以相互抵消，但是如果炸弹是赢家的就会多加一个炸弹分
+                    #所有逻辑执行一遍,也就是当外面是玩家1的时候，里面只执行玩家2，外面的是玩家2的时候里面只执行玩家1
+                    #情况分 如果玩家1的炸弹玩家1赢了，如果玩家1炸弹玩家1输了
+                        # 扣炸弹分
+                    if len(v["cards"]) > 0:
+                        if v["gold"] < boom_score * -1:
+                            v("for循环进来了  %s" % str(v['gold']))
+                            v['goldChange'] -= v['gold']
+                            v["totalGoldChange"] -= v['gold']
+                            v['boomScoresChange'] -= v['gold']
+                            v['boomScores'] -= v['gold']
+                            v['gold'] -= v['gold']
+                        else:
+                            DEBUG_MSG("for循环进来了  %s" % str(boom_score))
+                            v['goldChange'] += boom_score
+                            v["totalGoldChange"] += boom_score
+                            v['boomScoresChange'] += boom_score
+                            v['boomScores'] += boom_score
+                            v['gold'] += boom_score
+                    self.debug_msg('player22222 %s, goldChange: %s boomScore %s  totalGoldChange %s' % (other_v["entity"].info["name"],other_v['goldChange'], boom_score, other_v["totalGoldChange"]))
 
                 if k != chapter["winner"]:
                     basic_gold_change = 0
@@ -1785,18 +1809,63 @@ class RoomType13(RoomBase):
                                     v["playCount"] == 1 and v["identity"] == 1):
                                 v["overCardLift"] = True
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"]) * 2
+                                # TODO
+                                DEBUG_MSG("if winnder全关-----boomSettlementType=111111-------->")
+                                DEBUG_MSG(v["cards"])
+                                DEBUG_MSG("服务器牌值")
+                                if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
+                                    basic_gold_change -= 10
+                                boom_list = RoomType13Calculator.get_boom_cards_value(v["cards"], self.info)
+                                basic_gold_change -= len(boom_list) * 10
                             else:
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"])
+                                DEBUG_MSG("else winnder全关-----boomSettlementType=222222-------->")
+                                DEBUG_MSG(v["cards"])
+                                DEBUG_MSG("服务器牌值")
+                                if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
+                                    DEBUG_MSG("****************************")
+                                    basic_gold_change -= 10
+                                DEBUG_MSG("else winnder全关-----boomSettlementType=222222-------->%s" % str(basic_gold_change))
+                                boom_list = RoomType13Calculator.get_boom_cards_value(v["cards"], self.info)
+                                basic_gold_change -= len(boom_list) * 10
+                                DEBUG_MSG("else winnder全关-----boomSettlementType=222222-------->%s" % str(basic_gold_change))
                     else:
                         if len(v["cards"]) < 5:
+                            DEBUG_MSG("winnder全关-----boomSettlementType=333333-------->")
+                            DEBUG_MSG(v["cards"])
+                            DEBUG_MSG("服务器牌值")
                             basic_gold_change = - self.info["baseScore"] * len(v["cards"])
+                            if 15.3 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
+                                basic_gold_change -= 10
+                            this_play_cards = RoomType13Calculator.convert_cards_to_value(v["cards"])
+                            boom_list = RoomType13Calculator.get_boom_cards_value(this_play_cards, self.info)
+                            basic_gold_change -= len(boom_list) * 10
+
                         else:
                             if (v["playCount"] == 0 and v["identity"] != 1) or (
                                     v["playCount"] == 1 and v["identity"] == 1):
                                 v["overCardLift"] = True
+                                DEBUG_MSG("winnder全关-----boomSettlementType=444444-------->")
+                                DEBUG_MSG(v["cards"])
+                                DEBUG_MSG("服务器牌值")
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"]) * 2 * 2
+                                if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
+                                    basic_gold_change -= 10
+                                this_play_cards = RoomType13Calculator.convert_cards_to_value(v["cards"])
+                                boom_list = RoomType13Calculator.get_boom_cards_value(this_play_cards, self.info)
+                                basic_gold_change -= len(boom_list) * 10
+
                             else:
+                                DEBUG_MSG("winnder全关-----boomSettlementType=555555-------->")
+                                DEBUG_MSG(v["cards"])
+                                DEBUG_MSG("服务器牌值")
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"]) * 2
+                                if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
+                                    basic_gold_change -= 10
+                                this_play_cards = RoomType13Calculator.convert_cards_to_value(v["cards"])
+                                boom_list = RoomType13Calculator.get_boom_cards_value(this_play_cards, self.info)
+                                basic_gold_change -= len(boom_list) * 10
+
 
                     # 如果有放走包赔玩家
                     if let_player:
