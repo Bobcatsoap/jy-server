@@ -1999,6 +1999,7 @@ class RoomManager(Manger):
             return
 
         if info['pot']:
+            info['maxChapterCount'] = 20
             pass
             # 锅子玩法离场分为0
             # info['endScore'] = 0

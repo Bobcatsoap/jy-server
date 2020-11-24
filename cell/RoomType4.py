@@ -697,7 +697,7 @@ class RoomType4(RoomBase):
         _chapter = self.chapters[self.cn]
         _playerOutGameNotEntity = {}
         for k, v in _chapter["playerOutGame"].items():
-            _player = {"cards": v["cards"], "gold": self.get_true_gold(v['entity'].id),
+            _player = {"cards": v["cards"], "gold": v["score"],
                        "locationIndex": int(v["locationIndex"]),
                        "name": v["entity"].info["name"], "grabBanker": v["grabBanker"],
                        "hasMatchCard": v["hasMatchCard"], "ready": v["ready"], "userId": v["entity"].info["userId"],
@@ -1599,8 +1599,8 @@ class RoomType4(RoomBase):
                            "totalGoldChange": v["totalGoldChange"], "userId": v["entity"].info["userId"],
                            "winnerBilling": v["winnerBilling"], "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"], "headImageUrl": v["entity"].info["headImageUrl"],
-                           "gold": v["gold"],
-                           "totalGold": v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+                           "gold":  self.get_true_gold(v['entity'].id),
+                           "totalGold": v['gold'] + v['totalGoldChange']
                            }
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])

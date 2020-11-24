@@ -30,7 +30,7 @@ play_card_time = 15
 # play_card_time_onKill = 1
 WAIT_TIME_LEN_ON_PLAY_OFFLINE = 1
 # 小结算时间
-settlement_time = 30
+settlement_time = 2
 # 大结算时间
 total_settlement_time = 20
 # 解散房间倒计时
@@ -83,14 +83,14 @@ class RoomType13(RoomBase):
         # 牌局准备状态
         if state == 0:
             _args = {"state": state, "Timer": 0}
-            # _chapter["mainTimerId"] = self.addTimer(1, 0.2, 0)
+            _chapter["mainTimerId"] = self.addTimer(1, 0.2, 0)
             wait_to_seat_copy = self.wait_to_seat.copy()
             for k in wait_to_seat_copy:
                 if len(self.emptyLocationIndex) != 0:
                     self.set_seat(k, self.emptyLocationIndex[0])
             self.callOtherClientsFunction("changeChapterState", _args)
             # 玩家自动准备
-            # self.auto_ready_for_player_in_game()
+            self.auto_ready_for_player_in_game()
         # 牌局开始、发牌状态
         elif state == 1:
             self.set_current_round(self.cn + 1)  # self.cn 当前局数下标
@@ -116,8 +116,10 @@ class RoomType13(RoomBase):
             self.callOtherClientsFunction("changeChapterState", _args)
             # 发送结算信息设置定时器
             self.settlement()
-            for k, v in _chapter["playerInGame"].items():
-                self.player_ready(k, False)
+            # for k, v in _chapter["playerInGame"].items():
+            #     DEBUG_MSG("%s 结算完毕 开始准备 " % str(k))
+            #     self.player_ready(k)
+                # 结算信息没有自动准备
             # 如果超过局数，总结算。锅子模式没有局数限制
             if not self.pot and self.settlement_count >= self.info["maxChapterCount"]:
                 self.changeChapterState(5)
@@ -129,7 +131,7 @@ class RoomType13(RoomBase):
             else:
                 # 整理结算信息
                 self.cl_card_chapter()
-                self.chapter_clear()
+               # self.chapter_clear()
         # 大结算
         elif state == 5:
             _args = {"state": state}
@@ -139,10 +141,13 @@ class RoomType13(RoomBase):
 
     # 计时器
     def onTimer(self, timer_handle, user_data):
+        DEBUG_MSG("************************onTimer111*********************************************")
+        DEBUG_MSG(timer_handle)
         _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         _playerInGame = _chapter["playerInGame"]
         # 发牌动画完成以后切换牌局状态机状态
         if timer_handle == _chapter["dealCardAnimationTimerId"]:
+            DEBUG_MSG('------timer_handle == _chapter[\"dealCardAnimationTimerId\"]-----')
             # 删除定时间
             self.delTimer(timer_handle)
             # 初始化发牌时间
@@ -152,6 +157,7 @@ class RoomType13(RoomBase):
 
         # 定庄计时器
         elif timer_handle == _chapter["setPosAnimationTimerId"]:
+            DEBUG_MSG('------timer_handle == _chapter[\"setPosAnimationTimerId\"]-----')
             # 删除定时间
             self.delTimer(timer_handle)
             # 初始化定庄时间
@@ -161,6 +167,7 @@ class RoomType13(RoomBase):
 
         # 出牌计时器
         elif timer_handle == _chapter["playCardTimer"]:
+            DEBUG_MSG('------timer_handle == _chapter[\"playCardTimer\"]-----')
             self.delTimer(timer_handle)
             _chapter["playCardTimer"] = -1
 
@@ -174,6 +181,7 @@ class RoomType13(RoomBase):
 
         # 展示剩余手牌
         elif timer_handle == _chapter["showCardTime"]:
+            DEBUG_MSG('------timer_handle == _chapter[\"showCardTime\"]-----')
             self.delTimer(timer_handle)
             _chapter["showCardTime"] = -1
             # 切换牌局流程状态
@@ -181,6 +189,9 @@ class RoomType13(RoomBase):
 
         # 小结算
         elif timer_handle == _chapter["settlementTimer"]:
+            DEBUG_MSG("------小结算-----")
+            DEBUG_MSG("self.pot")
+            DEBUG_MSG("self.settlement_count %s  maxChapterCount %s " % (str(self.settlement_count), str(self.info["maxChapterCount"])))
             self.delTimer(timer_handle)
             _chapter["settlementTimer"] = -1
             if not self.pot and self.settlement_count >= self.info["maxChapterCount"]:  # self.cn 当前局数下标
@@ -191,6 +202,7 @@ class RoomType13(RoomBase):
 
         # 判断游戏是否开始
         elif timer_handle == _chapter["mainTimerId"]:
+            DEBUG_MSG("------mainTimerId-----")
             if self.is_all_player_ready_ok():
                 self.delTimer(timer_handle)
                 _chapter["mainTimerId"] = -1
@@ -199,10 +211,12 @@ class RoomType13(RoomBase):
                 self.changeChapterState(1)
 
         elif timer_handle == _chapter["showLastTime"]:
+            DEBUG_MSG("------showLastTime-----")
             self.delTimer(timer_handle)
             _chapter["showLastTime"] = -1
             self.showCards()
         elif timer_handle == _chapter["settlementClearPlayers"]:
+            DEBUG_MSG("------测试计时器-----")
             _chapter["settlementClearPlayers"] = -1
             self.delTimer(_chapter["settlementClearPlayers"])
             # 清理游戏中的玩家
@@ -215,11 +229,13 @@ class RoomType13(RoomBase):
                 self.kick_out(k)
 
         elif timer_handle == self.disband_timer:
+            DEBUG_MSG("------timer_handle == self.disband_timer-----")
             self.disband_timer = -1
             self.delTimer(timer_handle)
             self.changeChapterState(5)
 
         elif timer_handle == self.ready_gold_disband_timer:
+            DEBUG_MSG("------timer_handle == self.ready_gold_disband_timer-----")
             self.delTimer(self.ready_gold_disband_timer)
             self.ready_gold_disband_timer = -1
             if not self.is_forbid_disband_room():
@@ -1982,8 +1998,11 @@ class RoomType13(RoomBase):
                                       "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType13")})
 
         # 添加小局结算计时器
-        # chapter["settlementTimer"] = self.addTimer(settlement_time, 0, 0)
+        chapter["settlementTimer"] = self.addTimer(settlement_time, 0, 0)
         chapter["deadline"] = time.time() + settlement_time
+        DEBUG_MSG('计时器开始-----------------------------')
+        DEBUG_MSG(time.time() + settlement_time)
+        DEBUG_MSG(chapter["settlementTimer"])
         self.callOtherClientsFunction("Settlement", settlement_info)
         self.settlement_count += 1
         if self.settlement_count == 1:
@@ -2500,7 +2519,7 @@ class RoomType13(RoomBase):
     def auto_ready_for_player_in_game(self):
         # 第二局以后开始自动准备不超过最大局数
         _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
-        if self.cn > 0:  # self.cn 当前局数下标
+        if self.cn >= 0:  # self.cn 当前局数下标
             for k, v in _chapter["playerInGame"].items():
                 self.player_ready(k)
 
@@ -2765,7 +2784,10 @@ class RoomType13(RoomBase):
                            "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"], "totalGoldChange":
                                v["totalGoldChange"], "userId": v["entity"].info["userId"],
-                           "headImageUrl": v["entity"].info["headImageUrl"]}
+                           "headImageUrl": v["entity"].info["headImageUrl"],
+                           "gold": v["gold"],
+                           "totalGold": v['gold']  + v['totalGoldChange']
+                           }
             # 1 玩家数据
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])

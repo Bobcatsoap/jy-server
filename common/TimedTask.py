@@ -10,7 +10,7 @@ class TimedTask(KBEngine.Entity):
     def __int__(self):
         KBEngine.Entity.__init__(self)
         self.times = []
-        self.addTimer(1, 1, 0)
+        self.(1, 1, 0)
 
     def addTask(self):
         """

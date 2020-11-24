@@ -334,7 +334,7 @@ CLIENT_FUNC_NOTIFYOUTPAI = "notifyOutPai"
 AUTO_TIME = 60
 # 超时解散时间
 AUTO_DISSOLVE_TIME = 90
-RESTART_TIME = 45
+RESTART_TIME = 2
 # 总结算清理倒计时
 SETTLEMENT_CLEAR_PLAYERS_TIME = 30
 # --------------------------------------------------------------------------------------------
@@ -959,9 +959,9 @@ class RoomType12(RoomBase):
                     # 广播金币
                     self.retGolds()
                     self.sync_true_gold()
-
-            # for k, v in _players.items():
-            #     self.on_player_ready(v['entity'].id)
+            DEBUG_MSG("开始玩家自动准备")
+            for k, v in _players.items():
+                self.on_player_ready(v['entity'].id)
 
         elif (_old == 0 and state == 1) or (_old == 3 and state == 1):
             _chapter["chapterState"] = state
@@ -1000,8 +1000,8 @@ class RoomType12(RoomBase):
 
             # 结算
             self.settlement()
-            for k, v in _players.items():
-                self.on_player_ready(v['entity'].id, False)
+            # for k, v in _players.items():
+            #     self.on_player_ready(v['entity'].id, False)
 
             # 超出局数，总结算。开启锅子，没有局数限制
             if not self.pot and self.info["maxChapterCount"] == self.cn + 1:
@@ -1021,10 +1021,11 @@ class RoomType12(RoomBase):
                 self.delTimer(_chapter['resOutPaiTimer'])
                 _chapter['resOutPaiTimer'] = -1
 
-                # _chapter['restartTimer'] = self.addTimer(RESTART_TIME, 0, 0)
-                self.start_next_chapter()
-                self.sync_timer_count_down(RESTART_TIME)
-                _chapter['deadLine'] = time.time() + RESTART_TIME
+                _chapter['restartTimer'] = self.addTimer(RESTART_TIME, 0, 0)
+                DEBUG_MSG("************************_chapter['restartTimer']*********************************************")
+                # self.start_next_chapter()
+                # self.sync_timer_count_down(RESTART_TIME)
+                # _chapter['deadLine'] = time.time() + RESTART_TIME
         elif state == 4:
             _chapter["chapterState"] = state
             DEBUG_MSG('[RoomType12 id %i]------->changeChapterState to %s' % (self.id, state))
@@ -2290,6 +2291,7 @@ class RoomType12(RoomBase):
             self.delTimer(timerId)
             self.changeChapterState(3)
         elif timerId == _chapter['restartTimer']:
+            DEBUG_MSG("************************restartTimer*********************************************")
             self.start_next_chapter()
         elif timerId == _chapter['settlementClearPlayers']:
             _chapter["settlementClearPlayers"] = -1
@@ -2381,6 +2383,7 @@ class RoomType12(RoomBase):
             _player = self.newPlayer(i["entity"], i['totalGoldChange'], i['baseSyncGoldChange'],
                                      agree_disband=i[IS_ARGEE])
             self.set_seat(_player)
+
         self.changeChapterState(0)
 
     # --------------------------------------------------------------------------------------------

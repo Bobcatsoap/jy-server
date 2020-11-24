@@ -1663,6 +1663,7 @@ class RoomType1(RoomBase):
                            "otherBilling": v["otherBilling"],
                            "totalGoldChange": v["totalGoldChange"], "userId": v["entity"].info["userId"], "headImageUrl": v["entity"].info["headImageUrl"],
                            # "totalGold": v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']  TODO----
+                           "gold": v["score"],
                            "totalGold": v["score"] + v['baseSyncGoldChange'] + v['totalGoldChange']
                            }
             _playerInfo.append(_playerData)

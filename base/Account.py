@@ -649,6 +649,7 @@ class Account(KBEngine.Proxy):
                 self.room_mgr.join_card_room(self, int(_args["number"]))
             # 加入冠名赛房间
             elif _args["roomType"] == "gameCoin":
+
                 if self.scene:
                     # 已在房间，直接重连
                     if self.scene.roomId == int(_args["number"]):
@@ -667,7 +668,8 @@ class Account(KBEngine.Proxy):
                         room_info["quickJoin"] = _args["quickJoin"]
                         self.call_client_func("HaveAnotherRoom", room_info)
                         return
-
+                DEBUG_MSG("----------->>")
+                DEBUG_MSG(_args)
                 tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args["teaHouseId"])
                 room_id = int(_args["number"])
                 if room_id > 0:
@@ -3407,7 +3409,6 @@ class Account(KBEngine.Proxy):
         if give_gold == 0:
             self.call_client_func('Notice', ['赠送金币不能为0'])
             return
-        gold = self.gold
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
         if not tea_house_entity:
             self.call_client_func('Notice', ['冠名赛不存在'])
@@ -3435,6 +3436,8 @@ class Account(KBEngine.Proxy):
                 DEBUG_MSG("change_command_sql %s " % str(command_sql))
                 KBEngine.executeRawDatabaseCommand(command_sql)
                 self.call_client_func("giveGoldSuccess", ["赠送金币成功"])
+                self.get_single_member_info(tea_house_id, playerId)
+
             else:
                 self.call_client_func("Notice", ["玩家不存在"])
         sql = "select * from tbl_account WHERE id=%s" % playerId

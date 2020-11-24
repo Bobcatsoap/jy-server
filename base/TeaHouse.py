@@ -68,7 +68,7 @@ class TeaHouse(KBEngine.Entity):
     joinAndExitHistory = []
     # 是否打烊 0 不打烊 1 打烊
     isSnoring = 0
-    # 是否审核 0 不审核 1 审核
+    # 是否 0 不审核 1 审核
     isReview = 0
     # 业绩详情
     performance_detail = {}
@@ -1654,6 +1654,7 @@ class TeaHouse(KBEngine.Entity):
         """
         修改冠名赛玩家级别
         :param modify_player_db_id:
+        :param modify_player_db_id:
         :param operate_player_db_id:
         :param new_level:
         :param on_success:
@@ -3213,7 +3214,7 @@ class TeaHousePlayer:
     # 上次查询比赛分时间
     start_query_game_coin_history_time = 0
     # 分成比例
-    proportion = 100
+    proportion = 0
     # 邀请码
     invitation_code = 0
     # 历史房间

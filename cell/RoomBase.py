@@ -337,11 +337,8 @@ class RoomBase(KBEngine.Entity):
 
     #
     def refresh_client_state(self):
-        """
-        刷新玩家在线状态
-        :return:
-        """
         pass
+
 
     def on_account_cell_destroy(self, account_db_id):
         pass
