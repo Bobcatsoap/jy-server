@@ -217,6 +217,7 @@ class RoomManager(Manger):
             _room.info['pot'] = _config['pot']
             # 锅子分
             _room.info['potScore'] = _config['potScore']
+            DEBUG_MSG('room_card_consume_init:game_type:%s,room_type:%s,game_config:%s' %(game_type, room_type, game_config_json))
         elif _type == Const.RoomType.RoomType5:  # 麻将
             # 最大局数
             _room.info["maxChapterCount"] = _config["maxChapterCount"]

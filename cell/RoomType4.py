@@ -1453,13 +1453,14 @@ class RoomType4(RoomBase):
             # 每小局结算大赢家抽水，保留整数  E小局抽水
             # 获取大赢家
             settlement_winners = self.nn_get_settlement_winners()
+            DEBUG_MSG('-------------大赢家一共有%s 个' % str(len(settlement_winners)))
             for k, v in settlement_winners.items():
                 # k:account_id v:winner字典
                 DEBUG_MSG('-------------------------')
                 DEBUG_MSG(v)
                 DEBUG_MSG('-------------------------')
                 settlement_winner_account_id = v['entity'].id
-                DEBUG_MSG('RoomType12 settlement_winner_account_id 玩家id%s' % str(settlement_winner_account_id))
+                DEBUG_MSG('RoomType4 settlement_winner_account_id 玩家id %s name %s' % (str(settlement_winner_account_id), str(v["entity"].info["name"])))
                 # 计算大赢家小局抽水
                 settlement_winner_true_gold = self.nn_get_true_gold(settlement_winner_account_id)
                 DEBUG_MSG('RoomType4 settlement_winner_true_gold billing  玩家真实金币%s' % settlement_winner_true_gold)
@@ -1468,7 +1469,6 @@ class RoomType4(RoomBase):
                 DEBUG_MSG('RoomType4 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
                 v['totalGoldChange'] -= settlement_winner_billing
                 v['totalGoldChange'] = int(v['totalGoldChange'])
-                DEBUG_MSG('RoomType4 settlement_winner 最终输赢值 billing %s' % settlement_winner_billing)
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
@@ -1600,7 +1600,7 @@ class RoomType4(RoomBase):
                            "winnerBilling": v["winnerBilling"], "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"], "headImageUrl": v["entity"].info["headImageUrl"],
                            "gold":  self.get_true_gold(v['entity'].id),
-                           "totalGold": v['gold'] + v['totalGoldChange']
+                           "totalGold": self.get_true_gold(v['entity'].id) + v['totalGoldChange']
                            }
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])

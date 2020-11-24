@@ -1039,6 +1039,33 @@ class TeaHouse(KBEngine.Entity):
                                 'freeze': self.is_freeze_player(account_db_id)
                                 }
                 return members_info
+        # members_info = {}
+        # yesterday = 0
+        # today = 0
+        # for k in self.performance_detail:
+        #     if str(account_db_id) in self.performance_detail[k]:
+        #         performance_detail = self.performance_detail[k][account_db_id]
+        #         _time = performance_detail['time']
+        #         count = performance_detail['count']
+        #         if self.yesterday_start <= _time <= self.yesterday_end:
+        #             yesterday = count
+        #         elif self.today_start <= _time <= self.today_end:
+        #             today = count
+        #
+        # if account_db_id in self.memberInfo:
+        #     members_info = {
+        #         "name": self.memberInfo[account_db_id].name, "headImageUrl": self.memberInfo[account_db_id].head_image,
+        #         "belongTo": self.memberInfo[account_db_id].belong_to,
+        #         "invitationCode": self.memberInfo[account_db_id].invitation_code,
+        #         "proportion": self.memberInfo[account_db_id].proportion,
+        #         "level": self.memberInfo[account_db_id].level,
+        #         'userId': self.memberInfo[account_db_id].db_id,
+        #         'todayData': yesterday,
+        #         'yesterdayData': today,
+        #         "performance": self.memberInfo[account_db_id].performance,
+        #         "turnInPerformance": round(self.memberInfo[account_db_id].turn_in_performance, 2)
+        #     }
+        # return members_info
 
     def search_tea_house_single_member_info(self, searcher, key_word):
         """
@@ -1697,7 +1724,7 @@ class TeaHouse(KBEngine.Entity):
             if new_level == TeaHousePlayerLevel.Admin:
                 on_fail("管理者不能设为助理")
                 return
-
+        DEBUG_MSG('----------------------new_level1 %s ' % str(new_level))
         # 如果要把合伙人以下级别的人升为合伙人，则此人上级为楼主，并移除战队数据
         if self.memberInfo[modify_player_db_id].level < TeaHousePlayerLevel.Partner and \
                 new_level == TeaHousePlayerLevel.Partner:
@@ -1724,7 +1751,7 @@ class TeaHouse(KBEngine.Entity):
                         # 名下成员降级并切归为原来的上级
                         down_player.level = TeaHousePlayerLevel.Normal
                         down_player.belong_to = modify_player.belong_to
-
+        DEBUG_MSG('----------------------new_level2 %s ' % str(new_level))
         modify_player.level = new_level
         self.memberInfoJson = self.get_member_info_json()
 
@@ -3214,7 +3241,7 @@ class TeaHousePlayer:
     # 上次查询比赛分时间
     start_query_game_coin_history_time = 0
     # 分成比例
-    proportion = 0
+    proportion = 100
     # 邀请码
     invitation_code = 0
     # 历史房间

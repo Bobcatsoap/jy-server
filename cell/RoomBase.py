@@ -1691,7 +1691,6 @@ class RoomBase(KBEngine.Entity):
         """
         winners = {}
         max_win = 0
-        DEBUG_MSG('RoomType4 aaaaaaaaaaaaa')
         DEBUG_MSG(self.chapters[self.cn])
         for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['goldChange'] >= max_win:
@@ -1720,20 +1719,18 @@ class RoomBase(KBEngine.Entity):
 
     def nn_get_true_gold(self, account_id):
         """
-       牛牛，获得玩家当前真实金币
+       牛牛，获得玩家当前输赢金币
        :param account_id:
        :return:
        """
         _chapter = self.get_current_chapter()
         for k, v in _chapter['playerInGame'].items():
             if v['entity'].id == account_id:
-                # return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
-                return v['totalGoldChange']
+                return v['goldChange']
 
         for k, v in _chapter["playerOutGame"].items():
             if v['entity'].id == account_id:
-                # return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
-                return v['totalGoldChange']
+                return v['goldChange']
     # 牛牛总结算抽水
     def nn_total_settlement_billing(self):
         chapter = self.chapters[self.cn]

@@ -1225,13 +1225,16 @@ class RoomType12(RoomBase):
             for location_index,v in settlement_winners.items():
                 settlement_winner_account_id = v['entity'].id
                 # k:account_id v:winner字典
-                DEBUG_MSG('RoomType12 settlement_winner%s' % settlement_winner_account_id)
+                DEBUG_MSG('RoomType12 settlement_winner_account_id 玩家id%s' % str(settlement_winner_account_id))
                 # 计算大赢家小局抽水
                 settlement_winner_true_gold = self.get_true_gold(settlement_winner_account_id)
+                DEBUG_MSG('RoomType4 settlement_winner_true_gold billing  玩家真实金币%s' % settlement_winner_true_gold)
+                DEBUG_MSG('RoomType4 settlementBilling billing 抽水比例 %s' % self.info['settlementBilling'])
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
-                DEBUG_MSG('RoomType12 settlement_winner billing%s' % settlement_winner_billing)
+                DEBUG_MSG('RoomType4 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
                 v['totalGoldChange'] -= settlement_winner_billing
                 v['totalGoldChange'] = int(v['totalGoldChange'])
+                DEBUG_MSG('RoomType4 settlement_winner 最终输赢值 billing %s' % settlement_winner_billing)
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
