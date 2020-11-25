@@ -108,6 +108,8 @@ class RoomType4(RoomBase):
         # 观战中的下局可以开始坐下的玩家
         self.wait_to_seat = []
         self.enter_list = []
+        self.old_banker = None
+        self.old_banker_account_id = None
 
     def newChapter(self, maxPlayerCount):
         """
@@ -1469,6 +1471,8 @@ class RoomType4(RoomBase):
                 DEBUG_MSG('RoomType4 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
                 v['totalGoldChange'] -= settlement_winner_billing
                 v['totalGoldChange'] = int(v['totalGoldChange'])
+                v['score'] -= settlement_winner_billing
+                v['score'] = int(v['score'])
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
@@ -2020,6 +2024,7 @@ class RoomType4(RoomBase):
         """
         切锅
         """
+        DEBUG_MSG("---------------开始切锅-----------当前玩家 %s" % str(account_id))
         chapter = self.chapters[self.cn]
         # 只有阶段0,准备阶段，才能切庄
         if chapter['currentState'] != 0:
@@ -2036,6 +2041,10 @@ class RoomType4(RoomBase):
         if switch_pot:
             location_index = chapter['playerInGame'][account_id]['locationIndex']
             loop_count = chapter['maxPlayerCount']
+            DEBUG_MSG(chapter['playerInGame'])
+            # 当前庄家
+            self.old_banker_account_id = self.get_account_id_with_location_index(location_index)
+            self.old_banker = chapter['playerInGame'][self.old_banker_account_id]
             self.find_next_receive_banker_player(location_index, loop_count)
 
         chapter['currentBankerOperatePlayer'] = -1
@@ -2047,15 +2056,10 @@ class RoomType4(RoomBase):
         """
         查找下个可以接锅的人
         """
-        #
         loop_count -= 1
         if loop_count < 0:
             return
         chapter = self.chapters[self.cn]
-        # 当前庄家
-        old_banker_account_id = self.get_account_id_with_location_index(start_location_index)
-        old_banker = chapter['playerInGame'][old_banker_account_id]
-
         # 下个有人的位置
         next_index = self.get_next_location_have_player(start_location_index)
 
@@ -2066,7 +2070,14 @@ class RoomType4(RoomBase):
             # 查看是否满足锅底
             if new_banker['score'] >= self.info['potScore']:
                 # 锅底还给庄家
-                old_banker['score'] += chapter['potStake']
+                self.old_banker['score'] += chapter['potStake']
+                if new_banker_id == self.old_banker_account_id:
+                    # 大结算
+                    self.total_settlement()
+                    self.write_chapter_info_to_db()
+                    return
+                self.old_banker = None
+                self.old_banker_account_id = None
                 # 定新庄家
                 chapter["banker"] = new_banker_id
                 # 锅底重置

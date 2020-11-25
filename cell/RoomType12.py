@@ -1222,19 +1222,25 @@ class RoomType12(RoomBase):
             # 每小局结算大赢家抽水,保留整数
             # 获取大赢家
             settlement_winners = self.mj_get_settlement_winners()
+            DEBUG_MSG('-------------麻将大赢家一共有%s 个' % str(len(settlement_winners)))
             for location_index,v in settlement_winners.items():
+                DEBUG_MSG('-------------------------')
+                DEBUG_MSG(v)
+                DEBUG_MSG('-------------------------')
                 settlement_winner_account_id = v['entity'].id
                 # k:account_id v:winner字典
-                DEBUG_MSG('RoomType12 settlement_winner_account_id 玩家id%s' % str(settlement_winner_account_id))
+                DEBUG_MSG('RoomType12 settlement_winner_account_id 玩家id %s name %s' % (
+                str(settlement_winner_account_id), str(v["entity"].info["name"])))
                 # 计算大赢家小局抽水
-                settlement_winner_true_gold = self.get_true_gold(settlement_winner_account_id)
-                DEBUG_MSG('RoomType4 settlement_winner_true_gold billing  玩家真实金币%s' % settlement_winner_true_gold)
-                DEBUG_MSG('RoomType4 settlementBilling billing 抽水比例 %s' % self.info['settlementBilling'])
+                settlement_winner_true_gold = self.mj_get_true_gold(settlement_winner_account_id)
+                DEBUG_MSG('RoomType12 settlement_winner_true_gold billing  玩家真实金币%s' % settlement_winner_true_gold)
+                DEBUG_MSG('RoomType12 settlementBilling billing 抽水比例 %s' % self.info['settlementBilling'])
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
-                DEBUG_MSG('RoomType4 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
+                DEBUG_MSG('RoomType12 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
                 v['totalGoldChange'] -= settlement_winner_billing
                 v['totalGoldChange'] = int(v['totalGoldChange'])
-                DEBUG_MSG('RoomType4 settlement_winner 最终输赢值 billing %s' % settlement_winner_billing)
+                v["gold"] -= settlement_winner_billing
+                v["gold"] = int(v["gold"])
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,

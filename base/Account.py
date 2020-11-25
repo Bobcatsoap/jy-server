@@ -3403,6 +3403,9 @@ class Account(KBEngine.Proxy):
         playerId = _args["playerId"]
         tea_house_id = _args["teaHouseId"]
         give_gold = _args["gold"]
+        if playerId == self.databaseID:
+            self.call_client_func('Notice', ['不能赠送给自己'])
+            return
         if give_gold < 0:
             self.call_client_func('Notice', ['赠送金币不能为负数'])
             return
@@ -3436,12 +3439,13 @@ class Account(KBEngine.Proxy):
                 DEBUG_MSG("change_command_sql %s " % str(command_sql))
                 KBEngine.executeRawDatabaseCommand(command_sql)
                 self.call_client_func("giveGoldSuccess", ["赠送金币成功"])
-                self.get_single_member_info(tea_house_id, playerId)
-
             else:
                 self.call_client_func("Notice", ["玩家不存在"])
+                return
         sql = "select * from tbl_account WHERE id=%s" % playerId
+        # player = self.account_mgr.get_account(playerId)
         tea_house_entity.set_game_coin(self.databaseID, self.gold - give_gold)
+        # tea_house_entity.set_game_coin(playerId, player.gold)
         DEBUG_MSG("command_sql 执行----------------%s" % str(self.gold))
         KBEngine.executeRawDatabaseCommand(sql, _db_callback_count)
         DEBUG_MSG("command_sql 执行----------------")
@@ -3520,7 +3524,7 @@ class Account(KBEngine.Proxy):
             # 计算总页数
             DEBUG_MSG("========================================")
             DEBUG_MSG(record_info_list)
-            total_pages = math.ceil(len(record_info_list) / Const.partner_list_page_item)
+            total_pages = math.ceil(len(record_info_list) / Const.history_list_page_item)
             page_start = page_index * Const.partner_list_page_item
             page_end = page_start + Const.partner_list_page_item
             partner_info_list = record_info_list[int(page_start):int(page_end)]
@@ -3531,7 +3535,7 @@ class Account(KBEngine.Proxy):
             })
         command_sql = "select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance " \
                       "where sm_superior=%s" % account_db_id
-
+        # select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance where sm_superior =10216;
         DEBUG_MSG("[get_history_commission_record]command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 

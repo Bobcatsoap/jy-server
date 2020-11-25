@@ -1163,16 +1163,24 @@ class RoomType1(RoomBase):
             # 每小局结算大赢家抽水,保留整数  E小局抽水
             # 获取大赢家
             settlement_winners = self.jh_get_settlement_winners()
+            DEBUG_MSG('-------------炸金花大赢家一共有%s 个' % str(len(settlement_winners)))
             for location_index, v in settlement_winners.items():
+                DEBUG_MSG('-------------------------')
+                DEBUG_MSG(v)
+                DEBUG_MSG('-------------------------')
                 settlement_winner_account_id = v['entity'].id
                 # k:account_id v:winner字典
-                DEBUG_MSG('RoomType1 settlement_winner%s' % settlement_winner_account_id)
+                DEBUG_MSG('RoomType1 settlement_winner_account_id 玩家id %s name %s' % (str(settlement_winner_account_id), str(v["entity"].info["name"])))
                 # 计算大赢家小局抽水
                 settlement_winner_true_gold = self.jh_get_true_gold(settlement_winner_account_id)
+                DEBUG_MSG('RoomType1 settlement_winner_true_gold billing  玩家真实金币%s' % settlement_winner_true_gold)
+                DEBUG_MSG('RoomType1 settlementBilling billing 抽水比例 %s' % self.info['settlementBilling'])
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
-                DEBUG_MSG('RoomType1 settlement_winner billing%s' % settlement_winner_billing)
+                DEBUG_MSG('RoomType1 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
                 v['totalGoldChange'] -= settlement_winner_billing
                 v['totalGoldChange'] = int(v['totalGoldChange'])
+                v['score'] -= settlement_winner_billing
+                v['score'] = int(v['score'])
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
@@ -1664,7 +1672,7 @@ class RoomType1(RoomBase):
                            "totalGoldChange": v["totalGoldChange"], "userId": v["entity"].info["userId"], "headImageUrl": v["entity"].info["headImageUrl"],
                            # "totalGold": v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']  TODO----
                            "gold": v["score"],
-                           "totalGold": v["score"] + v['baseSyncGoldChange'] + v['totalGoldChange']
+                           "totalGold": v["score"] + v['totalGoldChange']
                            }
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])
@@ -2266,60 +2274,60 @@ class RoomType1(RoomBase):
         # 抽奖
 
         if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            # self.lottery()
+            self.jh_total_settlement_billing()
 
-            # 找到大赢家
-            winner = {}
-            max_win = 0
-            for k, v in self.chapters[self.cn]['playerInGame'].items():
-                if v['totalGoldChange'] >= max_win:
-                    max_win = v['totalGoldChange']
-
-            for k, v in self.chapters[self.cn]['playerInGame'].items():
-                if v['totalGoldChange'] == max_win:
-                    winner[k] = v
-
-            all_bill = {}
-            for k, v in self.chapters[self.cn]['playerInGame'].items():
-                all_bill[k] = {"userId": v["entity"].info["userId"], "todayGameCoinAdd": 0, 'winner': 1 if k in winner else 0, "score": v['totalGoldChange']}
-
-            if self.info["winnerBilling"]:
-                for k, v in winner.items():
-                    winnerBillingCount = 0
-                    for i in range(0, len(self.info["winnerBilling"])):
-                        if self.info["winnerBilling"][i]['interval'][0] <= v["totalGoldChange"] <= \
-                                self.info["winnerBilling"][i]['interval'][1]:
-                            winnerBillingConsume = self.info["winnerBilling"][i]['consume']
-                            v["totalGoldChange"] -= winnerBillingConsume
-                            v["score"] -= winnerBillingConsume
-                            v["winnerBilling"] = -winnerBillingConsume
-                            winnerBillingCount += self.info["winnerBilling"][i]['consume']
-                    # E房间类型
-                    self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
-                                          "todayGameCoinAdd": winnerBillingCount,
-                                          "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
-                    all_bill[k]["todayGameCoinAdd"] += winnerBillingCount
-
-            if self.info['otherBilling']:
-                for k, v in chapter['playerInGame'].items():
-                    # 如果大赢家开启，其他玩家不扣大赢家
-                    if k in winner and self.info["winnerBilling"]:
-                        continue
-                    otherBillingCount = 0
-                    for i in range(0, len(self.info["otherBilling"])):
-                        if self.info["otherBilling"][i]['interval'][0] <= v["totalGoldChange"] <= \
-                                self.info["otherBilling"][i]['interval'][1]:
-                            otherBillingConsume = self.info["otherBilling"][i]['consume']
-                            v["totalGoldChange"] -= otherBillingConsume
-                            v["score"] -= otherBillingConsume
-                            v["otherBilling"] = -otherBillingConsume
-                            otherBillingCount += self.info["otherBilling"][i]['consume']
-
-                    self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
-                                          "todayGameCoinAdd": otherBillingCount,
-                                          "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
-                    all_bill[k]["todayGameCoinAdd"] += otherBillingCount
-            self.base.cellToBase({"func": "todayBillStatic", "teaHouseId": self.info["teaHouseId"], "bill": list(all_bill.values())})
+            # # 找到大赢家
+            # winner = {}
+            # max_win = 0
+            # for k, v in self.chapters[self.cn]['playerInGame'].items():
+            #     if v['totalGoldChange'] >= max_win:
+            #         max_win = v['totalGoldChange']
+            #
+            # for k, v in self.chapters[self.cn]['playerInGame'].items():
+            #     if v['totalGoldChange'] == max_win:
+            #         winner[k] = v
+            #
+            # all_bill = {}
+            # for k, v in self.chapters[self.cn]['playerInGame'].items():
+            #     all_bill[k] = {"userId": v["entity"].info["userId"], "todayGameCoinAdd": 0, 'winner': 1 if k in winner else 0, "score": v['totalGoldChange']}
+            #
+            # if self.info["winnerBilling"]:
+            #     for k, v in winner.items():
+            #         winnerBillingCount = 0
+            #         for i in range(0, len(self.info["winnerBilling"])):
+            #             if self.info["winnerBilling"][i]['interval'][0] <= v["totalGoldChange"] <= \
+            #                     self.info["winnerBilling"][i]['interval'][1]:
+            #                 winnerBillingConsume = self.info["winnerBilling"][i]['consume']
+            #                 v["totalGoldChange"] -= winnerBillingConsume
+            #                 v["score"] -= winnerBillingConsume
+            #                 v["winnerBilling"] = -winnerBillingConsume
+            #                 winnerBillingCount += self.info["winnerBilling"][i]['consume']
+            #         # E房间类型
+            #         self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
+            #                               "todayGameCoinAdd": winnerBillingCount,
+            #                               "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
+            #         all_bill[k]["todayGameCoinAdd"] += winnerBillingCount
+            #
+            # if self.info['otherBilling']:
+            #     for k, v in chapter['playerInGame'].items():
+            #         # 如果大赢家开启，其他玩家不扣大赢家
+            #         if k in winner and self.info["winnerBilling"]:
+            #             continue
+            #         otherBillingCount = 0
+            #         for i in range(0, len(self.info["otherBilling"])):
+            #             if self.info["otherBilling"][i]['interval'][0] <= v["totalGoldChange"] <= \
+            #                     self.info["otherBilling"][i]['interval'][1]:
+            #                 otherBillingConsume = self.info["otherBilling"][i]['consume']
+            #                 v["totalGoldChange"] -= otherBillingConsume
+            #                 v["score"] -= otherBillingConsume
+            #                 v["otherBilling"] = -otherBillingConsume
+            #                 otherBillingCount += self.info["otherBilling"][i]['consume']
+            #
+            #         self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
+            #                               "todayGameCoinAdd": otherBillingCount,
+            #                               "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
+            #         all_bill[k]["todayGameCoinAdd"] += otherBillingCount
+            # self.base.cellToBase({"func": "todayBillStatic", "teaHouseId": self.info["teaHouseId"], "bill": list(all_bill.values())})
 
         # 清理观战的玩家
         _playerOutGameCopy = chapter["playerOutGame"].copy()
@@ -2347,9 +2355,9 @@ class RoomType1(RoomBase):
         self.base.cellToBase({"func": "autoCreateRoom", "roomInfo": self.info, 'ignoreJudge': True, 'onRoomEnd': True})
         self.save_record_str()
         # 扣除额外积分，抽奖
-        if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            # self.mj_lottery()
-            self.jh_total_settlement_billing()
+        # if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
+        #     # self.mj_lottery()
+        #     self.jh_total_settlement_billing()
 
         if self.is_tea_house_room and self.settlement_count >= 1:
             self.set_base_player_chapter_count()

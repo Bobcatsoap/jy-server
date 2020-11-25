@@ -8,6 +8,9 @@ member_list_page_item = 20
 # 战队信息每页条数
 partner_list_page_item = 10
 
+# 记录每页条数
+history_list_page_item = 30
+
 # 冠名赛房间信息每页条数
 room_list_page_item = 10
 

@@ -213,7 +213,9 @@ def check_out_get_player_battle_score(account_db_id, tea_house_id, on_success=No
     """
     E查询战绩记录
     """
+    DEBUG_MSG('----------------------------E查询战绩我的历史')
     sql_command = "select * from player_battle_score WHERE teaHouseId=%s AND playerId=%s order by settleTime desc" % (tea_house_id, account_db_id)
+    DEBUG_MSG('---sql %s' % str(sql_command))
     def callback(result, rows, insertid, error):
         if result and len(result) != 0:
             charge_info = []
@@ -292,6 +294,7 @@ def modify_total_commssion(account_db_id, superior, teaHouseId, addtime, count, 
     """
     修改佣金总数
     """
+    performanceDetail = round(performanceDetail, 2)
     def on_query_over(result, rows, insertid, error):
         if result is not None and len(result) != 0:
             DEBUG_MSG('modify_total_commssion:-------------')
