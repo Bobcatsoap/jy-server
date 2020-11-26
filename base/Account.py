@@ -143,6 +143,8 @@ class Account(KBEngine.Proxy):
 
     surplus_commission = 0
 
+    surplus_total_count = 0  # 保险箱余额
+
 
 
     def __init__(self):
@@ -1475,6 +1477,14 @@ class Account(KBEngine.Proxy):
             self.extract_commission(_args)
         elif _func_name == "extractCommissionRecord":  # 佣金提取记录
             self.extract_commission_record(_args)
+        elif _func_name == "depositMoney":  # 保险箱存入
+            self.deposit_money(_args)
+        elif _func_name == "takeOutMoney":  # 保险箱取出
+            self.take_out_money(_args)
+        elif _func_name == "safeDepositBoxRecord":  # 保险箱记录
+            self.safe_deposit_box_record(_args)
+        elif _func_name == "currentSafeDepositBoxMoney":  # 当前保险柜余额
+            self.current_safe_deposit_box_money(_args)
         elif _func_name == "isFriend":
             people_relation = self.is_friend(_args["people"])
             self.call_client_func("isFriend", people_relation)
@@ -3419,7 +3429,7 @@ class Account(KBEngine.Proxy):
         DEBUG_MSG("change_player_give_gold %s " % str(give_gold))
         DEBUG_MSG("change_player_self_gold %s " % str(self.gold))
         if give_gold > self.gold:
-            tea_house_entity.set_game_coin(self.databaseID, self.gold)
+            # tea_house_entity.set_game_coin(self.databaseID, self.gold)
             self.call_client_func('Notice', ['赠送金币大于你所有金币'])
             return
 
@@ -3439,6 +3449,11 @@ class Account(KBEngine.Proxy):
                 DEBUG_MSG("change_command_sql %s " % str(command_sql))
                 KBEngine.executeRawDatabaseCommand(command_sql)
                 self.call_client_func("giveGoldSuccess", ["赠送金币成功"])
+                player_gold = int(result[0][9])
+                tea_houses = self.tea_house_mgr.get_tea_houses_by_account_dbid(playerId)
+                for k, v in tea_houses.items():
+                    new_tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(v.teaHouseId)
+                    new_tea_house_entity.set_game_coin(playerId, player_gold + give_gold)
             else:
                 self.call_client_func("Notice", ["玩家不存在"])
                 return
@@ -3560,6 +3575,7 @@ class Account(KBEngine.Proxy):
                 item['count'] = float(info[0])
                 item['addtime'] = int(info[1])
                 record_list.append(item)
+            # record_list = sorted(record_list, key=lambda x:x['addtime'], reverse=)
             member_count = len(record_list)
             # 计算总页数
             total_pages = math.ceil(len(record_list) / Const.partner_list_page_item)
@@ -3575,6 +3591,189 @@ class Account(KBEngine.Proxy):
         command_sql = 'select count, addtime from extract_commission where accountDBID=%s' % account_db_id
         DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
+
+
+    def deposit_money(self, _args):
+        """
+        保险箱存入
+        """
+        account_db_id = _args["accountDBID"]
+        tea_house_id = _args["teaHouseId"]
+        deposit_gold = _args["gold"]
+        if account_db_id != self.databaseID:
+            self.call_client_func('Notice', ['只能存储自己的金币'])
+            return
+        deposit_gold = int(deposit_gold)
+        if deposit_gold <= 0:
+            self.call_client_func('Notice', ['存入金额错误'])
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            self.call_client_func('Notice', ['冠名赛不存在'])
+            return
+        if deposit_gold > self.gold:
+            self.call_client_func('Notice', ['存入金币大于你所有金币'])
+            return
+        def _db_callback_count(result, rows, insertid, error):
+            def _func2(result, rows, insertid, error):
+                """
+                添加存取记录
+                """
+                if error is None:
+                    sql = "INSERT INTO safe_deposit_box_record(accountDBID,deposit_count,take_out_count,balance,addtime) VALUES (%s,%s,%s,%s,%s)" % (account_db_id, deposit_gold,0,self.surplus_total_count, int(time.time()))
+                    DEBUG_MSG("deposit_money command_sql3 执行--%s" % str(common_sql))
+                    self.surplus_total_count = 0
+                    KBEngine.executeRawDatabaseCommand(sql, None)
+                    self.call_client_func("depositMoneySuccess", ["存取成功"])
+                    self.account_mgr.give_gold_modify(self.databaseID, -deposit_gold, tea_house_id)
+                    tea_house_entity.set_game_coin(account_db_id, self.gold - deposit_gold)
+                else:
+                    self.call_client_func("depositMoneyFail", ["存取失败"])
+            if error is None:
+                if result:  # 记录存在, 加钱
+                    # 剩余金币
+                    surplus_count = result[0][2]
+                    surplus_count = int(surplus_count)
+                    surplus_total_count = surplus_count+deposit_gold
+                    self.surplus_total_count = surplus_total_count
+                    common_sql = "UPDATE safe_deposit_box set count=%s, addtime=%s where accountDBID=%s" % (surplus_total_count, int(time.time()), account_db_id)
+                else:  # 记录不存在, 第一次存钱
+                    self.surplus_total_count = deposit_gold
+                    common_sql = "INSERT INTO safe_deposit_box(accountDBID, count, addtime) VALUES (%s, %s, %s)" % (account_db_id, deposit_gold, int(time.time()))
+                DEBUG_MSG("deposit_money command_sql2 执行--%s" % str(common_sql))
+                KBEngine.executeRawDatabaseCommand(common_sql, _func2)
+            else:
+                self.call_client_func("depositMoneyFail", ["存取失败"])
+
+        common_sql = "select * from safe_deposit_box where accountDBID=%s" % account_db_id
+        DEBUG_MSG("deposit_money command_sql1 执行--%s" % str(common_sql))
+        KBEngine.executeRawDatabaseCommand(common_sql, _db_callback_count)
+
+
+    def take_out_money(self, _args):
+        """
+        保险箱取出
+        """
+        account_db_id = _args["accountDBID"]
+        tea_house_id = _args["teaHouseId"]
+        task_out_gold = _args["gold"]  # 用户取出的金币
+        if account_db_id != self.databaseID:
+            self.call_client_func('Notice', ['只能取出自己的金币'])
+            return
+        task_out_gold = int(task_out_gold)
+        if task_out_gold <= 0:
+            self.call_client_func('Notice', ['取出金额错误'])
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            self.call_client_func('Notice', ['冠名赛不存在'])
+            return
+        def _db_callback_count(result, rows, insertid, error):
+            def _func2(result, rows, insertid, error):
+                if error is None:
+                    # 添加提现记录
+                    sql = "INSERT INTO safe_deposit_box_record(accountDBID,deposit_count,take_out_count,balance,addtime) VALUES (%s,%s,%s,%s,%s)" % (account_db_id, 0, task_out_gold, self.surplus_total_count, int(time.time()))
+                    DEBUG_MSG("take_out_money command_sql3 执行--%s" % str(sql))
+                    self.surplus_total_count = 0
+                    KBEngine.executeRawDatabaseCommand(sql, None)
+                    self.call_client_func("takeOutMoneySuccess", ["取出成功"])
+                    self.account_mgr.give_gold_modify(self.databaseID, task_out_gold, tea_house_id)
+                    tea_house_entity.set_game_coin(account_db_id, self.gold + task_out_gold)
+                else:
+                    self.call_client_func("takeOutMoneyFail", ["取出失败"])
+            if error is None:
+                if result:  # 记录存在, 加钱
+                    count = result[0][2]
+                    count = int(count)
+                    if task_out_gold > count:
+                        self.call_client_func("takeOutMoneyFail", ["取出失败，取出金额大于银行余额"])
+                    self.surplus_total_count = count - task_out_gold
+                    # 开始取出
+                    common_sql = "UPDATE safe_deposit_box set count=%s, addtime=%s where accountDBID=%s" % (self.surplus_total_count, int(time.time()), account_db_id)
+                    DEBUG_MSG("take_out_money command_sql2 执行--%s" % str(common_sql))
+                    KBEngine.executeRawDatabaseCommand(common_sql, _func2)
+                else:  # 记录不存在, 第一次存钱
+                    self.call_client_func("takeOutMoneyFail", ["取出失败，无存入记录"])
+            else:
+                self.call_client_func("takeOutMoneyFail", ["取出失败"])
+        common_sql = "select * from safe_deposit_box where accountDBID=%s" % account_db_id
+        DEBUG_MSG("take_out_money command_sql1 执行--%s" % str(common_sql))
+        KBEngine.executeRawDatabaseCommand(common_sql, _db_callback_count)
+
+    def safe_deposit_box_record(self, _args):
+        """
+        保险箱记录
+        """
+        account_db_id = _args["accountDBID"]
+        tea_house_id = _args["teaHouseId"]
+        page_index = _args['pageIndex']
+        if account_db_id != self.databaseID:
+            self.call_client_func('Notice', ['只能查看自己的银行记录'])
+            return
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            self.call_client_func('Notice', ['冠名赛不存在'])
+            return
+        def _db_callback_count(result, rows, insertid, error):
+            record_info_list = []
+            if not result:
+                self.call_client_func("safeDepositBoxRecordResult", {
+                    'partnerInfo': record_info_list,
+                    "totalPages": 0,
+                    "memberCount": 0,
+                })
+                return
+            for info in result:
+                item = dict()
+                item["deposit_count"] = int(info[0])
+                item["take_out_count"] = int(info[1])
+                item["balance"] = int(info[2])
+                item["addtime"] = int(info[3])
+                record_info_list.append(item)
+            member_count = len(record_info_list)
+            # 计算总页数
+            total_pages = math.ceil(len(record_info_list) / Const.partner_list_page_item)
+            page_start = page_index * Const.partner_list_page_item
+            page_end = page_start + Const.partner_list_page_item
+            partner_info_list = record_info_list[int(page_start):int(page_end)]
+            self.call_client_func("safeDepositBoxRecordResult", {
+                'partnerInfo': partner_info_list,
+                "totalPages": int(total_pages),
+                "memberCount": member_count,
+            })
+        # deposit_count 存入金额
+        # take_out_count 取出金额
+        # balance 余额
+        # addtime 时间
+        common_sql = "select deposit_count, take_out_count, balance,addtime from safe_deposit_box_record where accountDBID=%s" % account_db_id
+        DEBUG_MSG("safe_deposit_box_record command_sql 执行----------------%s" % str(common_sql))
+        KBEngine.executeRawDatabaseCommand(common_sql, _db_callback_count)
+
+    def current_safe_deposit_box_money(self, _args):
+        """
+        当前保险箱余额
+        """
+        account_db_id = _args["accountDBID"]
+        tea_house_id = _args["teaHouseId"]
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            self.call_client_func('Notice', ['冠名赛不存在'])
+            return
+        def _db_callback_count(result, rows, insertid, error):
+            if not result:
+                self.call_client_func("currentSafeDepositBoxMoneyResult", {
+                    "count": 0,
+                })
+                return
+            count = result[0][0]
+            self.call_client_func("currentSafeDepositBoxMoneyResult", {
+                "count": int(count),
+            })
+            return
+
+        common_sql = "select count from safe_deposit_box where accountDBID=%s" % account_db_id
+        DEBUG_MSG("safe_deposit_box_record command_sql 执行----------------%s" % str(common_sql))
+        KBEngine.executeRawDatabaseCommand(common_sql, _db_callback_count)
+
+
 
 
     def extract_commission(self, _args):

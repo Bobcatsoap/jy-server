@@ -413,7 +413,7 @@ class RoomBase(KBEngine.Entity):
 
         sql = "INSERT IGNORE into player_battle_score(teaHouseId,playerId,roomType,totalGoldChange,roomId,winner,winScore,bill, gold, totalGold, accountName, settleTime) values"
         sql += values[:-1]
-        DEBUG_MSG("save_player_score--->sql %s" % sql)
+        DEBUG_MSG("保存大战绩save_player_score --->sql %s" % sql)
         DBCommand.exec_normal_sql(sql)
 
         tea_house = tea_house_manager().get_tea_house_with_id(tea_house_id)
