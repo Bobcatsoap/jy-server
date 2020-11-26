@@ -1199,6 +1199,26 @@ class RoomType4(RoomBase):
         self.changeChapterState(5)
         self.settlement()
 
+        if not self.pot:
+            if self.info['roomType'] == "gameCoin" and self.have_player_do_not_meet_end_score():
+                self.total_settlement()
+                self.write_chapter_info_to_db()
+                return
+
+
+    def have_player_do_not_meet_end_score(self):
+        """
+        是否有玩家不满足离场分
+        """
+        _chapter = self.chapters[self.cn]
+        for k, v in _chapter[PLAYER_IN_GAME].items():
+            true_gold = self.get_true_gold(v['entity'].id)
+            if true_gold <= self.info['endScore']:
+                return True
+        return False
+
+
+
     def calculate_card(self, accountId1, accountId2):
         """
         计算牌大小
@@ -1446,11 +1466,12 @@ class RoomType4(RoomBase):
                     DEBUG_MSG(k)
                     DEBUG_MSG(_p)
                     DEBUG_MSG("self.info['billingCount'] %s" % str(self.info['billingCount']))
-                    if self.nn_get_true_gold(_p['entity'].id) < self.info['billingCount']:
+                    if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
                         DEBUG_MSG('RoomType4 billing_count not enough account_id:%s' % _p['entity'].id)
                         continue
                     billing_count = self.info['billingCount']
-                    _p['totalGoldChange'] -= billing_count
+                    # _p['totalGoldChange'] -= billing_count
+                    _p['score'] -= billing_count
                     DEBUG_MSG('RoomType4 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
             # 每小局结算大赢家抽水，保留整数  E小局抽水
             # 获取大赢家

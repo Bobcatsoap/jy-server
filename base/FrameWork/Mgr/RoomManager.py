@@ -738,6 +738,8 @@ class RoomManager(Manger):
             tea_house_entity = tea_house_manager().get_tea_house_with_id(_config['teaHouseId'])
             _room.info['gameCoinSwitch'] = tea_house_entity.gameCoinSwitch
             self.rooms[_type].roominfos[_roomType][_room.info["roomId"]] = _room
+            DEBUG_MSG('*****************************************************')
+            DEBUG_MSG(_room.info)
         # 冠名赛普通场
         elif _roomType == 'normalGameCoin':
             _room.info['roomName'] = _config['roomName']
