@@ -217,7 +217,7 @@ class RoomManager(Manger):
             _room.info['pot'] = _config['pot']
             # 锅子分
             _room.info['potScore'] = _config['potScore']
-            DEBUG_MSG('room_card_consume_init:game_type:%s,room_type:%s,game_config:%s' %(game_type, room_type, game_config_json))
+            # DEBUG_MSG('room_card_consume_init:game_type:%s,room_type:%s,game_config::game_type:%s,room_type:%s,game_config:%s' %(game_type, room_type, game_config_json))
         elif _type == Const.RoomType.RoomType5:  # 麻将
             # 最大局数
             _room.info["maxChapterCount"] = _config["maxChapterCount"]
@@ -1953,6 +1953,43 @@ class RoomManager(Manger):
         #         info['onlySelfAfterPass'] = False
 
         pass
+
+
+
+
+    def RecurInning(self,_account,roomID,roomtpye):
+        DEBUG_MSG('[roomID %s]------>@@@@@@@@@@@@@@@@@@@@@@@@ ' % roomID)
+        DEBUG_MSG('[roomtpye %s]------>@@@@@@@@@@@@@@@@@@@ ' % roomtpye)
+        _rooms = self.rooms[roomtpye].roominfos["gameCoin"]
+        itemData = ""
+        itemRoomData = 0
+        for room in _rooms.values():
+            if roomID == room.info["roomId"] and roomtpye == "RoomType4":
+                itemData = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
+                    room.info["totalSettlementBilling"]) + str(room.info["settlementBilling"]) + str(
+                    room.info["billingCount"]) + str(room.info["endScore"]) \
+                          + str(room.info["betBase"]) + str(room.info["maxGrabBanker"]) + str(
+                    room.info["maxChapterCount"]) + str(room.info["prohibitedCuoPai"]) \
+                          + str(room.info["darkGrabBanker"]) + str(room.info["hasPushToGuild"]) + str(
+                    room.info["gameStartType"]) + str(room.info["tuiZhu"]) \
+                          + str(room.info["maiMa"]) + str(room.info["tuiZhuLimit"]) + str(room.info["betDouble"]) + str(
+                    room.info["grabBankerLevel"]) + \
+                          str(room.info["teaHouseId"]) + str(room.info["pot"]) + str(room.info["scorpion"]) + str(
+                    room.info["potScore"])
+        for room in _rooms.values():
+            if room.info["type"] == roomtpye and roomtpye == "RoomType4":
+                 itemstr =str(room.info["maxPlayersCount"]) +str(room.info["maxNum"]) +str(room.info["totalSettlementBilling"]) +str(room.info["settlementBilling"]) + str(room.info["billingCount"]) + str(room.info["endScore"]) \
+                          + str(room.info["betBase"]) +str(room.info["maxGrabBanker"]) + str(room.info["maxChapterCount"]) + str(room.info["prohibitedCuoPai"]) \
+                          + str(room.info["darkGrabBanker"]) +str(room.info["hasPushToGuild"]) + str(room.info["gameStartType"]) + str(room.info["tuiZhu"]) \
+                          + str(room.info["maiMa"]) +str(room.info["tuiZhuLimit"]) + str(room.info["betDouble"]) + str(room.info["grabBankerLevel"]) + \
+                          str(room.info["teaHouseId"]) +str(room.info["pot"]) + str(room.info["scorpion"]) + str(room.info["potScore"])
+                 DEBUG_MSG(room.info["started"])
+                 DEBUG_MSG(itemstr)
+                 DEBUG_MSG(itemData)
+                 if itemstr == itemData and room.info["started"] == False:
+                     DEBUG_MSG("@@@@@@@@@@@@@@@@@@@if")
+                     itemRoomData = room.info["roomId"]
+                     _account.call_client_func("RecurInningRes", {"roomId": int(itemRoomData)})
 
     def room12_conflict(self, info):
         """
