@@ -1445,16 +1445,16 @@ class RoomType4(RoomBase):
         _playerInGame[_banker]["goldChange"] -= _win_total_golds
 
         # 给base的信息
-        _toBaseArgs = dict()
-        for k, v in _playerInGame.items():
-            # 这个玩家的总金币变化 += 这次金币变化
-            v["totalGoldChange"] += v["goldChange"]
-            _playData = {"accountId": k, "goldChange": int(v["goldChange"]),
-                         'totalGoldChange': v['totalGoldChange'],
-                         "cardType": v["cardType"], "cards": v["cards"], "gold": self.get_true_gold(v['entity'].id)}
-            _args[k] = _playData
-            _toBaseArgs[k] = {"goldChange": -v["goldChange"]}
-            v["entity"].update_score_control(v['goldChange'])
+        # _toBaseArgs = dict()
+        # for k, v in _playerInGame.items():
+        #     # 这个玩家的总金币变化 += 这次金币变化
+        #     v["totalGoldChange"] += v["goldChange"]
+        #     _playData = {"accountId": k, "goldChange": int(v["goldChange"]),
+        #                  'totalGoldChange': v['totalGoldChange'],
+        #                  "cardType": v["cardType"], "cards": v["cards"], "gold": self.get_true_gold(v['entity'].id)}
+        #     _args[k] = _playData
+        #     _toBaseArgs[k] = {"goldChange": -v["goldChange"]}
+        #     v["entity"].update_score_control(v['goldChange'])
 
         if self.info["roomType"] == "gameCoin":
             # 首局结算抽水
@@ -1490,14 +1490,30 @@ class RoomType4(RoomBase):
                 DEBUG_MSG('RoomType4 settlementBilling billing 抽水比例 %s' % self.info['settlementBilling'])
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
                 DEBUG_MSG('RoomType4 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
-                v['totalGoldChange'] -= settlement_winner_billing
-                v['totalGoldChange'] = int(v['totalGoldChange'])
+                # v['totalGoldChange'] -= settlement_winner_billing
+                # v['totalGoldChange'] = int(v['totalGoldChange'])
+
+                v["goldChange"] -= settlement_winner_billing
+                v["goldChange"] = int(v["goldChange"])
                 v['score'] -= settlement_winner_billing
                 v['score'] = int(v['score'])
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
                                       "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType4")})
+
+
+        # 给base的信息
+        _toBaseArgs = dict()
+        for k, v in _playerInGame.items():
+            # 这个玩家的总金币变化 += 这次金币变化
+            v["totalGoldChange"] += v["goldChange"]
+            _playData = {"accountId": k, "goldChange": int(v["goldChange"]),
+                         'totalGoldChange': v['totalGoldChange'],
+                         "cardType": v["cardType"], "cards": v["cards"], "gold": self.get_true_gold(v['entity'].id)}
+            _args[k] = _playData
+            _toBaseArgs[k] = {"goldChange": -v["goldChange"]}
+            v["entity"].update_score_control(v['goldChange'])
 
         # 刷新锅底
         if self.info['pot']:
