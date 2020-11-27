@@ -1051,10 +1051,11 @@ class RoomManager(Manger):
             DEBUG_MSG('########################################%s' % room.info['gameLevel'])
             if player.game_coin < room.info['gameLevel']:
                 return False
-            if room.info['pot'] == True:
-                if player.game_coin < room.info["potScore"]:
-                    return  False
-            return player.game_coin >= room.info['gameLevel']
+            if room.info["type"] != "RoomType1":
+                if room.info['pot'] == True:
+                    if player.game_coin < room.info["potScore"]:
+                        return  False
+                return player.game_coin >= room.info['gameLevel']
         return True
 
     def join_card_room(self, _account, _roomId):
