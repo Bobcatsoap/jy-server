@@ -394,9 +394,17 @@ class RoomType13(RoomBase):
         # 获取当前所有牌局玩家信息
         _playerInGame = chapter["playerInGame"]
         # 金币场扣除房费
+        DEBUG_MSG("将房间状态修正为开始")
+        DEBUG_MSG(self.is_gold_session_room())
+        DEBUG_MSG(self.info['level'])
         if self.is_gold_session_room():
+        # if self.info["roomType"] == "gameCoin":
+            DEBUG_MSG("开始扣除房费----->")
+            DEBUG_MSG(_playerInGame.items)
             for k, v in _playerInGame.items():
+                DEBUG_MSG("--玩家 %s  gold %s 房费 %s" % (str(v['entity'].info['name']), v['gold'], self.info['roomRate']))
                 v['gold'] -= self.info['roomRate']
+                DEBUG_MSG("--玩家 %s  gold %s 房费 %s" % (str(v['entity'].info['name']), v['gold'], self.info['roomRate']))
                 self.set_base_player_gold(k)  # 设置玩家金币数量
 
         # 起始局
@@ -1934,24 +1942,28 @@ class RoomType13(RoomBase):
         if self.info["roomType"] == "gameCoin":
             # 首局结算抽水
             if self.settlement_count == 0:
+                DEBUG_MSG('开始扣除房费')
+                DEBUG_MSG(chapter["playerInGame"].items())
                 for k,_p in chapter["playerInGame"].items():
-                    DEBUG_MSG('-----------------------------------')
-                    DEBUG_MSG(self.info)
-                    DEBUG_MSG(_p['entity'].id)
-                    DEBUG_MSG(self.get_true_gold(_p['entity'].id))
+                    DEBUG_MSG('首局结算抽水-----------------------------------%s' % str(self.info['billingCount']))
+                    DEBUG_MSG('RoomType13  billing  玩家:%s 真实金币:%s totalGoldChange:%s' % (str(_p["entity"].info["name"]), self.get_true_gold(_p['entity'].id), _p['totalGoldChange']))
                     if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
-                        DEBUG_MSG('RoomType12 billing_count not enough account_id:%s' % _p['entity'].id)
+                        DEBUG_MSG('RoomType12 billing_count not enough---account_id:%s' % _p['entity'].id)
                         continue
                     billing_count = self.info['billingCount']
-                    _p['totalGoldChange'] -= billing_count
-                    DEBUG_MSG('RoomType13 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
+                    # _p['totalGoldChange'] -= billing_count  # TODO 原扣房费
+                    _p['gold'] -= billing_count
+                    DEBUG_MSG('RoomType13 billing_count account_id:%s,billing_count:%s totalGoldChange：%s' % (str(_p["entity"].info["name"]), billing_count, _p['totalGoldChange']))
+
+            DEBUG_MSG('房费扣除完毕')
+            DEBUG_MSG(chapter["playerInGame"].items())
             # 每小局结算大赢家抽水,保留整数
             # 获取大赢家
             settlement_winners = self.pdk_get_settlement_winners()
             for location_index, v in settlement_winners.items():
-                DEBUG_MSG('-------------------------')
+                DEBUG_MSG('-------------------------1')
                 DEBUG_MSG(v)
-                DEBUG_MSG('-------------------------')
+                DEBUG_MSG('-------------------------1')
                 settlement_winner_account_id = v['entity'].id
                 # k:account_id v:winner字典
                 DEBUG_MSG('RoomType13 settlement_winner_account_id 玩家id %s name %s' % (str(settlement_winner_account_id), str(v["entity"].info["name"])))
@@ -1997,13 +2009,16 @@ class RoomType13(RoomBase):
         :return:
         """
         _chapter = self.get_current_chapter()
-        for k, v in _chapter['playerInGame'].items():
-            if v['entity'].id == account_id:
-                return v['goldChange']
-
-        for k, v in _chapter["playerOutGame"].items():
-            if v['entity'].id == account_id:
-                return v['goldChange']
+        # 开锅时分数=锅底+base上分+牌局输赢
+        if self.pot:
+            for k, v in _chapter['playerInGame'].items():
+                if v['entity'].id == account_id:
+                    return self.potScore + v['totalGoldChange']
+        # 不开锅时分数=玩家分数+base上分+牌局输赢
+        else:
+            for k, v in _chapter['playerInGame'].items():
+                if v['entity'].id == account_id:
+                    return v['gold'] + v['totalGoldChange']
 
     # 总结算
     def total_settlement(self, is_disband=False):

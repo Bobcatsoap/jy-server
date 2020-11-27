@@ -1555,7 +1555,7 @@ class RoomBase(KBEngine.Entity):
         """
         winners = {}
         max_win = 0
-        DEBUG_MSG('炸金花，获取小局大赢家')
+        DEBUG_MSG('跑得快，获取小局大赢家')
         DEBUG_MSG(self.chapters[self.cn]['playerInGame'].items())
         for k, v in self.chapters[self.cn]["playerInGame"].items():
             DEBUG_MSG("玩家%s 分数: %s" % (str(v["entity"].info["name"]), str(v["goldChange"])))
@@ -1673,6 +1673,8 @@ class RoomBase(KBEngine.Entity):
         chapter = self.chapters[self.cn]
         total_settlement_winner = self.jh_get_winner()
         # 获取大赢家
+        DEBUG_MSG("炸金花总结算抽水-------------->")
+        DEBUG_MSG(total_settlement_winner.items())
         for k, v in total_settlement_winner.items():
             # k:account_id v:winner字典
             DEBUG_MSG('jh total_settlement_winner%s' % k)

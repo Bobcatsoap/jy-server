@@ -3852,13 +3852,13 @@ class Account(KBEngine.Proxy):
                 DEBUG_MSG("[get_today_commission] callback------------")
                 DEBUG_MSG(info)
                 double_commission = float(info[3])
-                today_commission += double_commission
+                history_commission += double_commission
                 sm_time = int(info[5])
                 if sm_time > today_zero_time and sm_time < last_today_time:
-                    history_commission += double_commission
-            DEBUG_MSG('todayCommission :%s' % str(today_commission))
-            DEBUG_MSG('historyCommission :%s' % str(history_commission))
-            DEBUG_MSG('surplusCommission :%s' % str(self.surplus_commission))
+                    today_commission += double_commission
+            DEBUG_MSG('todayCommission :%s' % str(today_commission))   # 今日贡献
+            DEBUG_MSG('historyCommission :%s' % str(history_commission))  # 历史佣金
+            DEBUG_MSG('surplusCommission :%s' % str(self.surplus_commission))  # 累计贡献
             self.call_client_func("CommissionResult", {
                 "todayCommission": float(today_commission),
                 "historyCommission": float(history_commission),
@@ -3877,7 +3877,7 @@ class Account(KBEngine.Proxy):
         sql_common = "select performanceDetail from commssion_total where superior=%s" % account_db_id
 
         def callback(result, rows, insertid, error):
-            global surplus_commission
+            DEBUG_MSG(result)
             if not result or len(result) == 0:
                 self.surplus_commission = 0
             else:
@@ -3885,6 +3885,8 @@ class Account(KBEngine.Proxy):
 
         DEBUG_MSG('get_surplus_commission sql:%s' % sql_common)
         KBEngine.executeRawDatabaseCommand(sql_common, callback)
+
+
 
     def get_total_gold(self, player_id):
         def callback(result, rows, insertid, error):

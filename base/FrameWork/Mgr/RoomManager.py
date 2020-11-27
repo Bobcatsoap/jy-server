@@ -738,6 +738,8 @@ class RoomManager(Manger):
             tea_house_entity = tea_house_manager().get_tea_house_with_id(_config['teaHouseId'])
             _room.info['gameCoinSwitch'] = tea_house_entity.gameCoinSwitch
             self.rooms[_type].roominfos[_roomType][_room.info["roomId"]] = _room
+            DEBUG_MSG('*****************************************************')
+            DEBUG_MSG(_room.info)
         # 冠名赛普通场
         elif _roomType == 'normalGameCoin':
             _room.info['roomName'] = _config['roomName']
@@ -1049,10 +1051,11 @@ class RoomManager(Manger):
             DEBUG_MSG('########################################%s' % room.info['gameLevel'])
             if player.game_coin < room.info['gameLevel']:
                 return False
-            if room.info['pot'] == True:
-                if player.game_coin < room.info["potScore"]:
-                    return  False
-            return player.game_coin >= room.info['gameLevel']
+            if room.info["type"] != "RoomType1":
+                if room.info['pot'] == True:
+                    if player.game_coin < room.info["potScore"]:
+                        return  False
+                return player.game_coin >= room.info['gameLevel']
         return True
 
     def join_card_room(self, _account, _roomId):
