@@ -616,6 +616,7 @@ class Account(KBEngine.Proxy):
             data = self.challenge_mgr.get_challenge_result_control(self.databaseID, pyDic)
             self.cell.baseToCell({"func": "retChallengeWinControl", "dic": data})
 
+
     def clientToBase(self, jsonData):
         """
         TODO E创建房间函数
@@ -1881,6 +1882,10 @@ class Account(KBEngine.Proxy):
                         self.call_client_func('Notice', ["该玩家已被踢出"])
                         return
             self.call_client_func('Notice', ["不能踢出此玩家"])
+        elif _func_name == 'RecurInningSend':
+            _thisroomid = _args['roomID']
+            _thisroomType = _args["roomType"]
+            self.room_mgr.RecurInning(self,_thisroomid, _thisroomType)
         else:
             ERROR_MSG("[Account id %s] clientToBase------>func: %s not exit" % (self.id, _func_name))
 
