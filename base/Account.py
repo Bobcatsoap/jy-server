@@ -3857,7 +3857,7 @@ class Account(KBEngine.Proxy):
             self.call_client_func("CommissionResult", {
                 "todayCommission": float(today_commission),
                 "historyCommission": float(history_commission),
-                "surplusCommission": float(self.surplus_commission)
+                "surplusCommission": round(float(self.surplus_commission))
             })
         command_sql = "select sm_accountDBID, sm_superior, sm_count,sm_performanceDetail,sm_proportion, sm_time from " \
                       "tbl_teahouseperformance where sm_superior=%s" % (

@@ -1906,38 +1906,38 @@ class RoomType13(RoomBase):
         if abs(dealer["singMax"]) < abs(dealer["goldChange"]):
             dealer["singMax"] = dealer["goldChange"]
         # 整理发送信息(待优化，特定数值赋值)
-        DEBUG_MSG('整理发送信息-----------------------------')
-        DEBUG_MSG(chapter["playerInGame"])
-        for k, v in chapter["playerInGame"].items():
-            if len(v["cards"]) != 0:
-                v["cards"].sort()
-            if k == chapter["winner"]:
-                settlement_info[k] = {"winner": 1, "surplusCard": self.change_value_to_client(v["cards"]),
-                                      "outCard": v["outCardList"],
-                                      "boomCount": v["boomCount"], "surplusLen": len(v["cards"]),
-                                      "settlementGold": v["goldChange"], "notAllOut": v["overCardLift"],
-                                      "totalGoldChange": v["totalGoldChange"], "gold": v["gold"]}
-                continue
-            if chapter["playerInGame"][k]["playCount"]:
-                settlement_info[k] = {"winner": 0, "surplusCard": self.change_value_to_client(v["cards"]),
-                                      "outCard": v["outCardList"],
-                                      "boomCount": v["boomCount"], "surplusLen": len(v["cards"]),
-                                      "settlementGold": v["goldChange"], "notAllOut": v["overCardLift"],
-                                      "totalGoldChange": v["totalGoldChange"], "gold": v["gold"]}
-            else:
-                settlement_info[k] = {"winner": 0, "surplusCard": self.change_value_to_client(v["cards"]),
-                                      "outCard": v["outCardList"],
-                                      "boomCount": v["boomCount"], "surplusLen": len(v["cards"]),
-                                      "settlementGold": v["goldChange"], "notAllOut": v["overCardLift"],
-                                      "totalGoldChange": v["totalGoldChange"], "gold": v["gold"]}
-        # 连续失败次数
-        for k, v in chapter["playerInGame"].items():
-            if k == chapter["winner"]:
-                v["losingstreak"] = 0
-            else:
-                v["losingstreak"] += 1
-            # 更新分数控制
-            v["entity"].update_score_control(v['goldChange'])
+        # DEBUG_MSG('整理发送信息-----------------------------')
+        # DEBUG_MSG(chapter["playerInGame"])
+        # for k, v in chapter["playerInGame"].items():
+        #     if len(v["cards"]) != 0:
+        #         v["cards"].sort()
+        #     if k == chapter["winner"]:
+        #         settlement_info[k] = {"winner": 1, "surplusCard": self.change_value_to_client(v["cards"]),
+        #                               "outCard": v["outCardList"],
+        #                               "boomCount": v["boomCount"], "surplusLen": len(v["cards"]),
+        #                               "settlementGold": v["goldChange"], "notAllOut": v["overCardLift"],
+        #                               "totalGoldChange": v["totalGoldChange"], "gold": v["gold"]}
+        #         continue
+        #     if chapter["playerInGame"][k]["playCount"]:
+        #         settlement_info[k] = {"winner": 0, "surplusCard": self.change_value_to_client(v["cards"]),
+        #                               "outCard": v["outCardList"],
+        #                               "boomCount": v["boomCount"], "surplusLen": len(v["cards"]),
+        #                               "settlementGold": v["goldChange"], "notAllOut": v["overCardLift"],
+        #                               "totalGoldChange": v["totalGoldChange"], "gold": v["gold"]}
+        #     else:
+        #         settlement_info[k] = {"winner": 0, "surplusCard": self.change_value_to_client(v["cards"]),
+        #                               "outCard": v["outCardList"],
+        #                               "boomCount": v["boomCount"], "surplusLen": len(v["cards"]),
+        #                               "settlementGold": v["goldChange"], "notAllOut": v["overCardLift"],
+        #                               "totalGoldChange": v["totalGoldChange"], "gold": v["gold"]}
+        # # 连续失败次数
+        # for k, v in chapter["playerInGame"].items():
+        #     if k == chapter["winner"]:
+        #         v["losingstreak"] = 0
+        #     else:
+        #         v["losingstreak"] += 1
+        #     # 更新分数控制
+        #     v["entity"].update_score_control(v['goldChange'])
 
         if self.info["roomType"] == "gameCoin":
             # 首局结算抽水
@@ -1975,12 +1975,52 @@ class RoomType13(RoomBase):
                 DEBUG_MSG('RoomType13 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
                 v['totalGoldChange'] -= settlement_winner_billing
                 v['totalGoldChange'] = int(v['totalGoldChange'])
+                DEBUG_MSG('RoomType13 settlement_winner 抽水前 goldChange %s' % v["goldChange"])
+                v["goldChange"] -= settlement_winner_billing
+                DEBUG_MSG('RoomType13 settlement_winner 抽水后 goldChange %s' % v["goldChange"])
+                v["goldChange"] = int(v["goldChange"])
+
                 v['gold'] -= settlement_winner_billing
                 v['gold'] = int(v['gold'])
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
                                       "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType13")})
+
+        # 整理发送信息(待优化，特定数值赋值)
+        DEBUG_MSG('整理发送信息-----------------------------')
+        DEBUG_MSG(chapter["playerInGame"])
+        for k, v in chapter["playerInGame"].items():
+            if len(v["cards"]) != 0:
+                v["cards"].sort()
+            if k == chapter["winner"]:
+                settlement_info[k] = {"winner": 1, "surplusCard": self.change_value_to_client(v["cards"]),
+                                      "outCard": v["outCardList"],
+                                      "boomCount": v["boomCount"], "surplusLen": len(v["cards"]),
+                                      "settlementGold": v["goldChange"], "notAllOut": v["overCardLift"],
+                                      "totalGoldChange": v["totalGoldChange"], "gold": v["gold"]}
+                continue
+            if chapter["playerInGame"][k]["playCount"]:
+                settlement_info[k] = {"winner": 0, "surplusCard": self.change_value_to_client(v["cards"]),
+                                      "outCard": v["outCardList"],
+                                      "boomCount": v["boomCount"], "surplusLen": len(v["cards"]),
+                                      "settlementGold": v["goldChange"], "notAllOut": v["overCardLift"],
+                                      "totalGoldChange": v["totalGoldChange"], "gold": v["gold"]}
+            else:
+                settlement_info[k] = {"winner": 0, "surplusCard": self.change_value_to_client(v["cards"]),
+                                      "outCard": v["outCardList"],
+                                      "boomCount": v["boomCount"], "surplusLen": len(v["cards"]),
+                                      "settlementGold": v["goldChange"], "notAllOut": v["overCardLift"],
+                                      "totalGoldChange": v["totalGoldChange"], "gold": v["gold"]}
+        # 连续失败次数
+        for k, v in chapter["playerInGame"].items():
+            if k == chapter["winner"]:
+                v["losingstreak"] = 0
+            else:
+                v["losingstreak"] += 1
+            # 更新分数控制
+            v["entity"].update_score_control(v['goldChange'])
+
 
         # 添加小局结算计时器
         chapter["settlementTimer"] = self.addTimer(settlement_time, 0, 0)
