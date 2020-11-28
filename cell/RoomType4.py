@@ -1490,8 +1490,8 @@ class RoomType4(RoomBase):
                 DEBUG_MSG('RoomType4 settlementBilling billing 抽水比例 %s' % self.info['settlementBilling'])
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
                 DEBUG_MSG('RoomType4 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
-                # v['totalGoldChange'] -= settlement_winner_billing
-                # v['totalGoldChange'] = int(v['totalGoldChange'])
+                v['totalGoldChange'] -= settlement_winner_billing
+                v['totalGoldChange'] = int(v['totalGoldChange'])
 
                 v["goldChange"] -= settlement_winner_billing
                 v["goldChange"] = int(v["goldChange"])
@@ -1551,7 +1551,7 @@ class RoomType4(RoomBase):
 
         # todo:大局抽水
         if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            pass
+            self.nn_total_settlement_billing()
 
         # 同步金币到 base
         player_settlement_info = []
@@ -1573,9 +1573,9 @@ class RoomType4(RoomBase):
         self.base.cellToBase({"func": "autoCreateRoom", "roomInfo": self.info, 'ignoreJudge': True, 'onRoomEnd': True})
         self.save_record_str()
         # E大局抽水
-        if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
+        # if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
            # self.nn_lottery()
-            self.nn_total_settlement_billing()
+           #  self.nn_total_settlement_billing()
 
 
 

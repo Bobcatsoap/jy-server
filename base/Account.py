@@ -3554,7 +3554,7 @@ class Account(KBEngine.Proxy):
                 "memberCount": member_count,
             })
         command_sql = "select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance " \
-                      "where sm_superior=%s" % account_db_id
+                      "where sm_superior=%s and sm_count!=0 order by sm_time desc " % account_db_id
         # select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance where sm_superior =10216;
         DEBUG_MSG("[get_history_commission_record]command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
@@ -3861,8 +3861,8 @@ class Account(KBEngine.Proxy):
             DEBUG_MSG('surplusCommission :%s' % str(self.surplus_commission))  # 累计贡献
             self.call_client_func("CommissionResult", {
                 "todayCommission": float(today_commission),
-                "historyCommission": float(history_commission),
-                "surplusCommission": round(float(self.surplus_commission))
+                "historyCommission": round(float(history_commission),2),
+                "surplusCommission": round(float(self.surplus_commission), 2)
             })
         command_sql = "select sm_accountDBID, sm_superior, sm_count,sm_performanceDetail,sm_proportion, sm_time from " \
                       "tbl_teahouseperformance where sm_superior=%s" % (
