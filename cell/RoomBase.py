@@ -1669,6 +1669,8 @@ class RoomBase(KBEngine.Entity):
         """
         winner = {}
         max_win = 0
+        DEBUG_MSG("jh_get_winner 获取大赢家")
+        DEBUG_MSG(self.chapters[self.cn]['playerInGame'].items())
         for k, v in self.chapters[self.cn]['playerInGame'].items():
             if v['totalGoldChange'] >= max_win:
                 max_win = v['totalGoldChange']
@@ -1691,6 +1693,19 @@ class RoomBase(KBEngine.Entity):
             if v['entity'].id == account_id:
                 return -v["totalBet"]
 
+
+    def jh_total_settlement_gold(self, account_id):
+        """
+        金花，获得玩家当前真实金币
+        :param account_id:
+        :return:
+        """
+        _chapter = self.get_current_chapter()
+        DEBUG_MSG(self.chapters[self.cn]['playerInGame'].items())
+        for k, v in _chapter['playerInGame'].items():
+            if v['entity'].id == account_id:
+                return v["totalGoldChange"]
+
     # 炸金花总结算抽水
     def jh_total_settlement_billing(self):
         chapter = self.chapters[self.cn]
@@ -1700,15 +1715,19 @@ class RoomBase(KBEngine.Entity):
         DEBUG_MSG(total_settlement_winner.items())
         for k, v in total_settlement_winner.items():
             # k:account_id v:winner字典
-            DEBUG_MSG('jh total_settlement_winner%s' % k)
             # 计算大赢家小局抽水
-            total_settlement_winner_true_gold = self.jh_get_true_gold(k)
+            total_settlement_winner_true_gold = self.jh_total_settlement_gold(k)
+            DEBUG_MSG("RoomType1 炸金花大结算 玩家%s 真实金币: %s" % (str(v["entity"].info["name"]), total_settlement_winner_true_gold))
             total_settlement_winner_billing = total_settlement_winner_true_gold * self.info['totalSettlementBilling']
-            DEBUG_MSG('RoomType1 settlement_winner billing%s' % total_settlement_winner_billing)
+            DEBUG_MSG("RoomType1 炸金花大结算 抽水金额 %s" % str(total_settlement_winner_billing))
+            DEBUG_MSG('RoomType1 大局抽水 抽水前 totalGoldChange %s' % v["totalGoldChange"])
             v['totalGoldChange'] -= total_settlement_winner_billing
             v['totalGoldChange'] = int(v['totalGoldChange'])
+            DEBUG_MSG('RoomType1 大局抽水 抽水后 totalGoldChange %s' % v["totalGoldChange"])
+            DEBUG_MSG('RoomType4 大局抽水 抽水前 score %s' % v["score"])
             v['score'] -= total_settlement_winner_billing
             v['score'] = int(v['score'])
+            DEBUG_MSG('RoomType4 大局抽水 抽水后 score %s' % v["score"])
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
