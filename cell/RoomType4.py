@@ -1490,8 +1490,8 @@ class RoomType4(RoomBase):
                 DEBUG_MSG('RoomType4 settlementBilling billing 抽水比例 %s' % self.info['settlementBilling'])
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
                 DEBUG_MSG('RoomType4 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
-                v['totalGoldChange'] -= settlement_winner_billing
-                v['totalGoldChange'] = int(v['totalGoldChange'])
+                # v['totalGoldChange'] -= settlement_winner_billing
+                # v['totalGoldChange'] = int(v['totalGoldChange'])
 
                 v["goldChange"] -= settlement_winner_billing
                 v["goldChange"] = int(v["goldChange"])

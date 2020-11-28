@@ -2312,7 +2312,7 @@ class RoomType1(RoomBase):
                 {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
                  "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
                  "winnerBilling": v["winnerBilling"], 'gold': v['score']})
-        if len((self.player_leave_info)) >0:
+        if len(self.player_leave_info) >0:
             player_settlement_info = player_settlement_info + self.player_leave_info
         args = {"settlementInfo": player_settlement_info}
         self.callOtherClientsFunction("TotalSettlement", args)
