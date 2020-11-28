@@ -29,6 +29,7 @@ time_disband = 30
 settlement_clear_players_time = 30
 
 
+
 class RoomType1(RoomBase):
     # 1 牌局信息
     _chapterInfos = {}
@@ -47,6 +48,7 @@ class RoomType1(RoomBase):
         # 观战中的下局可以开始坐下的玩家
         self.wait_to_seat = []
 
+        self.player_leave_info = []
     def newStatisticalData(self):
         self.emptyLocationIndex = list(range(0, self.info["maxPlayersCount"]))
 
@@ -1137,9 +1139,19 @@ class RoomType1(RoomBase):
             self.check_gold()
             pass
         else:
+            item =0
             for k, v in _playerInGame.items():
                 if v["score"] <= 0:
+                    self.player_leave_info.append({"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
+                 "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
+                 "winnerBilling": v["winnerBilling"], 'gold': v['score']})
+                    self.set_base_player_game_coin(k)
                     self.callClientFunction(k, "Notice", ["金币不足"])
+                else:
+                    item += 1
+            if item == 1:
+                self.player_leave_info = []
+                self.total_settlement()
         _chapterHistory = _chapter["chapterHistory"]
         _chapterData = {}
         for k, v in _playerInGame.items():
@@ -2282,59 +2294,6 @@ class RoomType1(RoomBase):
         if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
             self.jh_total_settlement_billing()
 
-            # # 找到大赢家
-            # winner = {}
-            # max_win = 0
-            # for k, v in self.chapters[self.cn]['playerInGame'].items():
-            #     if v['totalGoldChange'] >= max_win:
-            #         max_win = v['totalGoldChange']
-            #
-            # for k, v in self.chapters[self.cn]['playerInGame'].items():
-            #     if v['totalGoldChange'] == max_win:
-            #         winner[k] = v
-            #
-            # all_bill = {}
-            # for k, v in self.chapters[self.cn]['playerInGame'].items():
-            #     all_bill[k] = {"userId": v["entity"].info["userId"], "todayGameCoinAdd": 0, 'winner': 1 if k in winner else 0, "score": v['totalGoldChange']}
-            #
-            # if self.info["winnerBilling"]:
-            #     for k, v in winner.items():
-            #         winnerBillingCount = 0
-            #         for i in range(0, len(self.info["winnerBilling"])):
-            #             if self.info["winnerBilling"][i]['interval'][0] <= v["totalGoldChange"] <= \
-            #                     self.info["winnerBilling"][i]['interval'][1]:
-            #                 winnerBillingConsume = self.info["winnerBilling"][i]['consume']
-            #                 v["totalGoldChange"] -= winnerBillingConsume
-            #                 v["score"] -= winnerBillingConsume
-            #                 v["winnerBilling"] = -winnerBillingConsume
-            #                 winnerBillingCount += self.info["winnerBilling"][i]['consume']
-            #         # E房间类型
-            #         self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
-            #                               "todayGameCoinAdd": winnerBillingCount,
-            #                               "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
-            #         all_bill[k]["todayGameCoinAdd"] += winnerBillingCount
-            #
-            # if self.info['otherBilling']:
-            #     for k, v in chapter['playerInGame'].items():
-            #         # 如果大赢家开启，其他玩家不扣大赢家
-            #         if k in winner and self.info["winnerBilling"]:
-            #             continue
-            #         otherBillingCount = 0
-            #         for i in range(0, len(self.info["otherBilling"])):
-            #             if self.info["otherBilling"][i]['interval'][0] <= v["totalGoldChange"] <= \
-            #                     self.info["otherBilling"][i]['interval'][1]:
-            #                 otherBillingConsume = self.info["otherBilling"][i]['consume']
-            #                 v["totalGoldChange"] -= otherBillingConsume
-            #                 v["score"] -= otherBillingConsume
-            #                 v["otherBilling"] = -otherBillingConsume
-            #                 otherBillingCount += self.info["otherBilling"][i]['consume']
-            #
-            #         self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
-            #                               "todayGameCoinAdd": otherBillingCount,
-            #                               "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
-            #         all_bill[k]["todayGameCoinAdd"] += otherBillingCount
-            # self.base.cellToBase({"func": "todayBillStatic", "teaHouseId": self.info["teaHouseId"], "bill": list(all_bill.values())})
-
         # 清理观战的玩家
         _playerOutGameCopy = chapter["playerOutGame"].copy()
         for k, v in _playerOutGameCopy.items():
@@ -2353,7 +2312,8 @@ class RoomType1(RoomBase):
                 {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
                  "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
                  "winnerBilling": v["winnerBilling"], 'gold': v['score']})
-
+        if len((self.player_leave_info)) >0:
+            player_settlement_info = player_settlement_info + self.player_leave_info
         args = {"settlementInfo": player_settlement_info}
         self.callOtherClientsFunction("TotalSettlement", args)
         self.base.cellToBase({"func": "totalSettlementEd"})
@@ -2374,7 +2334,7 @@ class RoomType1(RoomBase):
         # 总结算清理玩家倒计时
         chapter["settlementClearPlayers"] = self.addTimer(settlement_clear_players_time, 0, 0)
         chapter["deadline"] = time.time() + settlement_clear_players_time
-
+        self.player_leave_info = []
     def set_base_player_game_coin(self, account_id):
         """
         设置玩家金币数量,通知base
