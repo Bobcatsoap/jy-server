@@ -1022,7 +1022,6 @@ class RoomType12(RoomBase):
                 _chapter['resOutPaiTimer'] = -1
 
                 _chapter['restartTimer'] = self.addTimer(RESTART_TIME, 0, 0)
-                DEBUG_MSG("************************_chapter['restartTimer']*********************************************")
                 # self.start_next_chapter()
                 # self.sync_timer_count_down(RESTART_TIME)
                 # _chapter['deadLine'] = time.time() + RESTART_TIME
@@ -1201,12 +1200,7 @@ class RoomType12(RoomBase):
         else:
             pass
 
-        # 赋值总金币改变
-        for _p in _chapter[PLAYER_IN_GAME].values():
-            _p['totalGoldChange'] += _p['goldChange']
-          #  _p['gold'] = _p['gold'] +_p['goldChange']
-            _p["entity"].update_score_control(_p['goldChange'])
-            DEBUG_MSG('RoomType12 settlement totalGoldChange%s' % _p['totalGoldChange'])
+
 
         if self.info["roomType"] == "gameCoin":
             # 首局结算抽水
@@ -1237,8 +1231,12 @@ class RoomType12(RoomBase):
                 DEBUG_MSG('RoomType12 settlementBilling billing 抽水比例 %s' % self.info['settlementBilling'])
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
                 DEBUG_MSG('RoomType12 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
-                v['totalGoldChange'] -= settlement_winner_billing
-                v['totalGoldChange'] = int(v['totalGoldChange'])
+                # v['totalGoldChange'] -= settlement_winner_billing
+                # v['totalGoldChange'] = int(v['totalGoldChange'])
+
+                v["goldChange"] -= settlement_winner_billing
+                v["goldChange"] = int(v["goldChange"])
+
                 v["gold"] -= settlement_winner_billing
                 v["gold"] = int(v["gold"])
                 # 同步房费给base
@@ -1246,7 +1244,12 @@ class RoomType12(RoomBase):
                                       "todayGameCoinAdd": settlement_winner_billing,
                                       "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType12")})
 
-
+                # 赋值总金币改变
+        for _p in _chapter[PLAYER_IN_GAME].values():
+            _p['totalGoldChange'] += _p['goldChange']
+            #  _p['gold'] = _p['gold'] +_p['goldChange']
+            _p["entity"].update_score_control(_p['goldChange'])
+            DEBUG_MSG('RoomType12 settlement totalGoldChange%s' % _p['totalGoldChange'])
 
         # 封装牌局结算消息
         end_msg = []
@@ -1308,6 +1311,12 @@ class RoomType12(RoomBase):
         room_end_msg = {"winnerIndexes": -1, "players": []}
         big_winner_max = 0
         big_winner_indexes = []
+
+        # 大局结算抽水
+        if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
+            # self.mj_lottery()
+            self.mj_total_settlement_billing()
+
         # 收集统计数据
         for sdp in sd[SD_PLAYERS].values():
             settlement_info = []
@@ -1343,10 +1352,7 @@ class RoomType12(RoomBase):
         # 忽略判断，创建一个房间
         self.base.cellToBase({"func": "autoCreateRoom", "roomInfo": self.info, 'ignoreJudge': True, 'onRoomEnd': True})
         self.save_record_str()
-        # 扣除额外积分，抽奖
-        if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            self.mj_lottery()
-            self.mj_total_settlement_billing()
+
 
         # 同步金币变化到房间外
         for p in chapter[PLAYER_IN_GAME].values():

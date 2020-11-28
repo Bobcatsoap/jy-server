@@ -1872,6 +1872,23 @@ class RoomBase(KBEngine.Entity):
                 # return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
                 return v['goldChange']
 
+    def mj_total_settlement_gold(self, account_id):
+        """
+                获得玩家当前真实金币
+                :param account_id:
+                :return:
+                """
+        _chapter = self.get_current_chapter()
+        for k, v in _chapter[PLAYER_IN_GAME].items():
+            if v['entity'].id == account_id:
+                # return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+                return v['totalGoldChange']
+
+        for k, v in _chapter[PLAYER_OUT_GAME].items():
+            if v['entity'].id == account_id:
+                # return v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']
+                return v['totalGoldChange']
+
     # 麻将总结算抽水
     def mj_total_settlement_billing(self):
         chapter = self.chapters[self.cn]
@@ -1879,11 +1896,10 @@ class RoomBase(KBEngine.Entity):
         # 获取大赢家
         for location_index, v in total_settlement_winner.items():
             total_settlement_winner_account_id = v['entity'].id
-
             # k:account_id v:winner字典
             DEBUG_MSG('mj total_settlement_winner%s' % total_settlement_winner_account_id)
             # 计算大赢家小局抽水
-            total_settlement_winner_true_gold = self.mj_get_true_gold(total_settlement_winner_account_id)
+            total_settlement_winner_true_gold = self.mj_total_settlement_gold(total_settlement_winner_account_id)
             total_settlement_winner_billing = total_settlement_winner_true_gold * self.info['totalSettlementBilling']
             DEBUG_MSG('RoomType12 settlement_winner billing%s' % total_settlement_winner_billing)
             v['totalGoldChange'] -= total_settlement_winner_billing
