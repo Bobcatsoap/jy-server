@@ -2079,6 +2079,9 @@ class RoomType13(RoomBase):
         max_winner_id = -1
         max_win_gold = -1
         # 整理大结算数据
+        if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
+            self.normal_lottery()
+            self.pdk_total_settlement_billing()
         # 寻找大赢家
         DEBUG_MSG('chapter["playerInGame"]--------------')
         DEBUG_MSG(chapter["playerInGame"])
@@ -2102,8 +2105,7 @@ class RoomType13(RoomBase):
                 }
         args = {"settlementInfo": player_settlement_info_s, "isDisband": is_disband}
         self.callOtherClientsFunction("TotalSettlement", args)
-        if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            self.normal_lottery()
+
 
         for k, v in chapter["playerInGame"].items():
             # 同步玩家比赛分给base
@@ -2116,9 +2118,9 @@ class RoomType13(RoomBase):
         self.base.cellToBase({"func": "autoCreateRoom", "roomInfo": self.info, 'ignoreJudge': True, 'onRoomEnd': True})
         self.save_record_str()
         # 扣除额外积分，抽奖
-        if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            # self.mj_lottery()
-            self.pdk_total_settlement_billing()
+        # if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
+        #     # self.mj_lottery()
+        #     self.pdk_total_settlement_billing()
 
 
         # 清理观战的玩家

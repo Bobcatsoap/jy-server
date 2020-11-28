@@ -1598,22 +1598,45 @@ class RoomBase(KBEngine.Entity):
             if v['entity'].id == account_id:
                 return v['goldChange']
 
+    def pdk_get_total_settlement_totalGoldChange(self, account_id):
+        """
+        跑得快，获得玩家的总输赢金币
+        :param account_id:
+        :return:
+        """
+        _chapter = self.get_current_chapter()
+        for k, v in _chapter['playerInGame'].items():
+            DEBUG_MSG("跑得快 玩家%s 分数: %s" % (str(v["entity"].info["name"]), str(v["goldChange"])))
+            if v['entity'].id == account_id:
+                return v['totalGoldChange']
+
+        for k, v in _chapter["playerInGame"].items():
+            if v['entity'].id == account_id:
+                return v['totalGoldChange']
+
     # 跑得快总结算抽水
     def pdk_total_settlement_billing(self):
         chapter = self.chapters[self.cn]
         total_settlement_winner = self.jh_get_winner()
         # 获取大赢家
+        DEBUG_MSG("跑得快总结算抽水")
+        DEBUG_MSG(total_settlement_winner.items())
         for k, v in total_settlement_winner.items():
             # k:account_id v:winner字典
-            DEBUG_MSG('jh total_settlement_winner%s' % k)
             # 计算大赢家小局抽水
-            total_settlement_winner_true_gold = self.pdk_get_true_gold(k)
+            total_settlement_winner_true_gold = self.pdk_get_total_settlement_totalGoldChange(k)
+            DEBUG_MSG('RoomType13  大局抽水  玩家 %s 真实金币%s' % (str(v["entity"].info["name"]), total_settlement_winner_true_gold))
+            DEBUG_MSG('RoomType13  大局抽水 抽水比例 %s' % self.info['totalSettlementBilling'])
             total_settlement_winner_billing = total_settlement_winner_true_gold * self.info['totalSettlementBilling']
-            DEBUG_MSG('RoomType1 settlement_winner billing%s' % total_settlement_winner_billing)
+            DEBUG_MSG('RoomType13 大局抽水 抽水金额 billing %s' % total_settlement_winner_billing)
+            DEBUG_MSG('RoomType13 大局抽水 抽水前 totalGoldChange %s' % v["totalGoldChange"])
             v['totalGoldChange'] -= total_settlement_winner_billing
             v['totalGoldChange'] = int(v['totalGoldChange'])
+            DEBUG_MSG('RoomType13 大局抽水 抽水后 totalGoldChange %s' % v["totalGoldChange"])
+            DEBUG_MSG('RoomType13 大局抽水 抽水前 gold %s' % v["gold"])
             v['gold'] -= total_settlement_winner_billing
             v['gold'] = int(v['gold'])
+            DEBUG_MSG('RoomType13 大局抽水 抽水后 gold %s' % v["gold"])
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
