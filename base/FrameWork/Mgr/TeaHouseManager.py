@@ -599,6 +599,8 @@ class TeaHouseManager(Manger):
         score_level = args.get("score_level")
         if not score_level:
             score_level = 0
+        if int(score_level) <= 0:
+            score_level = 0
 
         tea_house_entity = self.get_tea_house_with_id(tea_house_id)
         if tea_house_entity:
