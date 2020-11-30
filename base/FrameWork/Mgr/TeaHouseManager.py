@@ -596,6 +596,9 @@ class TeaHouseManager(Manger):
         room_type = args["roomType"]
         anonymity = args["anonymity"]
         page_index = args["pageIndex"]
+        score_level = args.get("score_level")
+        if not score_level:
+            score_level = 0
 
         tea_house_entity = self.get_tea_house_with_id(tea_house_id)
         if tea_house_entity:
@@ -611,11 +614,24 @@ class TeaHouseManager(Manger):
 
                 # 所有房间
                 _rooms = tea_house_entity.get_rooms_with_page(room_type, anonymity, page_index, started_disappear)
+                DEBUG_MSG("-------------rooms-------------------")
+                DEBUG_MSG(_rooms)
+                if score_level > 0:
+                    DEBUG_MSG("score_level")
+                    import collections
+                    new_rooms = collections.OrderedDict()
+                    for k, v in _rooms.items():
+                        DEBUG_MSG("-------------rooms----k----------%s" % str(k))
+                        DEBUG_MSG("-------------rooms------gameLevel--------%s" % str(v['gameLevel']))
+                        DEBUG_MSG(v)
+                        if int(v['gameLevel']) == int(score_level):
+                            new_rooms[k] = v
+                    _rooms = new_rooms
                 # 页数
                 _total_page = tea_house_entity.get_rooms_total_page(room_type, anonymity, started_disappear)
                 # 此类型的总房间数
                 _total_room_count = len(
-                    tea_house_entity.get_rooms_with_room_type(room_type, anonymity, started_disappear))
+                    tea_house_entity.get_rooms_with_room_type(room_type, anonymity, started_disappear,score_level))
                 _data = {"rooms": _rooms, "totalPage": _total_page, "roomCount": _total_room_count}
                 account_manager().get_account(requester).call_client_func("GetTeaHouseRoomsWithPageIndex", _data)
             else:
