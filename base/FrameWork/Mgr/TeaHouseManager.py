@@ -45,6 +45,8 @@ class TeaHouseManager(Manger):
     need_permission = 0
     mainTimerId = -1
     tomorrowStartTimer = -1
+    room_robot_count = 0
+
 
     def __init__(self):
         Manger.__init__(self)
@@ -639,12 +641,36 @@ class TeaHouseManager(Manger):
                 # 此类型的总房间数
                 _total_room_count = len(
                     tea_house_entity.get_rooms_with_room_type(room_type, anonymity, started_disappear,score_level))
-                _data = {"rooms": _rooms, "totalPage": _total_page, "roomCount": _total_room_count}
+                _data = {"rooms": _rooms, "totalPage": _total_page, "roomCount": _total_room_count, "room_robot_count": 0}
+                self.get_room_robot_count(room_type, tea_house_id, _data)
+                DEBUG_MSG('----datas')
+                DEBUG_MSG(_data)
                 account_manager().get_account(requester).call_client_func("GetTeaHouseRoomsWithPageIndex", _data)
+                self.room_robot_count = 0
             else:
                 account_manager().get_account(requester).call_client_func("Notice", ['玩家不存在'])
         else:
             account_manager().get_account(requester).call_client_func("Notice", ['冠名赛不存在'])
+
+    def get_room_robot_count(self, roomType, tea_house_id, _data):
+        room_type = roomType
+        tea_house_id = tea_house_id
+        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            return
+
+        def callback(result, rows, insertid, error):
+            DEBUG_MSG("get_room_robot_count-------")
+            DEBUG_MSG(result)
+            if not result or len(result) <= 0:
+                pass
+            else:
+                self.room_robot_count = int(result[0][2])
+
+        common_sql = "select * from room_robot where room_type='%s'" % room_type
+        DEBUG_MSG("get_room_robot_count-------sql %s " % str(common_sql))
+        KBEngine.executeRawDatabaseCommand(common_sql, callback)
+        _data['room_robot_count'] = self.room_robot_count
 
     def get_tea_house_player_team_game_coin(self, tea_house_id, account_dbid):
         DEBUG_MSG("get_tea_house_player_team_game_coin teaHouseId:%s,account_dbid:%s" % (tea_house_id, account_dbid))
