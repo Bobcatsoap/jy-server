@@ -1829,7 +1829,7 @@ class TeaHouse(KBEngine.Entity):
 
         return items
 
-    def get_rooms_with_room_type(self, room_type, anonymity, started_disappear=False):
+    def get_rooms_with_room_type(self, room_type, anonymity, started_disappear=False, score_level=0):
         """
         获取类型的所有房间
         :param started_disappear: 隐藏已开始房间
@@ -1845,9 +1845,17 @@ class TeaHouse(KBEngine.Entity):
                 # 没有房间类型筛选时显示所有房间
                 if not room_type:
                     if v.info["anonymity"] == anonymity:
-                        _rooms[k] = v
+                        if score_level > 0:
+                            if int(v['gameLevel']) == int(score_level):
+                                _rooms[k] = v
+                        else:
+                            _rooms[k] = v
                 elif v.info["type"] == room_type and v.info["anonymity"] == anonymity:
-                    _rooms[k] = v
+                    if score_level > 0:
+                        if int(v['gameLevel']) == int(score_level):
+                            _rooms[k] = v
+                    else:
+                        _rooms[k] = v
             except AttributeError as e:
                 ERROR_MSG('TeaHouse get_rooms_with_room_type %s' % e)
             except KeyError as e:

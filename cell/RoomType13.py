@@ -2079,8 +2079,8 @@ class RoomType13(RoomBase):
         max_winner_id = -1
         max_win_gold = -1
         # 整理大结算数据
-        if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            self.normal_lottery()
+        if self.info["roomType"] == "gameCoin" and self.settlement_count >= 0:
+            # self.normal_lottery()
             self.pdk_total_settlement_billing()
         # 寻找大赢家
         DEBUG_MSG('chapter["playerInGame"]--------------')
