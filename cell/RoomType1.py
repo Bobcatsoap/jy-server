@@ -1231,10 +1231,20 @@ class RoomType1(RoomBase):
             _userId = v["entity"].info["userId"]
             _toBaseArgs[_userId] = {"goldChange": -v["totalBet"]}
         # for k, v in _playerInGame.items():
+        # TODO
+        _chapterHistory = _chapter["chapterHistory"]
+        _chapterData = {}
+        for k, v in _playerInGame.items():
+            _playerData = {"accountName": v["entity"].info["name"], "cards": v["cards"], "goldChange": -v["totalBet"],
+                           "cardType": ZJHCalculator.calculatorCard(v["cards"]),
+                           "headImageUrl": v["entity"].info["headImageUrl"]}
+            _chapterData[k] = _playerData
+            # 更新分数控制
+            v["entity"].update_score_control(-v['totalBet'])
+        _chapterHistory["chapterData"] = _chapterData
+        _chapterHistory["currentRound"] = self.cn + 1
+        _chapterHistory["roomId"] = self.info["roomId"]
 
-        self.callOtherClientsFunction("Settlement", _args)
-        self.base.cellToBase({"func": "settlement", "playerData": _toBaseArgs})
-        self.changeChapterState(2)
         # 金币场结算后检测玩家的金币数是否为零
         if self.info["roomType"] == "gold":
             self.check_gold()
@@ -1253,22 +1263,10 @@ class RoomType1(RoomBase):
             if item == 1:
                 self.player_leave_info = []
                 self.total_settlement()
-        # TODO
-        _chapterHistory = _chapter["chapterHistory"]
-        _chapterData = {}
-        for k, v in _playerInGame.items():
-            _playerData = {"accountName": v["entity"].info["name"], "cards": v["cards"], "goldChange": -v["totalBet"],
-                           "cardType": ZJHCalculator.calculatorCard(v["cards"]),
-                           "headImageUrl": v["entity"].info["headImageUrl"]}
-            _chapterData[k] = _playerData
-            # 更新分数控制
-            v["entity"].update_score_control(-v['totalBet'])
 
-
-
-        _chapterHistory["chapterData"] = _chapterData
-        _chapterHistory["currentRound"] = self.cn + 1
-        _chapterHistory["roomId"] = self.info["roomId"]
+        self.callOtherClientsFunction("Settlement", _args)
+        self.base.cellToBase({"func": "settlement", "playerData": _toBaseArgs})
+        self.changeChapterState(2)
         self.settlement_count += 1
         if self.settlement_count == 1:
             self.base.cellToBase({'func': 'addTodayRoom'})
@@ -1356,11 +1354,11 @@ class RoomType1(RoomBase):
                 else _chapter["muffledCardBet"]
         # 1 下注成功
         drap_success = self.drop_bet(accountId, follow_bet_count)
-        if not drap_success:
-            self.callClientFunction(accountId, 'Notice', ['金币不足，无法进行比牌'])
-            _chapter["currentLocationIndex"] -= 1
-            self.changeOperation()
-            return
+        # if not drap_success:
+        #     self.callClientFunction(accountId, 'Notice', ['金币不足，无法进行比牌'])
+        #     _chapter["currentLocationIndex"] -= 1
+        #     self.changeOperation()
+        #     return
         _cards1 = _playerInGame[accountId]["cards"]
         _cards2 = _playerInGame[operatedAccountId]["cards"]
         # 1 比牌结果
