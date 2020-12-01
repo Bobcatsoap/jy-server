@@ -623,6 +623,26 @@ class TeaHouseManager(Manger):
                 _rooms = tea_house_entity.get_rooms_with_page(room_type, anonymity, page_index, started_disappear)
                 DEBUG_MSG("-------------rooms-------------------")
                 DEBUG_MSG(_rooms)
+                import time
+                start_time = time.time()
+                room_robot_count = self.get_room_robot_count(room_type)
+                end_time = time.time()
+                DEBUG_MSG("耗时----%s秒" % str(end_time - start_time))
+                room_robot_count_list = self.split_integer(room_robot_count, 6)
+                if score_level < 0:
+                    room_robot_count = room_robot_count_list[0]
+                if score_level > 0 and score_level < 1:
+                    room_robot_count = room_robot_count_list[1]
+                if score_level >= 1 and score_level < 2:
+                    room_robot_count = room_robot_count_list[2]
+                if score_level >=2 and score_level < 3:
+                    room_robot_count = room_robot_count_list[3]
+                if score_level >= 3 and score_level < 5:
+                    room_robot_count = room_robot_count_list[4]
+                if score_level >= 5 and score_level < 10:
+                    room_robot_count = room_robot_count_list[5]
+                if score_level >= 10:
+                    room_robot_count = room_robot_count_list[6]
                 if score_level > 0:
                     DEBUG_MSG("score_level")
                     import collections
@@ -645,11 +665,6 @@ class TeaHouseManager(Manger):
                 _total_room_count = len(
                     tea_house_entity.get_rooms_with_room_type(room_type, anonymity, started_disappear,score_level))
                 _data = {"rooms": _rooms, "totalPage": _total_page, "roomCount": _total_room_count}
-                import time
-                start_time = time.time()
-                room_robot_count = self.get_room_robot_count(room_type)
-                end_time = time.time()
-                DEBUG_MSG("耗时----%s秒" % str(end_time-start_time))
                 _data['room_robot_count'] = room_robot_count
                 DEBUG_MSG('----datas')
                 DEBUG_MSG(_data)
@@ -662,7 +677,7 @@ class TeaHouseManager(Manger):
     def get_room_robot_count(self, roomtype):
         room_robot_count = 0
         import pymysql
-        conn = pymysql.connect('localhost', 'root', '123456', 'game')
+        conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
         cursor = conn.cursor()
 
         sql = "select * from room_robot where room_type='%s'" % str(roomtype)
@@ -676,6 +691,16 @@ class TeaHouseManager(Manger):
             room_robot_count = room_robot_record[2]
         DEBUG_MSG('room_robot_record-----%s' % str(room_robot_count))
         return room_robot_count
+
+    def split_integer(self, m, n):
+        assert n > 0
+        quotient = int(m / n)
+        remainder = m % n
+        if remainder > 0:
+            return [quotient] * (n - remainder) + [quotient + 1] * remainder
+        if remainder < 0:
+            return [quotient - 1] * -remainder + [quotient] * (n + remainder)
+        return [quotient] * n
 
 
     def get_tea_house_player_team_game_coin(self, tea_house_id, account_dbid):
