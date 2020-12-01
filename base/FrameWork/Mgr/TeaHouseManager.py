@@ -628,7 +628,7 @@ class TeaHouseManager(Manger):
                 room_robot_count = self.get_room_robot_count(room_type)
                 end_time = time.time()
                 DEBUG_MSG("耗时----%s秒" % str(end_time - start_time))
-                room_robot_count_list = self.split_integer(room_robot_count, 6)
+                room_robot_count_list = self.split_integer(room_robot_count, 7)
                 if score_level < 0:
                     room_robot_count = room_robot_count_list[0]
                 if score_level > 0 and score_level < 1:
