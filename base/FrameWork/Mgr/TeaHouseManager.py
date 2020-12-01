@@ -623,10 +623,14 @@ class TeaHouseManager(Manger):
                     import collections
                     new_rooms = collections.OrderedDict()
                     for k, v in _rooms.items():
+                        if v['type'] == "RoomType1" or v['type'] == "RoomType4":
+                            base_score = v["betBase"]
+                        else:
+                            base_score = v["baseScore"]
                         DEBUG_MSG("-------------rooms----k----------%s" % str(k))
                         DEBUG_MSG("-------------rooms------gameLevel--------%s" % str(v['gameLevel']))
                         DEBUG_MSG(v)
-                        if float(v['gameLevel']) == float(score_level):
+                        if float(base_score) == float(score_level):
                             new_rooms[k] = v
                     _rooms = new_rooms
                 # 页数
