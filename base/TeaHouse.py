@@ -1846,13 +1846,13 @@ class TeaHouse(KBEngine.Entity):
                 if not room_type:
                     if v.info["anonymity"] == anonymity:
                         if score_level > 0:
-                            if int(v['gameLevel']) == int(score_level):
+                            if float(v.info['gameLevel']) == float(score_level):
                                 _rooms[k] = v
                         else:
                             _rooms[k] = v
                 elif v.info["type"] == room_type and v.info["anonymity"] == anonymity:
                     if score_level > 0:
-                        if int(v['gameLevel']) == int(score_level):
+                        if float(v.info['gameLevel']) == float(score_level):
                             _rooms[k] = v
                     else:
                         _rooms[k] = v

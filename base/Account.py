@@ -145,6 +145,8 @@ class Account(KBEngine.Proxy):
 
     surplus_total_count = 0  # 保险箱余额
 
+    room_robot_count = 0  # 机器人房间数量
+
 
 
     def __init__(self):
@@ -1534,6 +1536,7 @@ class Account(KBEngine.Proxy):
             self.get_player_battle_score(_args['teaHouseId'], _args['accountDBID'], _args['pageIndex'])
         # 请求桌子
         elif _func_name == "GetTeaHouseRoomsWithPageIndex":
+            self.get_room_robot_count(_args)
             self.tea_house_mgr.get_tea_house_rooms_with_page_index(self.databaseID, _args)
         elif _func_name == 'GetUrlAddress':
             url_type = None

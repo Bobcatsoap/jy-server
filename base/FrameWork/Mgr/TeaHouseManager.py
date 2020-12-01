@@ -599,7 +599,7 @@ class TeaHouseManager(Manger):
         score_level = args.get("score_level")
         if not score_level:
             score_level = 0
-        if int(score_level) <= 0:
+        if float(score_level) <= 0:
             score_level = 0
 
         tea_house_entity = self.get_tea_house_with_id(tea_house_id)
@@ -626,7 +626,7 @@ class TeaHouseManager(Manger):
                         DEBUG_MSG("-------------rooms----k----------%s" % str(k))
                         DEBUG_MSG("-------------rooms------gameLevel--------%s" % str(v['gameLevel']))
                         DEBUG_MSG(v)
-                        if int(v['gameLevel']) == int(score_level):
+                        if float(v['gameLevel']) == float(score_level):
                             new_rooms[k] = v
                     _rooms = new_rooms
                 # 页数
