@@ -627,8 +627,9 @@ class TeaHouseManager(Manger):
                             base_score = v["betBase"]
                         else:
                             base_score = v["baseScore"]
+                        DEBUG_MSG("-------------score_level-------------%s" % str(score_level))
                         DEBUG_MSG("-------------rooms----k----------%s" % str(k))
-                        DEBUG_MSG("-------------rooms------gameLevel--------%s" % str(v['gameLevel']))
+                        DEBUG_MSG("-------------rooms------gameLevel--------%s" % str(base_score))
                         DEBUG_MSG(v)
                         if float(base_score) == float(score_level):
                             new_rooms[k] = v

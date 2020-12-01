@@ -1847,9 +1847,9 @@ class TeaHouse(KBEngine.Entity):
                     if v.info["anonymity"] == anonymity:
                         if score_level > 0:
                             if v.info['type'] == "RoomType1" or v.info['type'] == "RoomType4":
-                                base_score = v["betBase"]
+                                base_score = v.info["betBase"]
                             else:
-                                base_score = v["baseScore"]
+                                base_score = v.info["baseScore"]
                             if float(base_score) == float(score_level):
                                 _rooms[k] = v
                         else:
@@ -1857,9 +1857,9 @@ class TeaHouse(KBEngine.Entity):
                 elif v.info["type"] == room_type and v.info["anonymity"] == anonymity:
                     if score_level > 0:
                         if v.info['type'] == "RoomType1" or v.info['type'] == "RoomType4":
-                            base_score = v["betBase"]
+                            base_score = v.info["betBase"]
                         else:
-                            base_score = v["baseScore"]
+                            base_score = v.info["baseScore"]
                         if base_score == float(score_level):
                             _rooms[k] = v
                     else:
