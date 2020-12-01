@@ -8,7 +8,7 @@ import DBCommand
 import Const
 from FrameWork.Mgr import Manger
 from KBEDebug import DEBUG_MSG, ERROR_MSG
-
+import Functor
 from TeaHouse import TeaHousePlayerLevel
 
 
@@ -45,7 +45,10 @@ class TeaHouseManager(Manger):
     need_permission = 0
     mainTimerId = -1
     tomorrowStartTimer = -1
-    room_robot_count = 0
+    room1_robot_count = 0
+    room4_robot_count = 0
+    room12_robot_count = 0
+    room13_robot_count = 0
 
 
     def __init__(self):
@@ -641,36 +644,39 @@ class TeaHouseManager(Manger):
                 # 此类型的总房间数
                 _total_room_count = len(
                     tea_house_entity.get_rooms_with_room_type(room_type, anonymity, started_disappear,score_level))
-                _data = {"rooms": _rooms, "totalPage": _total_page, "roomCount": _total_room_count, "room_robot_count": 0}
-                self.get_room_robot_count(room_type, tea_house_id, _data)
+                _data = {"rooms": _rooms, "totalPage": _total_page, "roomCount": _total_room_count}
+                import time
+                start_time = time.time()
+                room_robot_count = self.get_room_robot_count(room_type)
+                end_time = time.time()
+                DEBUG_MSG("耗时----%s秒" % str(end_time-start_time))
+                _data['room_robot_count'] = room_robot_count
                 DEBUG_MSG('----datas')
                 DEBUG_MSG(_data)
                 account_manager().get_account(requester).call_client_func("GetTeaHouseRoomsWithPageIndex", _data)
-                self.room_robot_count = 0
             else:
                 account_manager().get_account(requester).call_client_func("Notice", ['玩家不存在'])
         else:
             account_manager().get_account(requester).call_client_func("Notice", ['冠名赛不存在'])
 
-    def get_room_robot_count(self, roomType, tea_house_id, _data):
-        room_type = roomType
-        tea_house_id = tea_house_id
-        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
-        if not tea_house_entity:
-            return
+    def get_room_robot_count(self, roomtype):
+        room_robot_count = 0
+        import pymysql
+        conn = pymysql.connect('localhost', 'root', '123456', 'game')
+        cursor = conn.cursor()
 
-        def callback(result, rows, insertid, error):
-            DEBUG_MSG("get_room_robot_count-------")
-            DEBUG_MSG(result)
-            if not result or len(result) <= 0:
-                pass
-            else:
-                self.room_robot_count = int(result[0][2])
+        sql = "select * from room_robot where room_type='%s'" % str(roomtype)
+        cursor.execute(sql)
+        room_robot_record = cursor.fetchone()
+        DEBUG_MSG('room_robot_record-----')
+        DEBUG_MSG(room_robot_record)
+        if not room_robot_record:
+            pass
+        else:
+            room_robot_count = room_robot_record[2]
+        DEBUG_MSG('room_robot_record-----%s' % str(room_robot_count))
+        return room_robot_count
 
-        common_sql = "select * from room_robot where room_type='%s'" % room_type
-        DEBUG_MSG("get_room_robot_count-------sql %s " % str(common_sql))
-        KBEngine.executeRawDatabaseCommand(common_sql, callback)
-        _data['room_robot_count'] = self.room_robot_count
 
     def get_tea_house_player_team_game_coin(self, tea_house_id, account_dbid):
         DEBUG_MSG("get_tea_house_player_team_game_coin teaHouseId:%s,account_dbid:%s" % (tea_house_id, account_dbid))
