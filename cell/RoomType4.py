@@ -253,8 +253,8 @@ class RoomType4(RoomBase):
         elif self.info["roomType"] == "gameCoin":
             _player["score"] = accountEntity.accountMutableInfo["gameCoin"]
             # 如果是锅子模式, 等于门槛
-            if self.pot:
-                _player["score"] = self.info['gameLevel']
+            # if self.pot:
+            #     _player["score"] = self.info['gameLevel']
         return _player
 
     def onEnter(self, accountEntityId):
@@ -2108,11 +2108,11 @@ class RoomType4(RoomBase):
             if new_banker['score'] >= self.info['potScore']:
                 # 锅底还给庄家
                 self.old_banker['score'] += chapter['potStake']
-                if new_banker_id == self.old_banker_account_id:
-                    # 大结算
-                    self.total_settlement()
-                    self.write_chapter_info_to_db()
-                    return
+                # if new_banker_id == self.old_banker_account_id:
+                #     # 大结算
+                #     self.total_settlement()
+                #     self.write_chapter_info_to_db()
+                #     return
                 self.old_banker = None
                 self.old_banker_account_id = None
                 # 定新庄家

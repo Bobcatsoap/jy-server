@@ -2133,6 +2133,9 @@ class RoomManager(Manger):
 
         if info['pot']:
             info['maxChapterCount'] = 20
+            # info['gameLevel'] = info['potScore']
+            # 锅子玩法离场分为0
+            info['endScore'] = 0
             pass
             # 锅子玩法离场分为0
             # info['endScore'] = 0
