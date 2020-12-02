@@ -2330,12 +2330,7 @@ class RoomType4(RoomBase):
         _playerInRoom = _chapter["playerInRoom"]
         _player = _playerInRoom[account_id]
 
-        # 如果是锅子模式，恢复比赛分
-        if self.pot:
-            remain_score = _player["entity"].accountMutableInfo["gameCoin"] - self.info['gameLevel']
-            _player["entity"].accountMutableInfo["gameCoin"] = remain_score + int(_player['score'])
-        else:
-            _player["entity"].accountMutableInfo["gameCoin"] = _player["score"]
+        _player["entity"].accountMutableInfo["gameCoin"] = _player["score"]
         _player["entity"].base.cellToBase({"func": "setAccountMutableInfo", "dic": {
             "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
             "type": "gameCoin",

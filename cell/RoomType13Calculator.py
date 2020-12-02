@@ -198,9 +198,13 @@ def check_single_1_must_2(pre_play_cards, this_play_cards, cards, room_info):
     cards_number = convert_cards_to_value(cards)
     # 获取本次出牌类型
     this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
+
+    check_single_1_must_2
     # 如果上个玩家出牌是单A，并且手里有2，判断本次是否是2
     if pre_play_cards_type == CardType.Com_Single and pre_play_cards_number[0] == 14 and 15 in cards_number:
         if this_play_cards_type == CardType.Com_Single and this_play_cards_number[0] == 15:
+            return True
+        if check_single_1_must_2 == CardType.Lin_MaxBoomForFour or check_single_1_must_2 == CardType.Lin_FourBoom:
             return True
         else:
             return False
@@ -226,6 +230,8 @@ def check_single_k_must_1(pre_play_cards, this_play_cards, cards, room_info):
     # 如果上个玩家出牌是单K，并且手里有A，判断本次是否是A
     if pre_play_cards_type == CardType.Com_Single and pre_play_cards_number[0] == 13 and 14 in cards_number:
         if this_play_cards_type == CardType.Com_Single and this_play_cards_number[0] == 14:
+            return True
+        if this_play_cards_type == CardType.Lin_FourBoom:
             return True
         timeCard = 0
         for _p in cards_number:
