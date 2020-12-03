@@ -61,7 +61,7 @@
         </proxyType>
         <!--玩家的金币数-->
         <gold>
-            <Type>              INT32       </Type>
+            <Type>              FLOAT       </Type>
             <Flags>             BASE        </Flags>
             <Default>                       </Default>
             <Persistent>        true        </Persistent>

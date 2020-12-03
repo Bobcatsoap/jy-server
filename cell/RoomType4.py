@@ -255,6 +255,9 @@ class RoomType4(RoomBase):
             # 如果是锅子模式, 等于门槛
             # if self.pot:
             #     _player["score"] = self.info['gameLevel']
+        DEBUG_MSG('roomType4进入新玩家')
+        DEBUG_MSG(_player)
+        DEBUG_MSG(accountEntity.accountMutableInfo)
         return _player
 
     def onEnter(self, accountEntityId):
@@ -595,7 +598,7 @@ class RoomType4(RoomBase):
                        "hasMatchCard": v["hasMatchCard"], "userId": v["entity"].info["userId"],
                        'totalGoldChange': v['totalGoldChange'],
                        # 发送下注倍数
-                       "calculateMode": v["calculateMode"], "stake": int(v["stake"] / self.info['betBase']),
+                       "calculateMode": v["calculateMode"], "stake": round(float(v["stake"] / self.info['betBase']), 2),
                        "ip": v["entity"].info["ip"],
                        "onLine": not v['entity'].client_death,
                        "headImageUrl": v["entity"].info["headImageUrl"], "addOn": v["entity"].info["addOn"]}
@@ -611,7 +614,7 @@ class RoomType4(RoomBase):
                            'totalGoldChange': v['totalGoldChange'],
                            "hasMatchCard": v["hasMatchCard"], "ready": v["ready"], "userId": v["entity"].info["userId"],
                            # 发送下注倍数
-                           "calculateMode": v["calculateMode"], "stake": int(v["stake"] / self.info['betBase']),
+                           "calculateMode": v["calculateMode"], "stake": round(float(v["stake"] / self.info['betBase']), 2),
                            "ip": v["entity"].info["ip"],
                            "onLine": not v['entity'].client_death,
                            "headImageUrl": v["entity"].info["headImageUrl"], "addOn": v["entity"].info["addOn"]}
@@ -704,7 +707,7 @@ class RoomType4(RoomBase):
                        "name": v["entity"].info["name"], "grabBanker": v["grabBanker"],
                        "hasMatchCard": v["hasMatchCard"], "ready": v["ready"], "userId": v["entity"].info["userId"],
                        # 发送下注倍数
-                       "calculateMode": v["calculateMode"], "stake": int(v["stake"] / self.info['betBase']),
+                       "calculateMode": v["calculateMode"], "stake": round(float(v["stake"] / self.info['betBase']), 2),
                        "ip": v["entity"].info["ip"],
                        "headImageUrl": v["entity"].info["headImageUrl"], "addOn": v["entity"].info["addOn"]}
             _playerOutGameNotEntity[int(k)] = _player
@@ -1423,7 +1426,7 @@ class RoomType4(RoomBase):
                 entity_id = proportion_list[i][0]
                 pro = proportion_list[i][1]
                 # 这个人的退款=这个人的赢钱比例*总退款
-                _refund = int(pro * total_refund_banker)
+                _refund = round(float((pro * total_refund_banker)), 2)
                 _playerInGame[entity_id]['score'] -= _refund
                 _playerInGame[entity_id]['goldChange'] -= _refund
                 remaining_refund_banker -= _refund
@@ -1494,9 +1497,9 @@ class RoomType4(RoomBase):
                 # v['totalGoldChange'] = int(v['totalGoldChange'])
 
                 v["goldChange"] -= settlement_winner_billing
-                v["goldChange"] = int(v["goldChange"])
+                v["goldChange"] = round(float(v["goldChange"]), 2)
                 v['score'] -= settlement_winner_billing
-                v['score'] = int(v['score'])
+                v['score'] = round(float(v["score"]), 2)
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
@@ -1508,7 +1511,7 @@ class RoomType4(RoomBase):
         for k, v in _playerInGame.items():
             # 这个玩家的总金币变化 += 这次金币变化
             v["totalGoldChange"] += v["goldChange"]
-            _playData = {"accountId": k, "goldChange": int(v["goldChange"]),
+            _playData = {"accountId": k, "goldChange": round(float(v["goldChange"]), 2),
                          'totalGoldChange': v['totalGoldChange'],
                          "cardType": v["cardType"], "cards": v["cards"], "gold": self.get_true_gold(v['entity'].id)}
             _args[k] = _playData
@@ -1621,7 +1624,7 @@ class RoomType4(RoomBase):
                 chapter_data.append(player_data)
                 # 重连发送下注倍数
                 replay_player_data = {"accountId": k, "accountName": v["entity"].info["name"],
-                                      "stake": int(v["stake"] / self.info['betBase']), "cards": v["cards"],
+                                      "stake": round(float(v["stake"] / self.info['betBase']), 2), "cards": v["cards"],
                                       "cardType": v["cardType"],
                                       "dataBaseId": v["entity"].info["dataBaseId"], "grabBanker": v["grabBanker"],
                                       "locationIndex": int(v["locationIndex"]),
@@ -1873,7 +1876,7 @@ class RoomType4(RoomBase):
                               "hasMatchCard": v["hasMatchCard"],
                               "locationIndex": v["locationIndex"],
                               # 发送下注倍数
-                              "stake": int(v["stake"] / self.info['betBase']),
+                              "stake":  round(float(v["stake"] / self.info['betBase']), 2),
                               "gold": self.get_true_gold(v['entity'].id),
                               "grabBanker": v["grabBanker"],
                               "cards": v["cards"],

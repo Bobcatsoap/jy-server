@@ -503,11 +503,11 @@ class Account(KBEngine.Proxy):
         for key in pyDic.keys():
             DEBUG_MSG('[setAccountMutableInfo key %s]------>cellToBase jsonData %s' % (str(key), str(pyDic)))
             if key == "gold":
-                self.gold = int(pyDic["gold"])
+                self.gold = round(float(pyDic["gold"]), 1)
                 self.ret_gold()
                 self.ret_gold()
             elif key == 'score':
-                self.gold = int(pyDic["score"])
+                self.gold = round(float(pyDic["score"]), 1)
                 self.ret_gold()
             elif key == "gameCoin":
                 tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(int(pyDic["teaHouseId"]))
@@ -515,9 +515,9 @@ class Account(KBEngine.Proxy):
                 if tea_house_entity:
                     # if not tea_house_entity.gameCoinSwitch:
                     #     return
-                    self.gold = int(pyDic["gameCoin"])
+                    self.gold = round(float(pyDic["gameCoin"]), 1)
                     DEBUG_MSG('[setAccountMutableInfo]------>cellToBase self.gold %s' % str(self.gold))
-                    tea_house_entity.set_game_coin(self.databaseID, int(pyDic["gameCoin"]))
+                    tea_house_entity.set_game_coin(self.databaseID, round(float(pyDic["gameCoin"]), 1))
                     self.ret_gold()
 
     def set_account_total_gold_change(self, pyDic):
@@ -601,7 +601,7 @@ class Account(KBEngine.Proxy):
         elif _func_name == 'reconnectRoom':
             # 通知客户端返回房间
             self.call_client_func("reconnectRoom", pyDic['args'])
-        elif _func_name == 'setDayGoodPaiCount':
+        elif _func_name == '':
             good_pai_count = int(pyDic['goodPaiCount'])
             if self.good_pai_count != good_pai_count:
                 self.good_pai_count = good_pai_count
@@ -1768,7 +1768,7 @@ class Account(KBEngine.Proxy):
                     account_db_id_s.append(k)
             elif all_selected == 0:
                 account_db_id_s = _args['playerDBId']
-            add_game_coin = int(_args['game_coin'])
+            add_game_coin = round(float(_args['game_coin']),1)
             # 如果合伙人比赛币这个字段存在，则证明是合伙人上分，判断合伙人分数是否足够
             if flag == 1:
                 if not partner_game_coin >= len(account_db_id_s) * add_game_coin:
@@ -3613,7 +3613,7 @@ class Account(KBEngine.Proxy):
         if account_db_id != self.databaseID:
             self.call_client_func('Notice', ['只能存储自己的金币'])
             return
-        deposit_gold = int(deposit_gold)
+        deposit_gold = float(deposit_gold)
         if deposit_gold <= 0:
             self.call_client_func('Notice', ['存入金额错误'])
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
@@ -3642,7 +3642,7 @@ class Account(KBEngine.Proxy):
                 if result:  # 记录存在, 加钱
                     # 剩余金币
                     surplus_count = result[0][2]
-                    surplus_count = int(surplus_count)
+                    surplus_count =  round(float(surplus_count), 1)
                     surplus_total_count = surplus_count+deposit_gold
                     self.surplus_total_count = surplus_total_count
                     common_sql = "UPDATE safe_deposit_box set count=%s, addtime=%s where accountDBID=%s" % (surplus_total_count, int(time.time()), account_db_id)
@@ -3669,7 +3669,7 @@ class Account(KBEngine.Proxy):
         if account_db_id != self.databaseID:
             self.call_client_func('Notice', ['只能取出自己的金币'])
             return
-        task_out_gold = int(task_out_gold)
+        task_out_gold = float(task_out_gold)
         if task_out_gold <= 0:
             self.call_client_func('Notice', ['取出金额错误'])
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
@@ -3822,8 +3822,8 @@ class Account(KBEngine.Proxy):
                 KBEngine.executeRawDatabaseCommand(sql_command, None)
                 self.sava_extract_commission(account_db_id, extractMoney)
                 self.call_client_func("extractCommissionResult", {"status": 1, "message": "提取成功"})
-                self.account_mgr.give_gold_modify(self.databaseID, int(extractMoney), tea_house_id)
-                tea_house_entity.set_game_coin(self.databaseID, self.gold + int(extractMoney))
+                self.account_mgr.give_gold_modify(self.databaseID, float(extractMoney), tea_house_id)
+                tea_house_entity.set_game_coin(self.databaseID, self.gold + float(extractMoney))
             except:
                 self.call_client_func("extractCommissionResult", {"status": 0, "message": "提取失败"})
         sql_command = "select count, performanceDetail from commssion_total where superior=%s" % account_db_id
@@ -3898,7 +3898,7 @@ class Account(KBEngine.Proxy):
             total = 0
             for info in result:
                 gold = info[3]
-                total += int(gold)
+                total += round(float(gold), 1)
             self.player_give_gold = total
         command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where player_id=%s' % player_id
 

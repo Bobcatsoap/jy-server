@@ -1815,11 +1815,11 @@ class RoomBase(KBEngine.Entity):
             DEBUG_MSG('RoomType4 大局抽水 抽水金额 billing %s' % total_settlement_winner_billing)
             DEBUG_MSG('RoomType4 大局抽水 抽水前 totalGoldChange %s' % v["totalGoldChange"])
             v['totalGoldChange'] -= total_settlement_winner_billing
-            v['totalGoldChange'] = int(v['totalGoldChange'])
+            v['totalGoldChange'] = round(float(v['totalGoldChange']), 2)
             DEBUG_MSG('RoomType4 大局抽水 抽水后 totalGoldChange %s' % v["totalGoldChange"])
             DEBUG_MSG('RoomType4 大局抽水 抽水前 gold %s' % v["score"])
             v['score'] -= total_settlement_winner_billing
-            v['score'] = int(v['score'])
+            v['score'] =  round(float(v['score']), 2)
             DEBUG_MSG('RoomType4 大局抽水 抽水后 gold %s' % v["score"])
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
