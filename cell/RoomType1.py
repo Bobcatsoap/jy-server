@@ -934,10 +934,10 @@ class RoomType1(RoomBase):
             # 1 看牌底注
             _chapter["lookCardBet"] = addBetSum
             # 1 焖牌底注
-            _chapter["muffledCardBet"] = int(addBetSum / 2)
+            _chapter["muffledCardBet"] = round(float(addBetSum / 2), 1)
             _bet = _chapter["lookCardBet"]
         else:
-            _chapter["lookCardBet"] = int(addBetSum * 2)
+            _chapter["lookCardBet"] = round(float(addBetSum * 2), 1)
             _chapter["muffledCardBet"] = addBetSum
             _bet = _chapter["muffledCardBet"]
         # 1 关闭下注计时器
@@ -1089,7 +1089,7 @@ class RoomType1(RoomBase):
             # DEBUG_MSG('[Room id %i]------>settlement totalBet:%s chapterTotalBet%s cutRatio%s' % (
             #     self.id, v["totalBet"], _chapterTotalBet, self.cutRatio))
             # 1 胜者的  总下注-牌局总下注  等于负的赢钱的价值
-            v["totalBet"] = int(v["totalBet"] - _chapterTotalBet)
+            v["totalBet"] =round(float(v["totalBet"] - _chapterTotalBet), 1)
             # 1 获取到赢家的牌型
             cards = _playerInGame[k]["cards"]
             cards_type = RoomType1Calculator.type_of_cards(cards, self.info) if \
@@ -1202,10 +1202,10 @@ class RoomType1(RoomBase):
                 DEBUG_MSG('RoomType1 settlement_winner_true_gold billing  玩家%s totalBet %s' % (str(v["entity"].info["name"]), -v["totalBet"]))
                 v['totalBet'] = -v["totalBet"] - settlement_winner_billing
                 DEBUG_MSG('RoomType1 settlement_winner_true_gold billing  玩家%s totalBet %s' % (str(v["entity"].info["name"]), -v["totalBet"]))
-                v['totalBet'] = int(v['totalBet']) * -1
+                v['totalBet'] = round(float(v['totalBet']), 1) * -1
 
                 v['score'] -= settlement_winner_billing
-                v['score'] = int(v['score'])
+                v['score'] = round(float(v['score']), 1)
                 DEBUG_MSG('RoomType1 settlement_winner_true_gold billing  玩家%s score %s' % (str(v["entity"].info["name"]), v['score']))
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
@@ -1645,7 +1645,7 @@ class RoomType1(RoomBase):
         _chapterInfo["currentRound"] = int(_chapter["currentRound"])
         _chapterInfo["currentState"] = int(_chapter["currentState"])
         _chapterInfo["currentLocationIndex"] = int(_chapter["currentLocationIndex"])
-        _chapterInfo["totalBet"] = int(_chapter["totalBet"])
+        _chapterInfo["totalBet"] = round(float(_chapter["totalBet"]), 1)
         _chapterInfo["deadline"] = int(_chapter["deadline"]) - int(time.time())
         _chapterInfo["banker"] = int(_chapter["banker"])
         _chapterInfo["started"] = self.started
