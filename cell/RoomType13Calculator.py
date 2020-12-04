@@ -118,8 +118,7 @@ def cards_is_bomb(cards, room_info):
     cards_number = convert_cards_to_value(cards)
     # 牌类型
     cards_type = get_cards_type(cards_number, room_info)
-    if (cards_type == CardType.Lin_FourBoomWithSingle or
-            cards_type == CardType.Lin_MaxBoomWithSingle or
+    if (cards_type == CardType.Lin_MaxBoomForFour or
             cards_type == CardType.Lin_FourBoom
             # cards_type == CardType.Lin_FourWithTwoSingle or
            # cards_type == CardType.Lin_FourWithThreeSingle or
@@ -172,8 +171,7 @@ def check_2_must_bomb(pre_play_cards, this_play_cards, cards, room_info):
     # 如果上个玩家出牌包含2，并且本玩家手牌里有炸弹
     if 15 in pre_play_cards_number and find_boom(cards_number, room_info):
         # 如果是任意一种炸弹，满足
-        if (this_play_cards_type == CardType.Lin_FourBoomWithSingle or
-                this_play_cards_type == CardType.Lin_MaxBoomWithSingle or
+        if (this_play_cards_type == CardType.Lin_MaxBoomForFour or
                 this_play_cards_type == CardType.Lin_FourBoom
 
         ):
@@ -231,7 +229,9 @@ def check_single_k_must_1(pre_play_cards, this_play_cards, cards, room_info):
     if pre_play_cards_type == CardType.Com_Single and pre_play_cards_number[0] == 13 and 14 in cards_number:
         if this_play_cards_type == CardType.Com_Single and this_play_cards_number[0] == 14:
             return True
-        if this_play_cards_type == CardType.Lin_FourBoom:
+        if this_play_cards_type == CardType.Lin_FourBoom or this_play_cards_type == CardType.Lin_MaxBoomForFour:
+            return True
+        if this_play_cards_type == CardType.Com_Single and this_play_cards_number[0] == 15:
             return True
         timeCard = 0
         for _p in cards_number:

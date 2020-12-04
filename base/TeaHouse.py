@@ -1022,6 +1022,8 @@ class TeaHouse(KBEngine.Entity):
         获取单个玩家的成员信息
         :return:
         """
+        DEBUG_MSG("1111111111111111")
+        DEBUG_MSG( self.memberInfo.items())
         for k, v in self.memberInfo.items():
             if account_db_id == k:
                 # 如果玩家实体有客户端，视为在线
@@ -1036,7 +1038,8 @@ class TeaHouse(KBEngine.Entity):
                                 "headImage": v.head_image,
                                 'origin_game_coin': v.origin_game_coin,
                                 'luckyCard': v.lucky_card,
-                                'freeze': self.is_freeze_player(account_db_id)
+                                'freeze': self.is_freeze_player(account_db_id),
+                                "proportion": v.proportion
                                 }
                 return members_info
         # members_info = {}

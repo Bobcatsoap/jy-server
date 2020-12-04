@@ -1116,11 +1116,6 @@ class RoomType12(RoomBase):
                 DEBUG_MSG('hu_player:%s,hu_score:%s' % (hu_player['entity'].info['name'], hu_score))
 
                 # 扣胡牌分
-            #    for _p in lose_range:
-            #        _p['goldChange'] -= hu_score
-           #         hu_player['goldChange'] += hu_score
-                    # _p['ziMoGold'] -= zi_mo_fen
-                    # hu_player['ziMoGold'] += zi_mo_fen
                 fish_score = self.info['fish'] if self.single_fish else self.info['fish'] * 2
                 for _player in _chapter[PLAYER_IN_GAME].values():
                     for _v in lose_range:
@@ -1133,9 +1128,6 @@ class RoomType12(RoomBase):
                         if _player['entity'].id == _v['entity'].id:
                             _player['goldChange'] += hu_score
                             _player['goldChange'] += fish_score
-            #    for fish_player in fish_range:
-            #        fish_player['goldChange'] -= fish_score
-             #       hu_player['goldChange'] += fish_score
 
             # 扣多少杠分
             gang_di = self.info['baseScore']
@@ -1179,16 +1171,9 @@ class RoomType12(RoomBase):
             for _p in _chapter[PLAYER_IN_GAME].values():
                 for _v in  no_hu_players:
                     if _p['entity'].id == _v['entity'].id:
-                        DEBUG_MSG('*****************************************************')
-                        DEBUG_MSG(_p)
-                        DEBUG_MSG("gold %s" % str(_p['gold']))
-                        DEBUG_MSG("goldChange %s" % str(_p['goldChange']))
-                        DEBUG_MSG("11111111111111111111111111111111goldChange %s" % str(_p['totalGoldChange'] * -1 + _p['goldChange'] * -1))
                         if _p['gold'] <= _p['totalGoldChange'] * -1  + _p['goldChange'] *-1 :
-                            DEBUG_MSG("9999999999999999999999999999999999")
                             _p['goldChange'] = _p['gold'] + _p['totalGoldChange']
                             _p['goldChange'] = _p['goldChange'] * -1
-                            DEBUG_MSG("999999999999999999999999999 %s" % str(_p['goldChange']))
                             LEFT_PLANY_COUNT = True
                             for _k in _chapter[PLAYER_IN_GAME].values():
                                 for _j in hu_players:
@@ -1199,7 +1184,6 @@ class RoomType12(RoomBase):
                                     DEBUG_MSG("88888888888888888888888888 %s" % str( _k['goldChange']))
         else:
             pass
-
 
 
         if self.info["roomType"] == "gameCoin":
@@ -1216,35 +1200,26 @@ class RoomType12(RoomBase):
             # 每小局结算大赢家抽水,保留整数
             # 获取大赢家
             settlement_winners = self.mj_get_settlement_winners()
-            DEBUG_MSG('-------------麻将大赢家一共有%s 个' % str(len(settlement_winners)))
             for location_index,v in settlement_winners.items():
-                DEBUG_MSG('-------------------------')
-                DEBUG_MSG(v)
-                DEBUG_MSG('-------------------------')
                 settlement_winner_account_id = v['entity'].id
-                # k:account_id v:winner字典
-                DEBUG_MSG('RoomType12 settlement_winner_account_id 玩家id %s name %s' % (
-                str(settlement_winner_account_id), str(v["entity"].info["name"])))
                 # 计算大赢家小局抽水
                 settlement_winner_true_gold = self.mj_get_true_gold(settlement_winner_account_id)
-                DEBUG_MSG('RoomType12 settlement_winner_true_gold billing  玩家真实金币%s' % settlement_winner_true_gold)
-                DEBUG_MSG('RoomType12 settlementBilling billing 抽水比例 %s' % self.info['settlementBilling'])
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
-                DEBUG_MSG('RoomType12 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
-                # v['totalGoldChange'] -= settlement_winner_billing
-                # v['totalGoldChange'] = int(v['totalGoldChange'])
 
                 v["goldChange"] -= settlement_winner_billing
-                v["goldChange"] = int(v["goldChange"])
+                v["goldChange"] = round(float(v["goldChange"]), 1)
 
                 v["gold"] -= settlement_winner_billing
-                v["gold"] = int(v["gold"])
+                v["gold"] = round(float(v["gold"]), 1)
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
                                       "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType12")})
 
                 # 赋值总金币改变
+
+
+
         for _p in _chapter[PLAYER_IN_GAME].values():
             _p['totalGoldChange'] += _p['goldChange']
             #  _p['gold'] = _p['gold'] +_p['goldChange']
@@ -1286,6 +1261,8 @@ class RoomType12(RoomBase):
                 self.base.cellToBase({'func': 'AAPayTypeModifyRoomCard', 'needConsumePlayers': need_consume_player})
 
         # 统计全局数据
+
+
         self.global_data(players)
         self.sync_true_gold()
         self.settlement_count += 1

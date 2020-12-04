@@ -69,9 +69,9 @@ class Account(KBEngine.Proxy):
     # 性别
     gender = 0
     # 钻石数量
-    roomCard = 10
+    roomCard = 0
     # 元宝
-    goldIngot = 10
+    goldIngot = 0
     # 经度
     longitude = 0
     # 纬度
@@ -3459,7 +3459,7 @@ class Account(KBEngine.Proxy):
                 DEBUG_MSG("change_command_sql %s " % str(command_sql))
                 KBEngine.executeRawDatabaseCommand(command_sql)
                 self.call_client_func("giveGoldSuccess", ["赠送金币成功"])
-                player_gold = int(result[0][9])
+                player_gold = round(float(result[0][9]), 1)
                 tea_houses = self.tea_house_mgr.get_tea_houses_by_account_dbid(playerId)
                 for k, v in tea_houses.items():
                     new_tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(v.teaHouseId)

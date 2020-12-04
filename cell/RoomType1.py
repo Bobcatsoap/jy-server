@@ -1111,58 +1111,6 @@ class RoomType1(RoomBase):
                         n["totalBet"] += self.info["leopardXiQian"]
                         v["totalBet"] -= self.info["leopardXiQian"]
 
-            # v["totalBet"] = int((v["totalBet"] - _chapterTotalBet) * (1 - self.cutRatio / 100))
-
-        # _args = {}
-        # _toBaseArgs = dict()
-        # for k, v in _playerInGame.items():
-        #     cards = _playerInGame[k]["cards"]
-        #     cards_type = RoomType1Calculator.type_of_cards(cards, self.info) if \
-        #         type(RoomType1Calculator.type_of_cards(cards, self.info)) == float or \
-        #         type(RoomType1Calculator.type_of_cards(cards, self.info)) == int else -1
-        #     # 1 总金币变化等于 下注总额
-        #     DEBUG_MSG('goldChange -----------------%i' % v["totalGoldChange"])
-        #     v["totalGoldChange"] += -v["totalBet"]
-        #     _playerData = {"gold": v["score"] - v["totalBet"], "goldChange": -v["totalBet"], "cards": v["cards"],
-        #                    'totalGoldChange': v['totalGoldChange'],
-        #                    "type": cards_type}
-        #     _args[k] = _playerData
-        #     v["score"] = v["score"] - v["totalBet"]
-        #     _userId = v["entity"].info["userId"]
-        #     _toBaseArgs[_userId] = {"goldChange": -v["totalBet"]}
-        # # for k, v in _playerInGame.items():
-        #
-        # self.callOtherClientsFunction("Settlement", _args)
-        # self.base.cellToBase({"func": "settlement", "playerData": _toBaseArgs})
-        # self.changeChapterState(2)
-        # # 金币场结算后检测玩家的金币数是否为零
-        # if self.info["roomType"] == "gold":
-        #     self.check_gold()
-        #     pass
-        # else:
-        #     item =0
-        #     for k, v in _playerInGame.items():
-        #         if v["score"] <= 0:
-        #             self.player_leave_info.append({"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
-        #          "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
-        #          "winnerBilling": v["winnerBilling"], 'gold': v['score']})
-        #             self.set_base_player_game_coin(k)
-        #             self.callClientFunction(k, "Notice", ["金币不足"])
-        #         else:
-        #             item += 1
-        #     if item == 1:
-        #         self.player_leave_info = []
-        #         self.total_settlement()
-        # # TODO
-        # _chapterHistory = _chapter["chapterHistory"]
-        # _chapterData = {}
-        # for k, v in _playerInGame.items():
-        #     _playerData = {"accountName": v["entity"].info["name"], "cards": v["cards"], "goldChange": -v["totalBet"],
-        #                    "cardType": ZJHCalculator.calculatorCard(v["cards"]),
-        #                    "headImageUrl": v["entity"].info["headImageUrl"]}
-        #     _chapterData[k] = _playerData
-        #     # 更新分数控制
-        #     v["entity"].update_score_control(-v['totalBet'])
 
         if self.info["roomType"] == "gameCoin":
             # 首局结算抽水
@@ -1179,40 +1127,19 @@ class RoomType1(RoomBase):
             # 每小局结算大赢家抽水,保留整数  E小局抽水
             # 获取大赢家
             settlement_winners = self.jh_get_settlement_winners()
-            DEBUG_MSG('-------------炸金花大赢家一共有%s 个' % str(len(settlement_winners)))
             for location_index, v in settlement_winners.items():
-                DEBUG_MSG('-------------------------')
-                DEBUG_MSG(v)
-                DEBUG_MSG('-------------------------')
                 settlement_winner_account_id = v['entity'].id
-                # k:account_id v:winner字典
-                DEBUG_MSG('RoomType1 settlement_winner_account_id 玩家id %s name %s' % (str(settlement_winner_account_id), str(v["entity"].info["name"])))
                 # 计算大赢家小局抽水
                 settlement_winner_true_gold = self.jh_get_true_gold(settlement_winner_account_id)
-                DEBUG_MSG('RoomType1 settlement_winner_true_gold billing  玩家%s 真实金币%s' % (str(v["entity"].info["name"]), settlement_winner_true_gold))
-                DEBUG_MSG('RoomType1 settlementBilling billing 抽水比例 %s' % self.info['settlementBilling'])
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
-                DEBUG_MSG('RoomType1 settlement_winner 抽水金额 billing %s' % settlement_winner_billing)
-                DEBUG_MSG('RoomType1 settlement_winner_true_gold billing  玩家%s totalGoldChange1 %s' % (str(v["entity"].info["name"]), v['totalGoldChange']))
-                # v['totalGoldChange'] -= settlement_winner_billing
-                DEBUG_MSG('RoomType1 settlement_winner_true_gold billing  玩家%s totalGoldChange2 %s' % (str(v["entity"].info["name"]), v['totalGoldChange']))
-                # v['totalGoldChange'] = int(v['totalGoldChange'])
-                DEBUG_MSG('RoomType1 settlement_winner_true_gold billing  玩家%s totalGoldChange3 %s' % (str(v["entity"].info["name"]), v['totalGoldChange']))
-
-                DEBUG_MSG('RoomType1 settlement_winner_true_gold billing  玩家%s totalBet %s' % (str(v["entity"].info["name"]), -v["totalBet"]))
                 v['totalBet'] = -v["totalBet"] - settlement_winner_billing
-                DEBUG_MSG('RoomType1 settlement_winner_true_gold billing  玩家%s totalBet %s' % (str(v["entity"].info["name"]), -v["totalBet"]))
                 v['totalBet'] = round(float(v['totalBet']), 1) * -1
-
                 v['score'] -= settlement_winner_billing
                 v['score'] = round(float(v['score']), 1)
-                DEBUG_MSG('RoomType1 settlement_winner_true_gold billing  玩家%s score %s' % (str(v["entity"].info["name"]), v['score']))
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
                                       "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
-
-
         _args = {}
         _toBaseArgs = dict()
         for k, v in _playerInGame.items():
@@ -1270,6 +1197,9 @@ class RoomType1(RoomBase):
         self.settlement_count += 1
         if self.settlement_count == 1:
             self.base.cellToBase({'func': 'addTodayRoom'})
+
+
+
         # 如果是AA支付，扣除钻石
         if self.info['payType'] == Const.PayType.AA:
             # 需要扣除钻石的玩家

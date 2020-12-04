@@ -313,9 +313,8 @@ class TeaHouseManager(Manger):
         :return:
         """
         tea_house_entity = self.get_tea_house_with_id(tea_house_id)
-        account_entity = get_account_entity_with_db_id(account_db_id)
-        if account_entity and tea_house_entity:
-            return tea_house_entity.get_single_member_info(account_entity.userId)
+        if tea_house_entity:
+            return tea_house_entity.get_single_member_info(account_db_id)
 
     def search_tea_house_single_member_info(self, tea_house_id, searcher, key_word):
         """

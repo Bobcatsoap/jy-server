@@ -263,6 +263,11 @@ class RoomBase(KBEngine.Entity):
                     elif self.info['roomType'] == 'normalGameCoin':
                         if self.room_mgr.need_consume_card(self.info):
                             self.modify_player_room_card(account_db_id, -self.info['roomCardConsume'])
+        elif _func_name == "BigWinnerRoomCard":
+
+            account_db_id = pyDic['account_db_id']
+            DEBUG_MSG('account_db_id%s 修改者大赢家的uresID' % account_db_id)
+            self.modify_player_room_card(account_db_id, 1)
         # 解散代开房间
         elif _func_name == "disbandSubstituteRoom":
             creator_db_id = pyDic["creator"]
