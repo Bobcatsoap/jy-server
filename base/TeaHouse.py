@@ -1404,9 +1404,9 @@ class TeaHouse(KBEngine.Entity):
             on_fail("修改失败，权限不足")
             return
         _player = self.get_tea_house_player(modify_player_db_id)
-        # if proportion < _player.proportion:
-        #     on_fail("修改失败，抽水比例不能小于当前比例")
-        #     return
+        if proportion < _player.proportion:
+            on_fail("修改失败，抽水比例不能小于当前比例")
+            return
         _player.proportion = proportion
         self.memberInfoJson = self.get_member_info_json()
         on_success(self)
@@ -1756,6 +1756,8 @@ class TeaHouse(KBEngine.Entity):
                         down_player.belong_to = modify_player.belong_to
         DEBUG_MSG('----------------------new_level2 %s ' % str(new_level))
         modify_player.level = new_level
+        modify_player.proportion = 0
+        #modify_player. = 0
         self.memberInfoJson = self.get_member_info_json()
 
         self.update_single_member_info_to_client(modify_player_db_id)
@@ -2085,6 +2087,7 @@ class TeaHouse(KBEngine.Entity):
                      "invitationCode": v.invitation_code, "proportion": v.proportion,
                      "level": v.level,
                      'userId': v.db_id,
+                     "myGold": v.game_coin,
                      "performance": round(v.performance, 2),
                      'todayData': round(today_performance, 2),
                      'yesterdayData': round(yesterday_performance, 2),

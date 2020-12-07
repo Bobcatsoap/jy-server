@@ -1120,10 +1120,9 @@ class RoomType1(RoomBase):
                         DEBUG_MSG('RoomType1 billing_count not enough account_id:%s' % _p['entity'].id)
                         continue
                     billing_count = self.info['billingCount']
-                    # _p['totalGoldChange'] -= billing_count
                     _p['score'] -= billing_count
                     DEBUG_MSG('RoomType1 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
-
+                    self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
             # 每小局结算大赢家抽水,保留整数  E小局抽水
             # 获取大赢家
             settlement_winners = self.jh_get_settlement_winners()
