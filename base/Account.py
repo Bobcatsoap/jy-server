@@ -291,7 +291,7 @@ class Account(KBEngine.Proxy):
             # self.name = "游客" + self.databaseID
             self.name = "游客" + str(self.databaseID)
             self.headImageUrl = Const.AccountInfo.HeadImageUrl
-        self.gold = int(Const.GameConfigJson.config_json['Hall']['giftGoldCount'])
+        self.gold = float(Const.GameConfigJson.config_json['Hall']['giftGoldCount'])
         self.roomCard = float(Const.GameConfigJson.config_json['Hall']['giftDiamondCount'])
         self.goldIngot = float(Const.ServerGameConfigJson.config_json["Hall"]['giftGoldIngotCount'])
         self.userId = self.databaseID
@@ -3024,7 +3024,7 @@ class Account(KBEngine.Proxy):
         """
         if self.isBot and self.ip == '0':
             self.ip = self.rand_ip()
-        _args = {"accountName": self.name, "userId": self.userId, "gold": self.gold,
+        _args = {"accountName": self.name, "userId": self.userId, "gold": round(self.gold, 1) ,
                  "roomCard": round(self.roomCard, 2),
                  "goldIngot": round(self.goldIngot, 2),
                  "dataBaseId": self.databaseID,

@@ -1139,7 +1139,7 @@ class TeaHouse(KBEngine.Entity):
         """
         if modify_player not in self.memberInfo.keys():
             return
-        self.memberInfo[modify_player].game_coin = game_coin
+        self.memberInfo[modify_player].game_coin = round(float(game_coin),1)
         self.memberInfoJson = self.get_member_info_json()
         self.update_single_member_info_to_client(modify_player)
 
@@ -3300,7 +3300,7 @@ class TeaHousePlayer:
         self.winner = 0
         self.historyRooms = {}
         # 输赢分控制
-        self.game_coin = gold
+        self.game_coin = round(float(gold),1)
         self.score_control = False
         self.recent_score = 0
         # 输分开始干预阈值,赢分停止干预阈值，倍数
