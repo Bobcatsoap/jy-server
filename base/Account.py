@@ -1472,6 +1472,10 @@ class Account(KBEngine.Proxy):
             self.get_surplus_commission(_args)
             DEBUG_MSG('commission-------------:%s' % self.surplus_commission)
             self.get_commission(_args)
+        elif _func_name == "luck_draw": # 抽奖
+            self.luck_draw(_args)
+        elif _func_name == "luck_draw_record":  # 抽奖记录
+            self.luck_draw_record(_args)
         elif _func_name == "historyCommission":  # 历史佣金
             self.get_history_commission_record(_args)
         elif _func_name == "extractCommission":  # 提取佣金
@@ -1545,6 +1549,11 @@ class Account(KBEngine.Proxy):
         elif _func_name == 'DiamondConvertToGold':
             self.diamond_convert_to_gold(_args)
             pass
+        elif _func_name == 'PlayerLotteryConvertToGold':
+            self.player_lottery_to_gold(_args)
+        elif _func_name == "PlayerLotteryResultAddGold":
+            self.luck_draw(_args)  # 抽奖记录
+            # self.set_account_total_gold_change(_args)
         elif _func_name == 'GetToDoList':
             self.get_to_do_list()
         elif _func_name == 'ToDoListOperation':
@@ -2238,6 +2247,41 @@ class Account(KBEngine.Proxy):
             self.account_mgr.modify_room_card(self.userId, -diamond, consume_type='convertToGold')
             self.account_mgr.modify_gold(self.userId, gold_add)
             self.call_client_func('Notice', ['兑换成功'])
+        except KeyError as e:
+            ERROR_MSG('Account::diamond_convert_to_gold %s' % e)
+
+    def player_lottery_to_gold(self, args):
+        """
+        普通玩家用奖杯进行抽奖
+        :param args:
+        :return:
+        """
+        try:
+            diamond = args['diamondCount']
+            if diamond > self.roomCard:
+                self.call_client_func('Notice', ['奖杯不足'])
+                return
+            # 扣除2个奖杯数量
+            #consume = diamond * Const.GameConfigJson.config_json['Hall']['playerLotteryConsume']
+            self.account_mgr.modify_room_card(self.userId, -diamond, consume_type='convertToGold')
+            #  self.account_mgr.modify_gold(self.userId, gold_add)
+            index = 0
+            n = random.randint(1, 101)
+            if n <= 63:
+                index = 7
+            elif 63 < n <= 78:
+                index = 6
+            elif 78 < n <= 88:
+                index = 5
+            elif 88 < n <= 93:
+                index = 4
+            elif 93 < n <= 96:
+                index = 3
+            elif 96 < n <= 99:
+                index = 2
+            elif n == 100:
+                index = 1
+            self.call_client_func('PlayerLotteryResult', {'showIndex': index})
         except KeyError as e:
             ERROR_MSG('Account::diamond_convert_to_gold %s' % e)
 
@@ -3544,7 +3588,8 @@ class Account(KBEngine.Proxy):
                 item['count'] = int(info[3])
                 item['double_count'] = float(info[4])
                 item['room_type'] = str(info[6], 'utf-8')
-                record_info_list.append(item)
+                if item['double_count'] > 0.0:
+                    record_info_list.append(item)
             member_count = len(record_info_list)
             # 计算总页数
             DEBUG_MSG("========================================")
@@ -3559,7 +3604,7 @@ class Account(KBEngine.Proxy):
                 "memberCount": member_count,
             })
         command_sql = "select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance " \
-                      "where sm_superior=%s and sm_count!=0 order by sm_time desc " % account_db_id
+                      "where sm_superior=%s order by sm_time desc " % account_db_id
         # select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance where sm_superior =10216;
         DEBUG_MSG("[get_history_commission_record]command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
@@ -3875,19 +3920,56 @@ class Account(KBEngine.Proxy):
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
 
+    def luck_draw(self, _args):
+        tea_house_id = _args["teaHouseId"]
+        count = _args['count']
+        luck_type = _args['type']  # type  0 金币  1 手机
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            self.call_client_func('Notice', ['冠名赛不存在'])
+
+        name = tea_house_entity.get_tea_house_player(self.databaseID).name
+        command_sql = "INSERT INTO luck_draw(name, accountid, type, count) VALUES ('%s', %s,%s,%s)" % (name, self.databaseID, luck_type, count)
+        if luck_type == 0:
+            self.account_mgr.give_gold_modify(self.databaseID, count, tea_house_id)
+            tea_house_entity.set_game_coin(self.databaseID, self.gold + count)
+        else:
+            pass
+        self.call_client_func('LuckDrawBack', ['抽奖成功'])
+        KBEngine.executeRawDatabaseCommand(command_sql, None)
+
+    def luck_draw_record(self, _args):
+        command_sql = "select name,accountid,type,count from luck_draw"
+        DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
+        page_index = _args['pageIndex']
+        def callback(result, rows, insertid, error):
+            record_list = []
+            for info in result:
+                item = {}
+                item["name"] = str(info[0], "utf-8")
+                item["accountid"] = int(info[1])
+                item["luck_type"] = int(info[2])
+                item["count"] = round(float(info[3]), 2)
+                record_list.append(item)
+            member_count = len(record_list)
+            total_pages = math.ceil(len(record_list) / Const.partner_list_page_item)
+           # page_start = page_index * Const.partner_list_page_item
+           # page_end = page_start + Const.partner_list_page_item
+            partner_info_list = record_list
+            result_map = {'partnerInfo': partner_info_list,"totalPages": int(total_pages),"memberCount": member_count}
+            self.call_client_func("LuckDrawRecords", result_map)
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
 
     def get_surplus_commission(self, _args):
         account_db_id = _args["accountDBID"]
         sql_common = "select performanceDetail from commssion_total where superior=%s" % account_db_id
-
         def callback(result, rows, insertid, error):
             DEBUG_MSG(result)
             if not result or len(result) == 0:
                 self.surplus_commission = 0
             else:
                 self.surplus_commission = result[0][0]
-
         DEBUG_MSG('get_surplus_commission sql:%s' % sql_common)
         KBEngine.executeRawDatabaseCommand(sql_common, callback)
 

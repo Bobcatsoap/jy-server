@@ -1633,7 +1633,7 @@ class RoomBase(KBEngine.Entity):
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
-                                  "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType13")})
+                                  "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType13")+"大局"})
             self.base.cellToBase({'func': 'BigWinnerRoomCard', 'account_db_id': v["entity"].info["userId"]})
 
 
@@ -1720,7 +1720,7 @@ class RoomBase(KBEngine.Entity):
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
-                                  "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
+                                  "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1") + "大局"})
             self.base.cellToBase({'func': 'BigWinnerRoomCard', 'account_db_id': v["entity"].info["userId"]})
 
 
@@ -1814,7 +1814,7 @@ class RoomBase(KBEngine.Entity):
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
-                                  "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType4")})
+                                  "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType4") + "大局" })
             self.base.cellToBase({'func': 'BigWinnerRoomCard', 'account_db_id': v["entity"].info["userId"]})
 
     def mj_get_settlement_winners(self):
@@ -1916,7 +1916,7 @@ class RoomBase(KBEngine.Entity):
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
-                                  "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType12")})
+                                  "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType12") + "大局"})
             self.base.cellToBase({'func': 'BigWinnerRoomCard', 'account_db_id': v["entity"].info["userId"]})
 
     def nn_lottery(self):

@@ -1897,7 +1897,7 @@ class RoomType13(RoomBase):
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
-                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType13")})
+                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType13") + "小局"})
 
         # 整理发送信息(待优化，特定数值赋值)
         for k, v in chapter["playerInGame"].items():

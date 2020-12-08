@@ -1636,7 +1636,7 @@ class RoomType15(RoomBase):
             return
         DEBUG_MSG('set_base_player_game_coin')
         _chapter = self.chapters[self.cn]
-        _player["entity"].base.cellToBase({"func": "setAccountTotalGoldChange", "dic": {
+        _player["entity"].base.cellToBase({"func": "", "dic": {
             "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
             'type': 'gameCoin',
             "totalGoldChange": _player['totalGoldChange']}})

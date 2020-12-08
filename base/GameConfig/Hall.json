@@ -9,6 +9,7 @@
   "giftGoldCount": 0,
   "giftDiamondCount": 0,
   "diamondToGoldRate": 1000,
+  "playerLotteryConsume": 2,
   "ShopGoldItem": [
     1000,
     5000,

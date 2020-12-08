@@ -1138,7 +1138,7 @@ class RoomType1(RoomBase):
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
-                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1")})
+                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1") + "小局"})
         _args = {}
         _toBaseArgs = dict()
         for k, v in _playerInGame.items():

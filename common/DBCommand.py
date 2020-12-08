@@ -295,25 +295,49 @@ def modify_total_commssion(account_db_id, superior, teaHouseId, addtime, count, 
     修改佣金总数
     """
     performanceDetail = round(performanceDetail, 2)
-    def on_query_over(result, rows, insertid, error):
-        if result is not None and len(result) != 0:
-            DEBUG_MSG('modify_total_commssion:-------------')
-            DEBUG_MSG(result)
-            update_count = int(result[0][0]) + count
-            update_double_count = float(result[0][1]) + performanceDetail
-            # 如果有值修改佣金数量
-            sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (addtime, update_count, update_double_count, superior)
-            DEBUG_MSG('modify_total_commssion update_sql:%s' % sql_command)
-            KBEngine.executeRawDatabaseCommand(sql_command, None)
-        else:
-            sql_command = "insert into commssion_total (accountDBID,superior,teaHouseId, addtime,count,performanceDetail) VALUES (%s,%s,%s,'%s','%s', %s)" % (
-                account_db_id, superior, teaHouseId, addtime, count, performanceDetail)
-            DEBUG_MSG('modify_total_commssion insert_sql:%s' % sql_command)
-            KBEngine.executeRawDatabaseCommand(sql_command, None)
+    import pymysql
+    conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
+    cursor = conn.cursor()
+    sql = "select count, performanceDetail from commssion_total where superior=%s" % superior
+    DEBUG_MSG('modify_total_commssion select_sql:%s' % sql)
+    cursor.execute(sql)
+    room_robot_record = cursor.fetchone()
+    if not room_robot_record:
+        sql_command = "insert into commssion_total (accountDBID,superior,teaHouseId, addtime,count,performanceDetail) VALUES (%s,%s,%s,'%s','%s', %s)" % (
+            account_db_id, superior, teaHouseId, addtime, count, round(performanceDetail, 2))
+    else:
+        DEBUG_MSG(room_robot_record)
+        update_count = int(float(room_robot_record[0]) + float(count))
+        update_double_count = float(room_robot_record[1]) + float(performanceDetail)
+        update_double_count = round(update_double_count, 2)
+        sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (addtime, update_count, update_double_count, superior)
+    DEBUG_MSG('modify_total_commssion sql_command:%s' % sql_command)
+    cursor.execute(sql_command)
+    conn.commit()
+    cursor.close()
+    conn.close()
 
-    sql_command = "select count, performanceDetail from commssion_total where superior=%s" % superior
-    DEBUG_MSG('modify_total_commssion select_sql:%s' % sql_command)
-    KBEngine.executeRawDatabaseCommand(sql_command, on_query_over)
+    # def on_query_over(result, rows, insertid, error):
+    #     if result is not None and len(result) != 0:
+    #         DEBUG_MSG('modify_total_commssion:-------------')
+    #         DEBUG_MSG(result)
+    #         update_count = int(float(result[0][0]) + float(count))
+    #         update_double_count = float(result[0][1]) + float(performanceDetail)
+    #         update_double_count = round(update_double_count, 2)
+    #         # 如果有值修改佣金数量
+    #         sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (addtime, update_count, update_double_count, superior)
+    #         DEBUG_MSG('modify_total_commssion update_sql:%s' % sql_command)
+    #         KBEngine.executeRawDatabaseCommand(sql_command, None)
+    #     else:
+    #         sql_command = "insert into commssion_total (accountDBID,superior,teaHouseId, addtime,count,performanceDetail) VALUES (%s,%s,%s,'%s','%s', %s)" % (
+    #             account_db_id, superior, teaHouseId, addtime, count, round(performanceDetail,2))
+    #         DEBUG_MSG('modify_total_commssion insert_sql:%s' % sql_command)
+    #         DEBUG_MSG(result)
+    #         KBEngine.executeRawDatabaseCommand(sql_command, None)
+    #
+    # sql_command = "select count, performanceDetail from commssion_total where superior=%s" % superior
+    # DEBUG_MSG('modify_total_commssion select_sql:%s' % sql_command)
+    # KBEngine.executeRawDatabaseCommand(sql_command, on_query_over)
 
 def modify_room_card_to_db(account_db_id, modify_count, date_time, account_name, consume_type):
     """
