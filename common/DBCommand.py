@@ -221,10 +221,10 @@ def check_out_get_player_battle_score(account_db_id, tea_house_id, on_success=No
             charge_info = []
             for row in result:
                 room_type = str(row[3], 'utf-8')
-                item_info = {"roomId": int(row[1]), "accountDBID": int(row[2]), "typeName": Const.get_name_by_type(room_type),
-                             "totalGoldChange": int(row[4]),  # 比赛币
-                             "BringInGold": int(row[9]),  # 带入金币
-                             "SurPlusGold": int(row[10]), # 剩余金币
+                item_info = {"roomId": int(row[5]), "accountDBID": int(row[2]), "typeName": Const.get_name_by_type(room_type),
+                             "totalGoldChange": float(row[4]),  # 比赛币
+                             "BringInGold": float(row[9]),  # 带入金币
+                             "SurPlusGold": float(row[10]), # 剩余金币
                              "accountName": str(row[11], "utf-8"), # 玩家名称
                              "settleTime": int(row[12])# 结算时间
                              }
