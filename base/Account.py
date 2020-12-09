@@ -3964,14 +3964,24 @@ class Account(KBEngine.Proxy):
     def get_surplus_commission(self, _args):
         account_db_id = _args["accountDBID"]
         sql_common = "select performanceDetail from commssion_total where superior=%s" % account_db_id
-        def callback(result, rows, insertid, error):
-            DEBUG_MSG(result)
-            if not result or len(result) == 0:
-                self.surplus_commission = 0
-            else:
-                self.surplus_commission = result[0][0]
+        import pymysql
+        conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
+        cursor = conn.cursor()
         DEBUG_MSG('get_surplus_commission sql:%s' % sql_common)
-        KBEngine.executeRawDatabaseCommand(sql_common, callback)
+        cursor.execute(sql_common)
+        result = cursor.fetchone()
+        if not result:
+            self.surplus_commission = 0
+        else:
+            self.surplus_commission = result[0]
+        # def callback(result, rows, insertid, error):
+        #     DEBUG_MSG(result)
+        #     if not result or len(result) == 0:
+        #         self.surplus_commission = 0
+        #     else:
+        #         self.surplus_commission = result[0][0]
+        # DEBUG_MSG('get_surplus_commission sql:%s' % sql_common)
+        # KBEngine.executeRawDatabaseCommand(sql_common, callback)
 
 
 
