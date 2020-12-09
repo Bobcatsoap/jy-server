@@ -60,14 +60,14 @@ _play_mode0 = {_sanPai: 1, _niuYi: 1, _niuEr: 1, _niuSan: 1, _niuSi: 1, _niuWu: 
 # 激情模式
 _play_mode1 = {_sanPai: 1, _niuYi: 1, _niuEr: 1, _niuSan: 1, _niuSi: 1, _niuWu: 1, _niuLiu: 1, _niuQi: 2, _niuBa: 3,
                _niuJiu: 4, _niuNiu: 5,
-               _siHuaNiu: 6, _wuHuaNiu: 7, _shunZiNiu: 8, _tongHuaNiu: 8, _huLuNiu: 8, _zhaDanNiu: 8,
-               _tongHuaShun: 9, _wuXiaoNiu: 10}
+               _siHuaNiu: 6, _wuHuaNiu: 6, _shunZiNiu: 6, _tongHuaNiu: 7, _huLuNiu: 7, _zhaDanNiu: 8,
+               _tongHuaShun: 10, _wuXiaoNiu: 9}
 
 # 疯狂模式
 _play_mode2 = {_sanPai: 1, _niuYi: 1, _niuEr: 2, _niuSan: 3, _niuSi: 4, _niuWu: 5, _niuLiu: 6, _niuQi: 7, _niuBa: 8,
                _niuJiu: 9, _niuNiu: 10,
-               _siHuaNiu: 11, _wuHuaNiu: 12, _shunZiNiu: 13, _tongHuaNiu: 14, _huLuNiu: 15, _zhaDanNiu: 16,
-               _tongHuaShun: 17, _wuXiaoNiu: 18}
+               _siHuaNiu: 10, _wuHuaNiu: 11, _shunZiNiu: 11, _tongHuaNiu: 12, _huLuNiu: 12, _zhaDanNiu: 13,
+               _tongHuaShun: 15, _wuXiaoNiu: 14}
 
 # 普通模式
 _play_mode3 = {_sanPai: 1, _niuYi: 1, _niuEr: 1, _niuSan: 1, _niuSi: 1, _niuWu: 1, _niuLiu: 1, _niuQi: 2, _niuBa: 2,
