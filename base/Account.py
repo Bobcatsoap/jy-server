@@ -3840,40 +3840,64 @@ class Account(KBEngine.Proxy):
         extractMoney = _args["extractMoney"]
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
         if not tea_house_entity:
-            self.call_client_func('extractCommissionResult', {
-                    "status": 0,
-                    "message": "冠名赛不存在"
-                })
+            self.call_client_func('extractCommissionResult', {"status": 0,"message": "冠名赛不存在"})
 
-        def callback(result, rows, insertid, error):
-            if not result:
-                self.call_client_func('extractCommissionResult', {
-                    "status": 0,
-                    "message": "无佣金记录"
-                })
+        import pymysql
+        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
+        cursor = conn.cursor()
+        sql_command = "select performanceDetail from commssion_total where superior=%s" % account_db_id
+        cursor.execute(sql_command)
+        result = cursor.fetchone()
+        if len(result) > 0:
+            commission = float(result[0])
+            DEBUG_MSG('extractMoney--->%s   ---->%s' % (str(extractMoney), str(commission)))
+            if extractMoney > commission:
+                self.call_client_func('extractCommissionResult', {"status": 0,"message": "提取佣金不能大于当前佣金"})
                 return
             try:
-                update_count = float(result[0][0]) - extractMoney
-                update_performanceDetail = float(result[0][1]) - extractMoney
-                if float(extractMoney) > float(result[0][0]):
-                    self.call_client_func('extractCommissionResult', {
-                    "status": 0,
-                    "message": "提取佣金不能大于当前佣金"
-                })
-                    return
-                sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (
-                int(time.time()), int(update_count), update_performanceDetail, account_db_id)
-                DEBUG_MSG('modify_total_commssion update_sql:%s' % sql_command)
-                KBEngine.executeRawDatabaseCommand(sql_command, None)
-                self.sava_extract_commission(account_db_id, extractMoney)
-                self.call_client_func("extractCommissionResult", {"status": 1, "message": "提取成功"})
-                self.account_mgr.give_gold_modify(self.databaseID, float(extractMoney), tea_house_id)
-                tea_house_entity.set_game_coin(self.databaseID, self.gold + float(extractMoney))
-            except:
+                sql_command = "update commssion_total set addtime=%s,  performanceDetail= '%s' where superior=%s" % (
+                int(time.time()), str(round(float(commission-extractMoney), 2)), account_db_id)
+                cursor.execute(sql_command)
+            except Exception as e:
+                conn.rollback()
                 self.call_client_func("extractCommissionResult", {"status": 0, "message": "提取失败"})
-        sql_command = "select count, performanceDetail from commssion_total where superior=%s" % account_db_id
-        DEBUG_MSG('modify_total_commssion select_sql:%s' % sql_command)
-        KBEngine.executeRawDatabaseCommand(sql_command, callback)
+                return
+            conn.commit()
+            self.sava_extract_commission(account_db_id, extractMoney)
+            self.call_client_func("extractCommissionResult", {"status": 1, "message": "提取成功"})
+            self.account_mgr.give_gold_modify(self.databaseID, float(extractMoney), tea_house_id)
+            tea_house_entity.set_game_coin(self.databaseID, self.gold + float(extractMoney))
+        else:
+            self.call_client_func('extractCommissionResult', {"status": 0, "message": "无佣金记录"})
+
+
+        #
+        # def callback(result, rows, insertid, error):
+        #     if not result:
+        #         self.call_client_func('extractCommissionResult', {"status": 0,"message": "无佣金记录"})
+        #         return
+        #     try:
+        #         update_count = float(result[0][0]) - extractMoney
+        #         update_performanceDetail = float(result[0][1]) - extractMoney
+        #         if float(extractMoney) > float(result[0][0]):
+        #             self.call_client_func('extractCommissionResult', {
+        #             "status": 0,
+        #             "message": "提取佣金不能大于当前佣金"
+        #         })
+        #             return
+        #         sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (
+        #         int(time.time()), int(update_count), update_performanceDetail, account_db_id)
+        #         DEBUG_MSG('modify_total_commssion update_sql:%s' % sql_command)
+        #         KBEngine.executeRawDatabaseCommand(sql_command, None)
+        #         self.sava_extract_commission(account_db_id, extractMoney)
+        #         self.call_client_func("extractCommissionResult", {"status": 1, "message": "提取成功"})
+        #         self.account_mgr.give_gold_modify(self.databaseID, float(extractMoney), tea_house_id)
+        #         tea_house_entity.set_game_coin(self.databaseID, self.gold + float(extractMoney))
+        #     except:
+        #         self.call_client_func("extractCommissionResult", {"status": 0, "message": "提取失败"})
+        # sql_command = "select count, performanceDetail from commssion_total where superior=%s" % account_db_id
+        # DEBUG_MSG('modify_total_commssion select_sql:%s' % sql_command)
+        # KBEngine.executeRawDatabaseCommand(sql_command, callback)
 
     def sava_extract_commission(self, account_db_id, extractMoney):
         sql_command = "INSERT INTO extract_commission(accountDBID, count, addtime) VALUES(%s, '%s', %s) " % (account_db_id, str(extractMoney), int(time.time()))
@@ -3965,7 +3989,7 @@ class Account(KBEngine.Proxy):
         account_db_id = _args["accountDBID"]
         sql_common = "select performanceDetail from commssion_total where superior=%s" % account_db_id
         import pymysql
-        conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
+        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
         cursor = conn.cursor()
         DEBUG_MSG('get_surplus_commission sql:%s' % sql_common)
         cursor.execute(sql_common)

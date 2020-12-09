@@ -304,13 +304,13 @@ def modify_total_commssion(account_db_id, superior, teaHouseId, addtime, count, 
     room_robot_record = cursor.fetchone()
     if not room_robot_record:
         sql_command = "insert into commssion_total (accountDBID,superior,teaHouseId, addtime,count,performanceDetail) VALUES (%s,%s,%s,'%s','%s', %s)" % (
-            account_db_id, superior, teaHouseId, addtime, count, round(performanceDetail, 2))
+            account_db_id, superior, teaHouseId, addtime, 0, round(performanceDetail, 2))
     else:
         DEBUG_MSG(room_robot_record)
         update_count = int(float(room_robot_record[0]) + float(count))
         update_double_count = float(room_robot_record[1]) + float(performanceDetail)
         update_double_count = round(update_double_count, 2)
-        sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (addtime, update_count, update_double_count, superior)
+        sql_command = "update commssion_total set addtime=%s, count=%s,  performanceDetail= %s where superior=%s" % (addtime, 0, update_double_count, superior)
     DEBUG_MSG('modify_total_commssion sql_command:%s' % sql_command)
     cursor.execute(sql_command)
     conn.commit()
