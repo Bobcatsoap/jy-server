@@ -1464,7 +1464,11 @@ class Account(KBEngine.Proxy):
         elif _func_name == "getFriends":
             self.get_friend()
         elif _func_name == "giveGold":  # 赠送金币
-            self.give_gold(_args)
+            select_type = _args['type']
+            if select_type == "give":
+                self.give_gold(_args)
+            elif select_type == "down":
+                self.down_gold(_args)
         elif _func_name == "giveGoldRecord":  # 赠送金币记录
             self.get_total_gold(_args["accountDBID"])
             self.give_gold_record(_args)  # 赠送金币记录
@@ -3519,6 +3523,53 @@ class Account(KBEngine.Proxy):
         KBEngine.executeRawDatabaseCommand(sql, _db_callback_count)
         DEBUG_MSG("command_sql 执行----------------")
 
+
+    def down_gold(self, _args):
+        playerId = _args["playerId"]
+        tea_house_id = _args["teaHouseId"]
+        give_gold = _args["gold"]
+        if playerId == self.databaseID:
+            self.call_client_func('Notice', ['不能下自己的金币'])
+            return
+        if give_gold < 0:
+            self.call_client_func('Notice', ['下金币不能为负数'])
+            return
+        if give_gold == 0:
+            self.call_client_func('Notice', ['下金币不能为0'])
+            return
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            self.call_client_func('Notice', ['冠名赛不存在'])
+            return
+
+        def _db_callback_count(result, rows, insertid, error):
+            if result:
+                player_gold = float(result[0][9])
+
+                if give_gold > player_gold:
+                    self.call_client_func('Notice', ['下金币数量大于玩家金币'])
+                    return
+                player_gold = round(float(result[0][9]), 1)
+                user_name = self.name
+                player_name = str(result[0][3], 'utf-8')
+                command_sql = "INSERT INTO give_gold_info(user_id,player_id,gold,user_name,player_name, addtime) VALUES (%s, %s, %s, '%s', '%s', %s)" % (
+                self.databaseID, playerId, -give_gold, user_name, player_name, int(time.time()))
+                KBEngine.executeRawDatabaseCommand(command_sql)
+                self.call_client_func("downGoldSuccess", ["下金币成功"])
+                self.account_mgr.give_gold_modify(self.databaseID, give_gold, tea_house_id)  # 给自己加金币
+                self.account_mgr.give_gold_modify(playerId, -give_gold, tea_house_id)  # 给玩家下金币
+                tea_houses = self.tea_house_mgr.get_tea_houses_by_account_dbid(playerId)
+                for k, v in tea_houses.items():
+                    new_tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(v.teaHouseId)
+                    new_tea_house_entity.set_game_coin(playerId, player_gold - give_gold)
+            else:
+                self.call_client_func("Notice", ["玩家不存在"])
+                return
+
+        sql = "select * from tbl_account WHERE id=%s" % playerId
+        tea_house_entity.set_game_coin(self.databaseID, self.gold + give_gold)
+        KBEngine.executeRawDatabaseCommand(sql, _db_callback_count)
+
     def give_gold_record(self, _args):
         """
         赠送金币记录
@@ -3556,7 +3607,7 @@ class Account(KBEngine.Proxy):
             partner_info_list = give_gold_record_info_list[page_start:page_end]
             map ={'partnerInfo': partner_info_list,"totalPages": int(total_pages),"memberCount": member_count,"user_total_gold": user_total_gold,"player_total_gold": self.player_give_gold}
             self.call_client_func("getGiveGoldRecords", map)
-        command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where user_id=%s or player_id=%s' % (account_db_id, account_db_id)
+        command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where user_id=%s or player_id=%s ORDER BY addtime DESC ' % (account_db_id, account_db_id)
         DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
@@ -3843,7 +3894,7 @@ class Account(KBEngine.Proxy):
             self.call_client_func('extractCommissionResult', {"status": 0,"message": "冠名赛不存在"})
 
         import pymysql
-        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
+        conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
         cursor = conn.cursor()
         sql_command = "select performanceDetail from commssion_total where superior=%s" % account_db_id
         cursor.execute(sql_command)
@@ -3989,7 +4040,7 @@ class Account(KBEngine.Proxy):
         account_db_id = _args["accountDBID"]
         sql_common = "select performanceDetail from commssion_total where superior=%s" % account_db_id
         import pymysql
-        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
+        conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
         cursor = conn.cursor()
         DEBUG_MSG('get_surplus_commission sql:%s' % sql_common)
         cursor.execute(sql_common)
@@ -4010,15 +4061,30 @@ class Account(KBEngine.Proxy):
 
 
     def get_total_gold(self, player_id):
-        def callback(result, rows, insertid, error):
+        import pymysql
+        conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
+        cursor = conn.cursor()
+        command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where player_id=%s' % player_id
+        cursor.execute(command_sql)
+        result = cursor.fetchall()
+        if len(result) > 0:
             total = 0
             for info in result:
                 gold = info[3]
                 total += round(float(gold), 1)
             self.player_give_gold = total
-        command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where player_id=%s' % player_id
+        else:
+            self.player_give_gold = 0
 
-        KBEngine.executeRawDatabaseCommand(command_sql, callback)
+        # def callback(result, rows, insertid, error):
+        #     total = 0
+        #     for info in result:
+        #         gold = info[3]
+        #         total += round(float(gold), 1)
+        #     self.player_give_gold = total
+        # command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where player_id=%s' % player_id
+        #
+        # KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
 
     def is_friend(self, people):
