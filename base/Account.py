@@ -3545,7 +3545,8 @@ class Account(KBEngine.Proxy):
         def _db_callback_count(result, rows, insertid, error):
             if result:
                 player_gold = float(result[0][9])
-
+                DEBUG_MSG("player_gold执行----------------%s" % str(player_gold))
+                DEBUG_MSG("give_gold执行----------------%s" % str(give_gold))
                 if give_gold > player_gold:
                     self.call_client_func('Notice', ['下金币数量大于玩家金币'])
                     return
@@ -3554,6 +3555,7 @@ class Account(KBEngine.Proxy):
                 player_name = str(result[0][3], 'utf-8')
                 command_sql = "INSERT INTO give_gold_info(user_id,player_id,gold,user_name,player_name, addtime) VALUES (%s, %s, %s, '%s', '%s', %s)" % (
                 self.databaseID, playerId, -give_gold, user_name, player_name, int(time.time()))
+                DEBUG_MSG("down-gold执行----------------%s" % str(command_sql))
                 KBEngine.executeRawDatabaseCommand(command_sql)
                 self.call_client_func("downGoldSuccess", ["下金币成功"])
                 self.account_mgr.give_gold_modify(self.databaseID, give_gold, tea_house_id)  # 给自己加金币
