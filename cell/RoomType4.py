@@ -1039,7 +1039,7 @@ class RoomType4(RoomBase):
         chapter['potStake'] = self.info['potScore']
         # 庄家的钱放入锅底
         banker['score'] -= chapter['potStake']
-        banker['grabBanker'] = 4
+        banker['grabBanker'] = 1
         self.refresh_pot_stake()
         # 清除当庄次数
         self.keep_banker_count = 0
@@ -1673,7 +1673,7 @@ class RoomType4(RoomBase):
                 DEBUG_MSG("potpotpotpotpot")
                 if int(k) == int(_newChapter["banker"]):
                     DEBUG_MSG("===================================================")
-                    v["grabBanker"] = 4
+                    v["grabBanker"] = 1
 
             v["cards"] = []
             v["hasMatchCard"] = False
@@ -2095,7 +2095,7 @@ class RoomType4(RoomBase):
                 self.old_banker_account_id = None
                 # 定新庄家
                 chapter["banker"] = new_banker_id
-                chapter["grabBanker"] = 4
+                chapter["grabBanker"] = 1
                 # 锅底重置
                 chapter['potStake'] = self.info['potScore']
                 # 新庄家的钱放入锅底

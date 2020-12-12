@@ -1,24 +1,16 @@
 # -*- coding: utf-8 -*-
 import copy
-import datetime
-import json
-import random
-import re
-import sys
-import time
+from random import shuffle
+
+import KBEngine
 
 import Const
-
-import RoomType6AiMain as R6AM
-import RoomType6Calculator
-import KBEngine
-import RoomType6InitiativeCardSplit as R6Split
-import RoomType6CardsScore as R6Score
-import  RoomType6AiUtil as R6Util
-
-import Util
-from KBEDebug import DEBUG_MSG
-from RoomBase import RoomBase
+from KBEDebug import *
+from RoomBase import *
+import json
+import time
+import datetime
+import NiuNiuCalculator
 import Account
 
 # 准备倒计时时间
