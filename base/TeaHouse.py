@@ -1527,7 +1527,7 @@ class TeaHouse(KBEngine.Entity):
         # if self.memberInfo[modifier].game_coin < 0:
         #     self.memberInfo[modifier].game_coin = 0
         self.memberInfoJson = self.get_member_info_json()
-
+        DEBUG_MSG("|||||||||||||||||||||||||||||||||||||||||||||||||create_charge_item2")
         self.create_charge_item(modifier, operator_entity,
                                 game_coin_change, self.memberInfo[modifier].game_coin)
 
@@ -1563,7 +1563,8 @@ class TeaHouse(KBEngine.Entity):
 
             self.update_single_member_info_to_client(modifier)
             # 生成充值记录
-            self.create_charge_item(modifier, modifier, game_coin_change, self.memberInfo[modifier].game_coin,
+            DEBUG_MSG("|||||||||||||||||||||||||||||||||||||||||||||||||create_charge_item")
+            self.create_charge_item(modifier,account_manager().get_account(modifier), game_coin_change, self.memberInfo[modifier].game_coin,
                                     from_public=True)
             # 如果玩家在游戏中通知
             self.refresh_game_coin_in_room(modifier, game_coin_change)
@@ -1587,6 +1588,8 @@ class TeaHouse(KBEngine.Entity):
         def callback(modifier_entity, modifier_db_id, wasActive):
             # 比赛分修改成功,生成一条充值记录
             charge_item = KBEngine.createEntityLocally("GameCoinChargeHistory", {})
+            DEBUG_MSG(operator)
+            DEBUG_MSG("|||||||||||||||||||||||||||||||||||||||||||||||||")
             charge_item.create_one_item(self.teaHouseId, modifier_db_id, modifier_entity.name, modifier_entity.phone,
                                         operator.databaseID, operator.name, operator.phone, operator.proxyType,
                                         modify_count, modified_game_coin)

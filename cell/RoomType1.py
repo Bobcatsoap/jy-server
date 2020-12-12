@@ -2324,6 +2324,8 @@ class RoomType1(RoomBase):
         chapter["settlementClearPlayers"] = self.addTimer(settlement_clear_players_time, 0, 0)
         chapter["deadline"] = time.time() + settlement_clear_players_time
         self.player_leave_info = []
+
+
     def set_base_player_game_coin(self, account_id):
         """
         设置玩家金币数量,通知base

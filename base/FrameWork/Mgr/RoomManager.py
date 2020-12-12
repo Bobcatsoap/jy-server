@@ -1051,7 +1051,7 @@ class RoomManager(Manger):
             DEBUG_MSG('########################################%s' % room.info['gameLevel'])
             if player.game_coin < room.info['gameLevel']:
                 return False
-            if room.info["type"] != "RoomType1":
+            if room.info["type"] != "RoomType1" and room.info["type"] != "RoomType23":
                 if room.info['pot'] == True:
                     if player.game_coin < room.info["potScore"]:
                         return  False
