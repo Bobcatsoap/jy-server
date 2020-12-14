@@ -286,8 +286,8 @@ class RoomType4(RoomBase):
             DEBUG_MSG("onEnter-------> account %s on Enter room, but _player already exits" % accountEntityId)
             return
         _chapter["playerOutGame"][accountEntityId] = _player
-        self.ret_current_round(accountEntityId)
-        self.ret_current_chapter_state(accountEntityId)
+        #self.ret_current_round(accountEntityId)
+       # self.ret_current_chapter_state(accountEntityId)
         self.retRoomBaseInfo(accountEntityId)
         # 如果比赛一开始，观战状态，发送玩家信息
         # if _chapter["currentState"] != 0:
@@ -298,6 +298,8 @@ class RoomType4(RoomBase):
                 self.set_seat(accountEntityId, self.emptyLocationIndex[0])
                 _account.update_player_stage(Account.PlayerStage.NO_READY)
                 self.notify_viewing_hall_players_room_info()
+            self.player_list.append(accountEntityId)
+            DEBUG_MSG('player_list  %s' % self.player_list)
         else:
             # 给坐下玩家发送观战玩家信息
             for k, v in _chapter["playerInGame"].items():
@@ -360,6 +362,9 @@ class RoomType4(RoomBase):
         _playerInGame = _chapter["playerInGame"]
         _playerOutGame = _chapter["playerOutGame"]
         _currentState = _chapter["currentState"]
+        DEBUG_MSG(_playerInRoom)
+        DEBUG_MSG(_playerInGame)
+        DEBUG_MSG(_playerOutGame)
         if accountEntityId in _playerInGame:
             # 游戏开始并且没有总结算的时候不能离开
             if self.started and not self.total_settlement_ed:
@@ -371,6 +376,7 @@ class RoomType4(RoomBase):
             _locationIndex = _player["locationIndex"]
             if _locationIndex not in self.emptyLocationIndex:
                 self.emptyLocationIndex.append(_locationIndex)
+                self.emptyLocationIndex.sort()
             if leave_param is None:
                 leave_param = {"inviteRoomInfo": None}
             leave_param.update({"result": 1})
@@ -391,7 +397,7 @@ class RoomType4(RoomBase):
             _player["entity"].destroySelf()
             self.ret_player_in_room_infos()
             # 通知base玩家数量变化
-            self.base.cellToBase({"func": "playersCount", "count": len(_chapter["playerInRoom"])})
+            self.base.cellToBase({"func": "playersCount", "count": len(_playerInRoom)})
             # 通知base坐下玩家数量
             self.base.cellToBase({"func": "seatPlayersCount", "count": len(_chapter["playerInGame"])})
 
@@ -422,7 +428,7 @@ class RoomType4(RoomBase):
             # 给观战玩家发送观战玩家信息
             for k, v in _chapter["playerOutGame"].items():
                 self.ret_out_game_player_info(k)
-            self.base.cellToBase({"func": "playersCount", "count": len(_chapter["playerInRoom"])})
+            self.base.cellToBase({"func": "playersCount", "count": len(_playerInRoom)})
             self.base.cellToBase({"func": "seatPlayersCount", "count": len(_chapter["playerInGame"])})
         if accountEntityId in self.accountEntities.keys():
             self.accountEntities.pop(accountEntityId)
@@ -592,6 +598,8 @@ class RoomType4(RoomBase):
         _playerInGameNotEntity = {}
         _playerOutGameNotEntity = {}
         player_in_game_to_base = {}
+        # ERROR_MSG(_chapter["playerInGame"].items())
+        # ERROR_MSG(_chapter["playerOutGame"].items())
         for k, v in _chapter["playerInGame"].items():
             _player = {"cards": v["cards"], "gold": self.get_true_gold(v['entity'].id),
                        "locationIndex": int(v["locationIndex"]),
@@ -609,7 +617,7 @@ class RoomType4(RoomBase):
             _playerInGameNotEntity[int(k)] = _player
         for k, v in _chapter["playerOutGame"].items():
             try:
-                _player = {"cards": v["cards"], "gold": self.get_true_gold(v['entity'].id),
+                _player = {"cards": v["cards"], "gold":  v["score"],
                            "locationIndex": int(v["locationIndex"]),
                            "name": v["entity"].info["name"], "grabBanker": v["grabBanker"],
                            'totalGoldChange': v['totalGoldChange'],
@@ -625,7 +633,7 @@ class RoomType4(RoomBase):
             else:
                 pass
         _args = {"playerInGame": _playerInGameNotEntity, "playerOutGame": _playerOutGameNotEntity}
-        DEBUG_MSG('[Room id %i]------>retPlayerInRoomInfos %s' % (self.id, _args))
+       # DEBUG_MSG('[Room id %i]------>retPlayerInRoomInfos %s' % (self.id, _args))
         if account_id == -1:
             self.callOtherClientsFunction("RetPlayerInRoomInfos", _args)
         else:
@@ -672,13 +680,14 @@ class RoomType4(RoomBase):
         _chapter["playerInGame"][account_id] = _chapter["playerOutGame"].pop(account_id)
         _chapter["playerInGame"][account_id]["locationIndex"] = location_index
         _player = _chapter["playerInGame"][account_id]
+        self.ret_player_in_room_infos()
         self.emptyLocationIndex.remove(location_index)
-        # # 从等待坐下中移除
+        # # 从等待坐下中移除 从等待坐下中移除
         if account_id in self.wait_to_seat:
             # DEBUG_MSG(
             # '[Wait_to_seat]------> kickOut playerOutGame set_seat accountId %s' % (accountId))
             self.wait_to_seat.remove(account_id)
-        self.ret_player_in_room_infos()
+
         self.player_list.append(account_id)
         if account_id not in self.enter_list:
             self.enter_list.append(account_id)
@@ -737,9 +746,9 @@ class RoomType4(RoomBase):
         _chapter["playerInGame"].pop(account_id)
         DEBUG_MSG( _chapter["playerInGame"])
         _args = {"account_id": account_id, "location_index": location_index}
-        self.callOtherClientsFunction("StandUp", _args)
         self.emptyLocationIndex.append(location_index)
         _chapter["playerOutGame"][account_id]["location_index"] = -1
+        self.callOtherClientsFunction("StandUp", _args)
 
     def chapter_ready(self):
         """
@@ -1602,8 +1611,8 @@ class RoomType4(RoomBase):
                            "totalGoldChange": v["totalGoldChange"], "userId": v["entity"].info["userId"],
                            "winnerBilling": v["winnerBilling"], "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"], "headImageUrl": v["entity"].info["headImageUrl"],
-                           "gold":  self.get_true_gold(v['entity'].id),
-                           "totalGold": self.get_true_gold(v['entity'].id) + v['totalGoldChange']
+                           "gold":   v["score"] - v["totalGoldChange"],
+                           "totalGold":v["score"]
                            }
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])
@@ -2389,8 +2398,11 @@ class RoomType4(RoomBase):
         获取玩家真实金币
         """
         chapter = self.chapters[self.cn]
-        player = chapter['playerInGame'][account_id]
-        return player['score']
+        if account_id in chapter['playerInGame']:
+            player = chapter['playerInGame'][account_id]
+            return player['score']
+        else:
+            return 0
 
     def can_join_game(self, entity_id):
         """

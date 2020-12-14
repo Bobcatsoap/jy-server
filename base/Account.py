@@ -3696,7 +3696,7 @@ class Account(KBEngine.Proxy):
                 "memberCount": member_count,
             })
 
-        command_sql = 'select count, addtime from extract_commission where accountDBID=%s' % account_db_id
+        command_sql = 'select count, addtime from extract_commission where accountDBID=%s order by addtime desc' % account_db_id
         DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 

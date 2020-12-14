@@ -1219,8 +1219,11 @@ class RoomType1(RoomBase):
         获取玩家真实金币
         """
         chapter = self.chapters[self.cn]
-        player = chapter['playerInGame'][account_id]
-        return player['score']
+        if account_id in chapter['playerInGame']:
+            player = chapter['playerInGame'][account_id]
+            return player['score']
+        else:
+            return 0
 
     def lookCard(self, accountId):
         """
@@ -1676,8 +1679,8 @@ class RoomType1(RoomBase):
                            "otherBilling": v["otherBilling"],
                            "totalGoldChange": v["totalGoldChange"], "userId": v["entity"].info["userId"], "headImageUrl": v["entity"].info["headImageUrl"],
                            # "totalGold": v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']  TODO----
-                           "gold": v["score"],
-                           "totalGold": v["score"] + v['totalGoldChange']
+                           "gold": v["score"] - v['totalGoldChange'],
+                           "totalGold": v["score"]
                            }
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])
