@@ -1056,7 +1056,7 @@ class RoomType4(RoomBase):
         self.keep_banker_count = 0
         self.send_banker_result(first_account_id)
         # 更新分数信息
-        self.ret_player_in_room_infos()
+       # self.ret_player_in_room_infos()
 
     def random_grab_banker(self):
         """
@@ -1532,14 +1532,14 @@ class RoomType4(RoomBase):
         player_settlement_info = []
         for k, v in chapter["playerInGame"].items():
             # 同步货币
-            if self.info["roomType"] == "gameCoin":
-                self.set_base_player_game_coin(k)
-            else:
-                self.set_base_player_gold(k)
             player_settlement_info.append(
                 {"accountId": v['entity'].id, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
                  "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
                  "winnerBilling": v["winnerBilling"], 'gold': self.get_true_gold(v['entity'].id)})
+            if self.info["roomType"] == "gameCoin":
+                self.set_base_player_game_coin(k)
+            else:
+                self.set_base_player_gold(k)
         if len(self.player_leave_info) > 0:
             player_settlement_info = player_settlement_info + self.player_leave_info
         args = {"settlementInfo": player_settlement_info}
@@ -1651,6 +1651,9 @@ class RoomType4(RoomBase):
         _playerInRoom = _chapter["playerInRoom"]
         _playerOutGame = _chapter["playerOutGame"]
         if self.cn >= int(self.info["maxChapterCount"]) - 1:
+            # 把当前锅底还给庄家
+            if self.info["pot"]:
+                _chapter['playerInGame'][chapter["banker"]]['score'] += chapter['potStake']
             self.total_settlement()
             self.write_chapter_info_to_db()
             return
