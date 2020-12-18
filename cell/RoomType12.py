@@ -1169,10 +1169,13 @@ class RoomType12(RoomBase):
                         _p['anGangGold'] -= an_score
                         _gang_p['anGangGold'] += an_score
             for _p in _chapter[PLAYER_IN_GAME].values():
+                DEBUG_MSG("78787878787878787878")
+                DEBUG_MSG(no_hu_players)
                 for _v in  no_hu_players:
                     if _p['entity'].id == _v['entity'].id:
-                        if _p['gold'] <= _p['totalGoldChange'] * -1  + _p['goldChange'] *-1 :
-                            _p['goldChange'] = _p['gold'] + _p['totalGoldChange']
+                        if self.potScore + _p['totalGoldChange'] + _p['goldChange']  <= 0 :
+                            # _p['goldChange'] = _p['gold'] + _p['totalGoldChange']
+                            _p['goldChange'] = self.potScore - (_p['totalGoldChange'] * -1)
                             _p['goldChange'] = _p['goldChange'] * -1
                             LEFT_PLANY_COUNT = True
                             for _k in _chapter[PLAYER_IN_GAME].values():
@@ -1180,7 +1183,7 @@ class RoomType12(RoomBase):
                                     DEBUG_MSG("888888888888888888888")
                                     DEBUG_MSG(_j)
                                     if _k['entity'].id == _j['entity'].id:
-                                       _k['goldChange'] = _p['gold'] + _p['totalGoldChange']
+                                       _k['goldChange'] = self.potScore - (_p['totalGoldChange'] * -1)
                                     DEBUG_MSG("88888888888888888888888888 %s" % str( _k['goldChange']))
         else:
             pass
@@ -1194,7 +1197,10 @@ class RoomType12(RoomBase):
                         DEBUG_MSG('RoomType12 billing_count not enough account_id:%s' % _p['entity'].id)
                         continue
                     billing_count = self.info['billingCount']
-                    _p['gold'] -= billing_count
+                    # _p['gold'] -= billing_count
+                    if self.potScore + _p['totalGoldChange'] + _p['goldChange'] - billing_count <= 0 :
+                        continue
+                    _p['totalGoldChange'] -= billing_count
                     DEBUG_MSG('RoomType12 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
                     # 将房费加给楼主
                     self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
