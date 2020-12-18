@@ -1194,9 +1194,10 @@ class RoomType12(RoomBase):
                         DEBUG_MSG('RoomType12 billing_count not enough account_id:%s' % _p['entity'].id)
                         continue
                     billing_count = self.info['billingCount']
-                    _p['totalGoldChange'] -= billing_count
+                    _p['gold'] -= billing_count
                     DEBUG_MSG('RoomType12 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
-
+                    # 将房费加给楼主
+                    self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
             # 每小局结算大赢家抽水,保留整数
             # 获取大赢家
             settlement_winners = self.mj_get_settlement_winners()

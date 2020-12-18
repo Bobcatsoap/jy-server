@@ -1879,7 +1879,8 @@ class RoomType13(RoomBase):
                     billing_count = self.info['billingCount']
                     # _p['totalGoldChange'] -= billing_count  # TODO 原扣房费
                     _p['gold'] -= billing_count
-
+                    #将房费加给楼主
+                    self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
             # 每小局结算大赢家抽水,保留整数
             # 获取大赢家
             settlement_winners = self.pdk_get_settlement_winners()

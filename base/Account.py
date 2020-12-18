@@ -3523,7 +3523,6 @@ class Account(KBEngine.Proxy):
         KBEngine.executeRawDatabaseCommand(sql, _db_callback_count)
         DEBUG_MSG("command_sql 执行----------------")
 
-
     def down_gold(self, _args):
         playerId = _args["playerId"]
         tea_house_id = _args["teaHouseId"]
@@ -3541,36 +3540,54 @@ class Account(KBEngine.Proxy):
         if not tea_house_entity:
             self.call_client_func('Notice', ['冠名赛不存在'])
             return
+        player_gold = tea_house_entity.get_tea_house_player(playerId).gold
+        player_name = tea_house_entity.get_tea_house_player(playerId).name
+        if give_gold > player_gold:
+            self.call_client_func('Notice', ['下金币数量大于玩家金币'])
+            return
+        self.account_mgr.give_gold_modify(self.databaseID, give_gold, tea_house_id)  # 给自己加金币
+        self.account_mgr.give_gold_modify(playerId, -give_gold, tea_house_id)  # 给玩家下金币
+        tea_houses = self.tea_house_mgr.get_tea_houses_by_account_dbid(playerId)
+        for k, v in tea_houses.items():
+            new_tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(v.teaHouseId)
+            new_tea_house_entity.set_game_coin(playerId, player_gold - give_gold)
 
-        def _db_callback_count(result, rows, insertid, error):
-            if result:
-                player_gold = float(result[0][9])
-                DEBUG_MSG("player_gold执行----------------%s" % str(player_gold))
-                DEBUG_MSG("give_gold执行----------------%s" % str(give_gold))
-                if give_gold > player_gold:
-                    self.call_client_func('Notice', ['下金币数量大于玩家金币'])
-                    return
-                player_gold = round(float(result[0][9]), 1)
-                user_name = self.name
-                player_name = str(result[0][3], 'utf-8')
-                command_sql = "INSERT INTO give_gold_info(user_id,player_id,gold,user_name,player_name, addtime) VALUES (%s, %s, %s, '%s', '%s', %s)" % (
-                self.databaseID, playerId, -give_gold, user_name, player_name, int(time.time()))
-                DEBUG_MSG("down-gold执行----------------%s" % str(command_sql))
-                KBEngine.executeRawDatabaseCommand(command_sql)
-                self.call_client_func("downGoldSuccess", ["下金币成功"])
-                self.account_mgr.give_gold_modify(self.databaseID, give_gold, tea_house_id)  # 给自己加金币
-                self.account_mgr.give_gold_modify(playerId, -give_gold, tea_house_id)  # 给玩家下金币
-                tea_houses = self.tea_house_mgr.get_tea_houses_by_account_dbid(playerId)
-                for k, v in tea_houses.items():
-                    new_tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(v.teaHouseId)
-                    new_tea_house_entity.set_game_coin(playerId, player_gold - give_gold)
-            else:
-                self.call_client_func("Notice", ["玩家不存在"])
-                return
-
-        sql = "select * from tbl_account WHERE id=%s" % playerId
+        # 添加赠送记录
+        command_sql = "INSERT INTO give_gold_info(user_id,player_id,gold,user_name,player_name, addtime) VALUES (%s, %s, %s, '%s', '%s', %s)" % (
+                self.databaseID, playerId, -give_gold, self.name, player_name, int(time.time()))
         tea_house_entity.set_game_coin(self.databaseID, self.gold + give_gold)
-        KBEngine.executeRawDatabaseCommand(sql, _db_callback_count)
+        KBEngine.executeRawDatabaseCommand(command_sql, None)
+
+
+        # def _db_callback_count(result, rows, insertid, error):
+        #     if result:
+        #         player_gold = float(result[0][9])
+        #         DEBUG_MSG("player_gold执行----------------%s" % str(player_gold))
+        #         DEBUG_MSG("give_gold执行----------------%s" % str(give_gold))
+        #         if give_gold > player_gold:
+        #             self.call_client_func('Notice', ['下金币数量大于玩家金币'])
+        #             return
+        #         player_gold = round(float(result[0][9]), 1)
+        #         user_name = self.name
+        #         player_name = str(result[0][3], 'utf-8')
+        #         command_sql = "INSERT INTO give_gold_info(user_id,player_id,gold,user_name,player_name, addtime) VALUES (%s, %s, %s, '%s', '%s', %s)" % (
+        #         self.databaseID, playerId, -give_gold, user_name, player_name, int(time.time()))
+        #         DEBUG_MSG("down-gold执行----------------%s" % str(command_sql))
+        #         KBEngine.executeRawDatabaseCommand(command_sql)
+        #         self.call_client_func("downGoldSuccess", ["下金币成功"])
+        #         self.account_mgr.give_gold_modify(self.databaseID, give_gold, tea_house_id)  # 给自己加金币
+        #         self.account_mgr.give_gold_modify(playerId, -give_gold, tea_house_id)  # 给玩家下金币
+        #         tea_houses = self.tea_house_mgr.get_tea_houses_by_account_dbid(playerId)
+        #         for k, v in tea_houses.items():
+        #             new_tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(v.teaHouseId)
+        #             new_tea_house_entity.set_game_coin(playerId, player_gold - give_gold)
+        #     else:
+        #         self.call_client_func("Notice", ["玩家不存在"])
+        #         return
+        #
+        # sql = "select * from tbl_account WHERE id=%s" % playerId
+        # tea_house_entity.set_game_coin(self.databaseID, self.gold + give_gold)
+        # KBEngine.executeRawDatabaseCommand(sql, _db_callback_count)
 
     def give_gold_record(self, _args):
         """
