@@ -1499,7 +1499,10 @@ class RoomType4(RoomBase):
                     item += 1
             if item == 1:
                 self.player_leave_info = []
+                if self.info["pot"]:
+                    _chapter['playerInGame'][chapter["banker"]]['score'] += chapter['potStake']
                 self.total_settlement()
+                self.write_chapter_info_to_db()
                 return
         _chapter["settlementTimerId"] = self.addTimer(_timeSettlement + len(_chapter["playerInGame"]) * 0.3, 0, 0)
         if self.info["payType"] == Const.PayType.AA:
