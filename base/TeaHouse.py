@@ -1095,6 +1095,7 @@ class TeaHouse(KBEngine.Entity):
                           "belongTo": v.belong_to,
                           "belongToName": up_entity.name if up_entity else "",
                           'luckyCard': v.lucky_card,
+                          "proportion": v.proportion,
                           "chapterCounts": v.chapter_count,
                           "headImage": v.head_image,
                           "freeze": self.is_freeze_player(k)
@@ -1568,6 +1569,8 @@ class TeaHouse(KBEngine.Entity):
                                     from_public=True)
             # 如果玩家在游戏中通知
             self.refresh_game_coin_in_room(modifier, game_coin_change)
+            DEBUG_MSG("----------------------------------%s" % str(modifier))
+
             if on_success:
                 on_success()
         else:
@@ -2310,7 +2313,8 @@ class TeaHouse(KBEngine.Entity):
         updater = self.get_single_member_info(update_account)
         for k in self.memberInfo.keys():
             try:
-                self.in_tea_house(k).call_client_func('UpdateSingleMemberInfo', {'memberInfo': updater})
+                if k == update_account:
+                    self.in_tea_house(k).call_client_func('UpdateSingleMemberInfo', {'memberInfo': updater})
             except AttributeError as e:
                 pass
 

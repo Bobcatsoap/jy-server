@@ -867,6 +867,9 @@ class RoomType1(RoomBase):
         # 1 观战中的玩家
         _playerOutGame = chapter["playerOutGame"]
         # 如果玩家id 在 观战玩家中
+        if _playerOutGame[account_id]['score'] < self.info['gameLevel']:
+            self.callClientFunction(account_id, 'Notice', ['金币不足，无法坐下'])
+            return
         if account_id in _playerOutGame:
             # 已经坐下
             if account_id in self.wait_to_seat:  # self.wait_to_seat 观战中的下局可以开始坐下的玩家

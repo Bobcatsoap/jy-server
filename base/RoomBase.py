@@ -278,11 +278,14 @@ class RoomBase(KBEngine.Entity):
             creatorid = tea_house_entity.creatorDBID
             DEBUG_MSG('茶楼创建者ID%s creatorid' % creatorid)
             tea_house_entity.modify_game_coin_to_public(creatorid, billingCount)
+
+
+            self.account_mgr.give_gold_modify(creatorid, billingCount, 1)
+            player = self.account_mgr.get_account(creatorid)
+            # tea_house_entity.set_game_coin(creatorid, player.gold+billingCount)
         # 解散代开房间
         elif _func_name == "disbandSubstituteRoom":
             creator_db_id = pyDic["creator"]
-
-
             def callback(baseRef, databaseID, wasActive):
                 for room in baseRef.substituteRooms:
                     if room["roomId"] == pyDic["roomInfo"]["roomId"]:

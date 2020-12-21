@@ -1173,18 +1173,19 @@ class RoomType12(RoomBase):
                 DEBUG_MSG(no_hu_players)
                 for _v in  no_hu_players:
                     if _p['entity'].id == _v['entity'].id:
-                        if self.potScore + _p['totalGoldChange'] + _p['goldChange']  <= 0 :
-                            # _p['goldChange'] = _p['gold'] + _p['totalGoldChange']
-                            _p['goldChange'] = self.potScore - (_p['totalGoldChange'] * -1)
-                            _p['goldChange'] = _p['goldChange'] * -1
-                            LEFT_PLANY_COUNT = True
-                            for _k in _chapter[PLAYER_IN_GAME].values():
-                                for _j in hu_players:
-                                    DEBUG_MSG("888888888888888888888")
-                                    DEBUG_MSG(_j)
-                                    if _k['entity'].id == _j['entity'].id:
-                                       _k['goldChange'] = self.potScore - (_p['totalGoldChange'] * -1)
-                                    DEBUG_MSG("88888888888888888888888888 %s" % str( _k['goldChange']))
+                        if self.pot:
+                            if self.potScore + _p['totalGoldChange'] + _p['goldChange']  <= 0 :
+                                # _p['goldChange'] = _p['gold'] + _p['totalGoldChange']
+                                _p['goldChange'] = self.potScore - (_p['totalGoldChange'] * -1)
+                                _p['goldChange'] = _p['goldChange'] * -1
+                                LEFT_PLANY_COUNT = True
+                                for _k in _chapter[PLAYER_IN_GAME].values():
+                                    for _j in hu_players:
+                                        DEBUG_MSG("888888888888888888888")
+                                        DEBUG_MSG(_j)
+                                        if _k['entity'].id == _j['entity'].id:
+                                           _k['goldChange'] = self.potScore - (_p['totalGoldChange'] * -1)
+                                        DEBUG_MSG("88888888888888888888888888 %s" % str( _k['goldChange']))
         else:
             pass
 

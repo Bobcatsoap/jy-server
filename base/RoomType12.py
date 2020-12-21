@@ -36,7 +36,7 @@ class RoomType12(RoomBase):
 
     def onRoomInit(self):
         """
-        cell--->base
+        cell--->base1
         :return:
         """
         RoomBase.onRoomInit(self)

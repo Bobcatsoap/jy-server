@@ -1853,7 +1853,7 @@ class RoomType13(RoomBase):
                     v["lostCount"] += 1
                     v["totalBoomCounts"] += v["boomCount"]
 
-            # 统计输赢
+            # 统计输赢玩家点击下局坐下按钮
             for k2, v2 in chapter['playerInGame'].items():
                 if k2 != chapter['winner']:
                     lost_source_all = v2["goldChange"]

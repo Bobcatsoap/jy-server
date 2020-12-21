@@ -277,15 +277,20 @@ class Account(KBEngine.Proxy):
         DEBUG_MSG("account_init-eeeeeeeee------> userId %s" % self.databaseID)
         if not hasattr(self, '__ACCOUNT_NAME__'):
             return
+
         _name = self.__ACCOUNT_NAME__
         INFO_MSG("[Account %i] name=%s" % (self.id, _name))
+
+
         if '*' in _name:
             _l = list()
             _l.append(_name[0])
             _l.append(_name[2:len(_name)])
             if _l[0] == 'w':
+
                 # 微信
                 self.req_wx_name(_l[1])
+
         # 游客登陆
         else:
             # self.name = "游客" + self.databaseID
@@ -2448,7 +2453,11 @@ class Account(KBEngine.Proxy):
         """
         member_info = self.tea_house_mgr.get_tea_house_single_member_info(tea_house_id, account_db_id)
         if member_info:
-            self.call_client_func('UpdateSingleMemberInfo', {'memberInfo': member_info})
+            tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+            tea_house_entity.update_single_member_info_to_client(account_db_id)
+            # add_account_entity = self.account_mgr.get_account(account_db_id)
+            # add_account_entity.call_client_func('UpdateSingleMemberInfo', {'memberInfo': member_info})
+            # pass
         else:
             self.call_client_func('Notice', ['没有找到指定冠名赛成员信息'])
 
@@ -2612,9 +2621,10 @@ class Account(KBEngine.Proxy):
         :return:
         """
         try:
-            self.scene.cell.baseToCell(
-                {"func": "refreshGold", "databaseId": self.userId, "count": modify_count if isModify else self.gold,
-                 'isModify': isModify})
+            if self.scene:
+                self.scene.cell.baseToCell(
+                    {"func": "refreshGold", "databaseId": self.userId, "count": modify_count if isModify else self.gold,
+                     'isModify': isModify})
         except AttributeError as e:
             ERROR_MSG('Account::refresh_gold_to_room %s' % e)
 
