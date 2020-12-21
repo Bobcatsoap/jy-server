@@ -6,6 +6,8 @@ import KBEngine
 
 import Const
 from KBEDebug import *
+
+import RoomType23Calculator
 from RoomBase import *
 import json
 import time
@@ -74,6 +76,8 @@ class RoomType23(RoomBase):
         _chapter["currentState"] = 0
         # 当前操作玩家位置
         _chapter["currentLocationIndex"] = -1
+        # 剩余牌
+        _chapter['remainCards'] = []
         # 房间总注
         _chapter["totalStake"] = 0
         # 解散清除玩家倒计时
@@ -240,7 +244,7 @@ class RoomType23(RoomBase):
             _player = {"cards": self.parse_card_to_client(v["cards"]),
                        "gold": v["gold"], "locationIndex": int(v["locationIndex"]),
                        "userId": v["entity"].info["userId"],
-                       'stake':v['stake'],
+                       'stake': v['stake'],
                        "ip": v["entity"].info["ip"],
                        "onLine": not v['entity'].client_death,
                        "name": v["entity"].info["name"], "headImageUrl": v["entity"].info["headImageUrl"],
@@ -298,7 +302,7 @@ class RoomType23(RoomBase):
         _playerInGame = self.chapters[self.cn]["playerInGame"]
         # if _func == "StartGame":
         #     self.start_game()
-        if _func=="GrabBanker":
+        if _func == "GrabBanker":
             pass
         elif _func == "LeaveRoom":
             self.onLeave(account_entity_id, _data)
@@ -307,7 +311,7 @@ class RoomType23(RoomBase):
             if self.get_seat_player_by_entity_id(account_entity_id)["ready"]:
                 self.get_player_entity(account_entity_id).update_player_stage(Account.PlayerStage.READY)
                 self.notify_viewing_hall_players_room_info()
-            
+
             _chapter = self.chapters[self.cn]
             all_ready = True
             for k, v in _chapter["playerInGame"].items():
@@ -449,7 +453,7 @@ class RoomType23(RoomBase):
         if _playerCount >= 3:
             self.chapter_start()
 
-    def player_ready(self, account_id, ready = True):
+    def player_ready(self, account_id, ready=True):
         chapter = self.chapters[self.cn]
         _player = chapter["playerInGame"][account_id]
         # 如果是比赛场,准备时金币不能小于设定值
@@ -463,7 +467,7 @@ class RoomType23(RoomBase):
             return
 
         if (self.is_gold_session_room() or self.is_challenge_room()) and \
-                _player['gold'] < self.info['roomRate']  and ready:
+                _player['gold'] < self.info['roomRate'] and ready:
             return
         chapter["playerInGame"][account_id]["ready"] = ready
         _args = {"accountId": account_id, "ready": ready}
@@ -563,20 +567,22 @@ class RoomType23(RoomBase):
         DEBUG_MSG('[Room id %i]------>dealCards ' % self.id)
         _chapter = self.chapters[self.cn]
         _player_in_game = _chapter["playerInGame"]
-        if len(_player_in_game) != 3:
-            DEBUG_MSG('player count is error: % i' % len(_player_in_game))
-            return
 
-        # 获取生成的手牌和底牌
-        all_cards, cover_cards = self.generate_cards()
+        # 获取生成的手牌
+        all_cards, remain_cards = RoomType23Calculator.generate_cards(len(_player_in_game))
+        # 打印生成出来的牌
+        self.debug_msg("all_cards:%s,remain_cards%s" % (all_cards, remain_cards))
+
+        # 剩余牌赋值
+        _chapter['remainCards'] = remain_cards
+
+        # 玩家手牌赋值
         player_cards_data = []
         dic_index = 0
-        # 玩家手牌赋值
         for k in _player_in_game:
             cards = all_cards[dic_index]
             _player_in_game[k]["cards"] = cards
             dic_index += 1
-
 
         # 转化为客户端牌值
         for k in _player_in_game:
@@ -586,14 +592,13 @@ class RoomType23(RoomBase):
             player_cards_data.append({"accountId": int(k), "cards": client_cards})
 
         # 转化为客户端牌值
-        client_cover_cards = self.parse_card_to_client(cover_cards)
-        all_cards_data = {"playerCards": player_cards_data, "coverCards": client_cover_cards}
+        all_cards_data = {"playerCards": player_cards_data}
         # 记录发牌
         record = {}
         # 出牌相关置为 0
         record["operationType"] = 0
         # 操作  存储玩家的牌和底牌
-        record["operationArgs"] = {"playerCards": player_cards_data, "coverCards": client_cover_cards}
+        record["operationArgs"] = {"playerCards": player_cards_data}
         # 将发牌相关数据存到操作回放流程里
         _chapter["operationRecord"].append(record)
         self.send_cards_info_with_encryption(all_cards_data)
@@ -632,67 +637,6 @@ class RoomType23(RoomBase):
         return count
 
         # 生成牌
-
-    def generate_cards(self):
-        # 黑红梅方
-        card_type = ["a", "b", "c", "d"]
-        # 14,A
-        # 15,2
-        # 16，小王
-        # 17，大王
-        card_num = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-        card_pairs = []
-        player1_cards = []
-        player2_cards = []
-        player3_cards = []
-        cover_cards = []
-        for card_color in card_type:
-            for num in card_num:
-                card_pairs.append(card_color + str(num))
-
-        card_pairs.append(str(16))
-        card_pairs.append(str(17))
-
-        random.shuffle(card_pairs)
-        random.shuffle(card_pairs)
-
-        # 洗牌
-        self.random_cards_with_time(card_pairs)
-
-        # 底牌数量
-        cover_card_num = 3
-        for index in range(0, len(card_pairs) - cover_card_num):
-            card_pair = card_pairs[index]
-            if index % 3 == 0:
-                player1_cards.append(card_pair)
-            if index % 3 == 1:
-                player2_cards.append(card_pair)
-            if index % 3 == 2:
-                player3_cards.append(card_pair)
-
-        # 双王不能在一个人手中
-        def is_have_two_joke(_cards):
-            return ('16' in _cards) and ('17' in _cards)
-
-        def swap_joke(_cards1, _cards2):
-            _index = _cards1.index('16')
-            _cards1[_index] = _cards2[_index]
-            _cards2[_index] = '16'
-            DEBUG_MSG("swap_joke %s %s" % (_cards1, _cards2))
-
-        if is_have_two_joke(player1_cards):
-            swap_joke(player1_cards, player2_cards)
-        elif is_have_two_joke(player2_cards):
-            swap_joke(player2_cards, player3_cards)
-        elif is_have_two_joke(player3_cards):
-            swap_joke(player3_cards, player1_cards)
-
-        # 底牌
-        # player1_cards = ["b7", "c7", "d7", "b8", "c8", "d8", "b6", "a6"]
-        # player2_cards = ["a3", "b3", "c3", "c4", "a4", "b4", "a7", "a8"]
-        cover_cards = card_pairs[-cover_card_num:]
-        all_cards = [player1_cards, player2_cards, player3_cards]
-        return all_cards, cover_cards
 
     # 设置回合数
     def set_current_round(self, current_round):
@@ -812,12 +756,12 @@ class RoomType23(RoomBase):
             self.callOtherClientsFunction("changeChapterState", _args)
 
             # 第二局开始自动准备
-            #if self.cn > 0:
+            # if self.cn > 0:
             #    for k, v in _chapter["playerInGame"].items():
             #        if v["entity"].info["isBot"] == 0:
             #            self.player_ready(k)
 
-            #_chapter["mainTimerId"] = self.addTimer(1, 0.2, 0)
+            # _chapter["mainTimerId"] = self.addTimer(1, 0.2, 0)
 
         elif state == 1:
             # 牌局开始、发牌
@@ -860,13 +804,12 @@ class RoomType23(RoomBase):
             self.settlement()
             for k, v in _chapter["playerInGame"].items():
                 self.player_ready(k, False)
-                
+
         elif state == 5:
             # 总结算
             # 关闭所有计时器
             _args = {"state": state, "Timer": 0}
             self.callOtherClientsFunction("changeChapterState", _args)
-
 
     # 通过位置获取Id
     def get_account_id_with_location_index(self, location_index):
@@ -1279,7 +1222,8 @@ class RoomType23(RoomBase):
                 self.set_base_player_gold(k)
             player_settlement_info.append(
                 {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
-                 "overBilling": v["overBilling"], "otherBilling": v["otherBilling"], "headImageUrl": v["entity"].info["headImageUrl"],
+                 "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
+                 "headImageUrl": v["entity"].info["headImageUrl"],
                  "winnerBilling": v["winnerBilling"], 'gold': v['gold']})
         args = {"settlementInfo": player_settlement_info}
         self.callOtherClientsFunction("TotalSettlement", args)
@@ -1410,7 +1354,8 @@ class RoomType23(RoomBase):
             _playerData = {"accountId": k, "accountName": v["entity"].info["name"], "winnerBilling": v["winnerBilling"],
                            "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"], "totalGoldChange":
-                               v["totalGoldChange"], "userId": v["entity"].info["userId"], "headImageUrl": v["entity"].info["headImageUrl"]}
+                               v["totalGoldChange"], "userId": v["entity"].info["userId"],
+                           "headImageUrl": v["entity"].info["headImageUrl"]}
             # 1 玩家数据
             _playerInfo.append(_playerData)
             record_players.append(v['entity'].info['userId'])
