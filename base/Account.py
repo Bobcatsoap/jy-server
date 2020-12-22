@@ -3670,8 +3670,8 @@ class Account(KBEngine.Proxy):
             self.call_client_func('Notice', ['冠名赛不存在'])
         def callback(result, rows, insertid, error):
             record_info_list = []
-            DEBUG_MSG("[get_history_commission_record] result ----------------")
-            DEBUG_MSG(result)
+            # DEBUG_MSG("[get_history_commission_record] result ----------------")
+            # DEBUG_MSG(result)
             if not result or len(result) == 0:
                 self.call_client_func("historyCommissionResult", {
                     'partnerInfo': record_info_list,
@@ -3701,7 +3701,7 @@ class Account(KBEngine.Proxy):
             member_count = len(record_info_list)
             # 计算总页数
             DEBUG_MSG("========================================")
-            DEBUG_MSG(record_info_list)
+            # DEBUG_MSG(record_info_list)
             total_pages = math.ceil(len(record_info_list) / Const.history_list_page_item)
             page_start = page_index * Const.partner_list_page_item
             page_end = page_start + Const.partner_list_page_item

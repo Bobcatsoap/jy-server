@@ -856,11 +856,11 @@ class TeaHouse(KBEngine.Entity):
 
         up_players = []
         # up_players 存储从楼主顺序往下的所有上级，楼主没有上级玩家列表
-        # if origin_player.level != TeaHousePlayerLevel.Creator:
-        find_belong_to_recursive(origin_player, up_players)
+        if origin_player.level != TeaHousePlayerLevel.Creator:
+            find_belong_to_recursive(origin_player, up_players)
         # 如果是战队长，上级里加上自己
-        if origin_player.level == TeaHousePlayerLevel.Partner:
-            up_players.append(origin_player)
+        #if origin_player.level == TeaHousePlayerLevel.Partner:
+        #    up_players.append(origin_player)
         # 从大到小排列
         up_players.reverse()
 
@@ -1023,14 +1023,14 @@ class TeaHouse(KBEngine.Entity):
         :return:
         """
         DEBUG_MSG("1111111111111111")
-        DEBUG_MSG( self.memberInfo.items())
+        # DEBUG_MSG( self.memberInfo.items())
         for k, v in self.memberInfo.items():
             if account_db_id == k:
                 # 如果玩家实体有客户端，视为在线
                 account_entity = get_account_entity_with_db_id(k)
                 up_entity = get_account_entity_with_db_id(v.belong_to)
                 online_state = bool(account_entity and account_entity.client)
-                members_info = {"level": v.level, "name": v.name, "gameCoin": v.game_coin,
+                members_info = {"level": v.level, "name": v.name, "gameCoin": round(v.game_coin, 1),
                                 "accountDBId": k, "state": online_state,
                                 "belongTo": v.belong_to,
                                 "belongToName": up_entity.name if up_entity else "",
@@ -1262,7 +1262,7 @@ class TeaHouse(KBEngine.Entity):
             json_info[k] = info
         return json.dumps(json_info)
 
-    def get_tea_house_player(self, account_db_id):
+    def  get_tea_house_player(self, account_db_id):
         """
         获取冠名赛玩家
         :param account_db_id:
