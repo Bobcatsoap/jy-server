@@ -3664,7 +3664,7 @@ class Account(KBEngine.Proxy):
     def get_history_commission_record(self, _args):
         account_db_id = _args["accountDBID"]
         tea_house_id = _args["teaHouseId"]
-        page_index = _args["pageIndex"]
+        page_index = int(_args["pageIndex"])
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
         if not tea_house_entity:
             self.call_client_func('Notice', ['冠名赛不存在'])
@@ -3683,8 +3683,15 @@ class Account(KBEngine.Proxy):
             for info in result:
                 item = dict()
                 item['accountDBID'] = int(info[0])
-                item['name'] = tea_house_entity.get_tea_house_player(item['accountDBID']).name
-                item['headImageUrl'] = tea_house_entity.get_tea_house_player(item['accountDBID']).head_image
+                try:
+                    item['name'] = tea_house_entity.get_tea_house_player(item['accountDBID']).name
+                    item['headImageUrl'] = tea_house_entity.get_tea_house_player(item['accountDBID']).head_image
+                except:
+                    DEBUG_MSG("ERROR")
+                    DEBUG_MSG(result)
+                    continue
+                # item['name'] = self.account_mgr.get_account(item['accountDBID']).name
+                # item['headImageUrl'] = self.account_mgr.get_account(item['accountDBID']).headImageUrl
                 item['time'] = int(info[2])
                 item['count'] = int(info[3])
                 item['double_count'] = float(info[4])

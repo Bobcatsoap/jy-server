@@ -1489,7 +1489,7 @@ class RoomType4(RoomBase):
         else:
             item =0
             for k, v in _playerInGame.items():
-                if v["score"] <= self.info['endScore']:
+                if v["score"] <= self.info['endScore'] or v["score"] <= 0:
                     self.player_leave_info.append({"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
                  "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
                  "winnerBilling": v["winnerBilling"], 'gold': v['score']})
@@ -1500,7 +1500,7 @@ class RoomType4(RoomBase):
             if item == 1:
                 self.player_leave_info = []
                 if self.info["pot"]:
-                    _chapter['playerInGame'][chapter["banker"]]['score'] += chapter['potStake']
+                    _chapter['playerInGame'][_chapter["banker"]]['score'] += _chapter['potStake']
                 self.total_settlement()
                 self.write_chapter_info_to_db()
                 return
@@ -1656,7 +1656,7 @@ class RoomType4(RoomBase):
         if self.cn >= int(self.info["maxChapterCount"]) - 1:
             # 把当前锅底还给庄家
             if self.info["pot"]:
-                _chapter['playerInGame'][chapter["banker"]]['score'] += chapter['potStake']
+                _chapter['playerInGame'][_chapter["banker"]]['score'] += _chapter['potStake']
             self.total_settlement()
             self.write_chapter_info_to_db()
             return
@@ -2237,6 +2237,7 @@ class RoomType4(RoomBase):
         # 1 在房间中的人
         _playerInRoom = chapter["playerInRoom"]
         # 1 在游戏中的人
+        _playerInGame = chapter["playerInGame"]
         _playerInGame = chapter["playerInGame"]
         # 1 游戏中观战的人
         _playerOutGame = chapter["playerOutGame"]
