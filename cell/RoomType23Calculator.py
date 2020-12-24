@@ -37,9 +37,9 @@ def generate_cards(player_count):
     # 把给玩家发的牌整理出来
     all_cards = []
     for i in range(0, player_count):
-        cards = cards_lib[:2]
+        cards = cards_lib[:1]
         all_cards.append(cards)
-        cards_lib = cards_lib[2:]
+        cards_lib = cards_lib[1:]
 
     # 剩余牌
     remain_cards = cards_lib
