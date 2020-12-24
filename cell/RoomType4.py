@@ -742,11 +742,17 @@ class RoomType4(RoomBase):
             return
         if account_id not in _chapter["playerInGame"]:
             return
+        if self.info["roomType"] == "gameCoin":
+            # TODO 设置玩家金币数量
+            self.set_base_player_game_coin(account_id)
         _chapter["playerOutGame"][account_id] = _chapter["playerInGame"][account_id]
+        itemIndex = _chapter["playerInGame"][account_id]["locationIndex"]
+        DEBUG_MSG('[获取站起玩家位置id]------>standUp accountId %s' % location_index)
+        DEBUG_MSG('[前端传的玩家位置id]------>standUp accountId %s' % itemIndex)
         _chapter["playerInGame"].pop(account_id)
         DEBUG_MSG( _chapter["playerInGame"])
-        _args = {"account_id": account_id, "location_index": location_index}
-        self.emptyLocationIndex.append(location_index)
+        _args = {"account_id": account_id, "location_index": itemIndex}
+        self.emptyLocationIndex.append(itemIndex)
         _chapter["playerOutGame"][account_id]["location_index"] = -1
         self.callOtherClientsFunction("StandUp", _args)
 

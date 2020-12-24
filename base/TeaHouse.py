@@ -874,8 +874,14 @@ class TeaHouse(KBEngine.Entity):
         # 遍历上级列表
         for _index, player in enumerate(up_players):
             # 抽成等于上级
-            _performance = player.proportion / 100 * _add
-            _add = _performance
+            next_performance = 0
+            # 该上级是否还有下级，如果有先计算应该给下级的分成
+            if _index + 1 < len(up_players):
+                next_player = up_players[_index + 1]
+                next_performance = next_player.proportion / 100 * _add
+            # 该上级分成等于分成减去下级应得分成
+            _performance = _add - next_performance
+            _add = next_performance
             DEBUG_MSG('index%s,player_db_id:%s,performance:%s,_add:%s' % (_index, player.db_id, _performance, _add))
             # 保留两位小数，减少长度
             _performance = round(_performance, 2)

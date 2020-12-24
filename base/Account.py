@@ -2276,17 +2276,17 @@ class Account(KBEngine.Proxy):
             #  self.account_mgr.modify_gold(self.userId, gold_add)
             index = 0
             n = random.randint(1, 101)
-            if n <= 63:
+            if n <= 80:
                 index = 7
-            elif 63 < n <= 78:
+            elif 81 < n <= 90:
                 index = 6
-            elif 78 < n <= 88:
+            elif 90 < n <= 95:
                 index = 5
-            elif 88 < n <= 93:
+            elif 95 < n <= 97:
                 index = 4
-            elif 93 < n <= 96:
+            elif 97 < n <= 98:
                 index = 3
-            elif 96 < n <= 99:
+            elif 98 < n <= 99:
                 index = 2
             elif n == 100:
                 index = 1

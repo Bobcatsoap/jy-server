@@ -94,14 +94,14 @@ class Account(KBEngine.Entity):
             if key == "gold":
                 _v = pyDic[key]
                # _v = int(_v)
-                self.accountMutableInfo["gold"] = _v
+                self.accountMutableInfo["gold"] = round(float(_v), 1)
             # elif key == "goldBean":
             #     _v = int(pyDic[key])
             #     self.accountMutableInfo["goldBean"] = _v
             elif key == "gameCoin":
                 DEBUG_MSG('cell Account.py line54 _v value:%s_v type:%s' % (pyDic[key], type(pyDic[key])))
                # _v = int(pyDic[key])
-                self.accountMutableInfo["gameCoin"] = pyDic[key]
+                self.accountMutableInfo["gameCoin"] = round(float(pyDic[key]), 1)
             elif key == "controlScore":
                 self.lose_score = int(pyDic[key][0])
                 self.win_score = int(pyDic[key][1])

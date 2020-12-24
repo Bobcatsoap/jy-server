@@ -1704,13 +1704,13 @@ class RoomType13(RoomBase):
                                 lose_gold = -self.info["baseScore"] * chapter["multiple"] * len(v["cards"]) * 2
                                 DEBUG_MSG(RoomType13Calculator.convert_cards_to_value(v["cards"]))
                                 if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
-                                    lose_gold -= 10
+                                    lose_gold -= 10*self.info["baseScore"]
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"]) * 2
                             # 非全关
                             else:
                                 lose_gold = -self.info["baseScore"] * chapter["multiple"] * len(v["cards"])
                                 if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
-                                    lose_gold -=10
+                                    lose_gold -=10*self.info["baseScore"]
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"])
                     # 结算2:固定牌数*低分*倍数
                     else:
@@ -1723,13 +1723,13 @@ class RoomType13(RoomBase):
                                 v["overCardLift"] = True
                                 lose_gold = - chapter["multiple"] * len(v["cards"]) * self.info["baseScore"] * 2 * 2
                                 if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
-                                    lose_gold -=10
+                                    lose_gold -=10*self.info["baseScore"]
                                 basic_gold_change = - len(v["cards"]) * self.info["baseScore"] * 2 * 2
                             # 不全关
                             else:
                                 lose_gold = - chapter["multiple"] * len(v["cards"]) * self.info["baseScore"] * 2
                                 if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
-                                    lose_gold -=10
+                                    lose_gold -=10*self.info["baseScore"]
                                 basic_gold_change = - len(v["cards"]) * self.info["baseScore"] * 2
 
                     self.debug_msg('settlement player:%s lose_gold:%s basic_gold_change%s' % (v["entity"].info["name"],

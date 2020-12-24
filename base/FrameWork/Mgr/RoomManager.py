@@ -2106,6 +2106,7 @@ class RoomManager(Manger):
             info['gameLevel'] = info['potScore']
             # 锅子玩法离场分为0
             info['endScore'] = 0
+        info["witness"] = False
 
     def room13_conflict(self, info):
         """
@@ -2121,6 +2122,7 @@ class RoomManager(Manger):
             info['gameLevel'] = info['potScore']
             # 锅子玩法离场分为0
             info['endScore'] = 0
+        info["witness"] = False
 
     def room4_conflict(self, info):
         """
