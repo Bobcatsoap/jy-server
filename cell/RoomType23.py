@@ -1396,12 +1396,12 @@ class RoomType23(RoomBase):
         else:
             # 给坐下玩家发送观战玩家信息
             for k, v in _chapter["playerInGame"].items():
-                self.retOutGamePlayerInfo(k)
+                self.ret_out_game_player_info(k)
             # 给进入的玩家发送所有玩家信息
             self.retPlayerInRoomInfos(accountEntityId)
             # 给观战玩家发送观战玩家信息
             for k, v in _chapter["playerOutGame"].items():
-                self.retOutGamePlayerInfo(k)
+                self.ret_out_game_player_info(k)
             # 给进入的玩家发送牌局信息
             self.retChapterInfo(accountEntityId)
             _account.update_player_stage(Account.PlayerStage.WATCHING)
@@ -1424,10 +1424,12 @@ class RoomType23(RoomBase):
         #         _args = {"accountEntityId": self.player_list[0]}
         #         self.callClientFunction(self.player_list[0], "ShowStartGame", _args)
 
-    def retOutGamePlayerInfo(self, accountId=-1):
+    def ret_out_game_player_info(self, account_id=-1):
+        """
+        广播观战玩家信息
+        """
         _chapter = self.chapters[self.cn]
         _playerOutGameNotEntity = {}
-
         for k, v in _chapter["playerOutGame"].items():
             _player = {"cards": v["cards"],
                        "gold": v["score"] - v["totalBet"],
@@ -1441,10 +1443,10 @@ class RoomType23(RoomBase):
             _playerOutGameNotEntity[int(k)] = _player
         _args = {"playerOutGame": _playerOutGameNotEntity}
         self.debug_msg('[Room id %i]------>retPlayerInRoomInfos %s' % (self.id, _args))
-        if accountId == -1:
+        if account_id == -1:
             self.callOtherClientsFunction("RetOutGamePlayerInfo", _args)
         else:
-            self.callClientFunction(accountId, "RetOutGamePlayerInfo", _args)
+            self.callClientFunction(account_id, "RetOutGamePlayerInfo", _args)
 
     def onPlayerClientDeath(self, accountEntity):
         """
@@ -1554,10 +1556,10 @@ class RoomType23(RoomBase):
             # 有观战玩家离开
             # 给坐下玩家发送观战玩家信息
             for k, v in _chapter["playerInGame"].items():
-                self.retOutGamePlayerInfo(k)
+                self.ret_out_game_player_info(k)
             # 给观战玩家发送观战玩家信息
             for k, v in _chapter["playerOutGame"].items():
-                self.retOutGamePlayerInfo(k)
+                self.ret_out_game_player_info(k)
             self.debug_msg('[Room]------>onLeave len(_playerInGame) %s' % (
                 len(_playerInGame)))
             self.base.cellToBase({"func": "playersCount", "count": len(_chapter["playerInRoom"])})
