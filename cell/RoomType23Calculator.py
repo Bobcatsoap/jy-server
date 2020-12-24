@@ -1,47 +1,102 @@
+import datetime
 import random
+from random import shuffle
+
+
+def get_cards_widget(cards: []):
+    """
+    获取牌的大小权值
+    """
+    if cards_busted(cards):
+        return -1
+    if cards_is_five_dragon(cards):
+        return 10000
+    if cards_is_five_min(cards):
+        return 1000
+    if cards_is_ten_half(cards):
+        return 100
+    return get_cards_score(cards)
 
 
 def get_cards_score(cards: []):
     """
     获取手牌点数
     """
-    pass
+    _sum = 0.0
+    for i in cards:
+        number = get_card_number(i)
+        if number > 10:
+            score = 0.5
+        else:
+            score = number
+        _sum += score
+    return _sum
 
 
-def get_card_number(card):
+def cards_busted(cards: []):
+    """
+    是否爆牌(大于十点半)
+    """
+    return get_cards_score(cards) > 10.5
+
+
+def cards_is_ten_half(cards: []):
+    """
+    是否是十点半(点数等于十点半)
+    """
+    return get_cards_score(cards) == 10.5
+
+
+def cards_is_five_dragon(cards: []):
+    """
+    天王(五张牌并且点数等于十点半)
+    """
+    return get_cards_score(cards) <= 10.5 and len(cards) == 5
+
+
+def cards_is_five_min(cards: []):
+    """
+    五小(五张牌并且点数小于十点半)
+    """
+    return get_cards_score(cards) < 10.5 and len(cards) == 5
+
+
+def get_card_number(card: int):
     """
     获取牌的数字
     """
-    pass
+    return int(card / 4)
 
 
-def generate_cards(player_count):
+def generate_cards_lib():
     """
     生成玩家手牌
     """
-    # 黑红梅方
-    card_type = ["a", "b", "c", "d"]
-    # 14 代表 A，15 代表 2
-    card_num = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    cards_lib = []
+    _cards_lib = list(range(0, 52))
+    return _cards_lib
 
-    # 生成所有牌
-    for card_color in card_type:
-        for num in card_num:
-            cards_lib.append(card_color + str(num))
 
-    # 洗牌
-    random.shuffle(cards_lib)
-    random.shuffle(cards_lib)
+def random_shuffle_cards_lib(cards_lib):
+    """
+    洗牌
+    """
+    shuffle(cards_lib)
+    shuffle(cards_lib)
+    for i in range(8):
+        shuffle_cards_by_time(cards_lib)
 
-    # 把给玩家发的牌整理出来
-    all_cards = []
-    for i in range(0, player_count):
-        cards = cards_lib[:1]
-        all_cards.append(cards)
-        cards_lib = cards_lib[1:]
 
-    # 剩余牌
-    remain_cards = cards_lib
-
-    return all_cards, remain_cards
+def shuffle_cards_by_time(_chapter_lib):
+    """
+    根据时间戳洗洗牌，前X张牌,放在最后
+    :param _chapter_lib:
+    :return:
+    """
+    # 取当前时间
+    ms_val = datetime.datetime.now().microsecond
+    if ms_val > 1000:
+        ms_val //= 1000
+    pai_val = (ms_val % 10) + 10
+    pull_pais = _chapter_lib[:pai_val]
+    del _chapter_lib[:pai_val]
+    _chapter_lib.extend(pull_pais)

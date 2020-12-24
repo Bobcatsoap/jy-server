@@ -1232,6 +1232,18 @@ class RoomBase(KBEngine.Entity):
         except:
             DEBUG_MSG('debug_msg error')
 
+    def error_msg(self,message):
+        try:
+            if 'teaHouseId' in self.info:
+                tea_house_id = self.info['teaHouseId']
+            else:
+                tea_house_id = -1
+            ERROR_MSG('[RoomType:%s RoomId %s,TeaHouseId:%s]------- %s' % (self.info['type'],
+                                                                           self.info['roomId'],
+                                                                           tea_house_id, message))
+        except:
+            ERROR_MSG('error_msg error')
+
     def is_need_rand_score_control(self, room_type):
         """
         随机区间为100000

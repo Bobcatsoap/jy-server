@@ -517,7 +517,7 @@ class RoomType23(RoomBase):
         _player_in_game = _chapter["playerInGame"]
 
         # 获取生成的手牌
-        all_cards, remain_cards = RoomType23Calculator.generate_cards(len(_player_in_game))
+        all_cards, remain_cards = RoomType23Calculator.generate_cards_lib(len(_player_in_game))
         # 打印生成出来的牌
         self.debug_msg("all_cards:%s,remain_cards%s" % (all_cards, remain_cards))
 
