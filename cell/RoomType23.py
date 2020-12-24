@@ -6,6 +6,8 @@ import KBEngine
 
 import Const
 from KBEDebug import *
+
+import RoomType23Calculator
 from RoomBase import *
 import json
 import time
@@ -20,14 +22,11 @@ ready_time = 5
 deal_card_to_player_time = 3
 
 # 抢庄时间
-grab_banker_time = 10
-
-# 要牌时间
-get_card_time = 10
-
+grab_banker_time = 5
 # 押注倒计时时间
 stake_time = 20
-
+# 要牌时间
+get_card_time = 10
 # 结算时间
 settlement_time = 6
 
@@ -74,16 +73,16 @@ class RoomType23(RoomBase):
         _chapter["currentState"] = 0
         # 当前操作玩家位置
         _chapter["currentLocationIndex"] = -1
+        # 剩余牌
+        _chapter['remainCards'] = []
         # 房间总注
         _chapter["totalStake"] = 0
         # 解散清除玩家倒计时
         _chapter["settlementClearPlayers"] = -1
         # 轮询是否可以开始牌局计时器
-        _chapter["mainTimerId"] = -1
-        # 牌局开始倒计时计时器
-        _chapter["chapterStartTimerId"] = 0
+        _chapter["mainTimer"] = -1
         # 发牌计时器
-        _chapter["dealCardAnimationTimerId"] = -1
+        _chapter["dealCardAnimationTimer"] = -1
         # 要牌计时器
         _chapter["getCardTimer"] = -1
         # 结算计时器
@@ -240,7 +239,7 @@ class RoomType23(RoomBase):
             _player = {"cards": self.parse_card_to_client(v["cards"]),
                        "gold": v["gold"], "locationIndex": int(v["locationIndex"]),
                        "userId": v["entity"].info["userId"],
-                       'stake':v['stake'],
+                       'stake': v['stake'],
                        "ip": v["entity"].info["ip"],
                        "onLine": not v['entity'].client_death,
                        "name": v["entity"].info["name"], "headImageUrl": v["entity"].info["headImageUrl"],
@@ -296,9 +295,7 @@ class RoomType23(RoomBase):
         _func = _py_dic["func"]
         _data = _py_dic["args"]
         _playerInGame = self.chapters[self.cn]["playerInGame"]
-        # if _func == "StartGame":
-        #     self.start_game()
-        if _func=="GrabBanker":
+        if _func == "GrabBanker":
             pass
         elif _func == "LeaveRoom":
             self.onLeave(account_entity_id, _data)
@@ -307,19 +304,6 @@ class RoomType23(RoomBase):
             if self.get_seat_player_by_entity_id(account_entity_id)["ready"]:
                 self.get_player_entity(account_entity_id).update_player_stage(Account.PlayerStage.READY)
                 self.notify_viewing_hall_players_room_info()
-            
-            _chapter = self.chapters[self.cn]
-            all_ready = True
-            for k, v in _chapter["playerInGame"].items():
-                if not v["ready"]:
-                    all_ready = False
-                    break
-            if all_ready and len(_chapter["playerInGame"]) >= 3:
-                # 只有阶段0可以通过准备开始
-                if _chapter['currentState'] != 0:
-                    return
-                self.start_game()
-
         elif _func == "GetRemainCards":
             self.send_remain_cards()
         elif _func == "GetRoomRecord":
@@ -437,19 +421,7 @@ class RoomType23(RoomBase):
         _args = {"accountId": account_id, "gold": gold}
         self.callOtherClientsFunction("RetAccountScore", _args)
 
-    def start_game(self):
-        """
-        开始游戏
-        :param:
-        :return:
-        """
-        DEBUG_MSG('[Room id %i]------>startGame ' % self.id)
-
-        _playerCount = self.get_player_in_game_count()
-        if _playerCount >= 3:
-            self.chapter_start()
-
-    def player_ready(self, account_id, ready = True):
+    def player_ready(self, account_id, ready=True):
         chapter = self.chapters[self.cn]
         _player = chapter["playerInGame"][account_id]
         # 如果是比赛场,准备时金币不能小于设定值
@@ -463,16 +435,11 @@ class RoomType23(RoomBase):
             return
 
         if (self.is_gold_session_room() or self.is_challenge_room()) and \
-                _player['gold'] < self.info['roomRate']  and ready:
+                _player['gold'] < self.info['roomRate'] and ready:
             return
         chapter["playerInGame"][account_id]["ready"] = ready
         _args = {"accountId": account_id, "ready": ready}
         self.callOtherClientsFunction("Ready", _args)
-
-        # # 金币场三个人准备自动开始
-        # if self.info["roomType"] == "gold":
-        #     if len(self.get_ready_player()) >= 3:
-        #         self.start_game()
 
     def get_ready_player(self):
         chapter = self.chapters[self.cn]
@@ -482,34 +449,21 @@ class RoomType23(RoomBase):
                 ready_players.append(k)
         return ready_players
 
-    def chapter_ready(self):
-        """
-        牌局准备
-        :return:
-        """
-        DEBUG_MSG('[Room id %i]------>chapterReady ' % self.id)
-        _chapter = self.chapters[self.cn]
-        _args = {"Timer": ready_time}
-        self.callOtherClientsFunction("ChapterReady", _args)
-        _chapter["chapterStartTimerId"] = self.addTimer(ready_time, 0, 0)
-        _chapter["deadline"] = time.time() + ready_time
-
     def chapter_start(self):
         """
         牌局开始
         :return:
         """
         DEBUG_MSG('[Room id %i]------>chapterStart ' % self.id)
-        # if self.cn < 1:
         self.started = True
         self.info["started"] = True
         chapter = self.chapters[self.cn]
         _playerInGame = chapter["playerInGame"]
         # 金币场扣除房费
-        if self.is_gold_session_room():
-            for k, v in _playerInGame.items():
-                v['gold'] -= self.info['roomRate']
-                self.set_base_player_gold(k)
+        # if self.is_gold_session_room():
+        #     for k, v in _playerInGame.items():
+        #         v['gold'] -= self.info['roomRate']
+        #         self.set_base_player_gold(k)
         if len(self.get_ready_player()) < 2:
             # _args = {"startGameResult": False, "error": "准备人数不足"}
             # self.callClientFunction(self.info["creatorAccountId"], "StartGame", _args)
@@ -532,7 +486,6 @@ class RoomType23(RoomBase):
 
         self.changeChapterState(1)
         self.set_current_round(self.cn + 1)
-        self.deal_cards()
         self.base.cellToBase({"func": "changeRoomState", "roomState": 1})
         self.base.cellToBase({"func": "newChapter", "count": self.cn + 1})
 
@@ -553,7 +506,6 @@ class RoomType23(RoomBase):
         _chapter_lib.extend(pull_pais)
         DEBUG_MSG("len %s,chapter lib%s" % (len(_chapter_lib), _chapter_lib))
 
-    # 发牌
     def deal_cards(self):
         """
         发牌
@@ -563,20 +515,22 @@ class RoomType23(RoomBase):
         DEBUG_MSG('[Room id %i]------>dealCards ' % self.id)
         _chapter = self.chapters[self.cn]
         _player_in_game = _chapter["playerInGame"]
-        if len(_player_in_game) != 3:
-            DEBUG_MSG('player count is error: % i' % len(_player_in_game))
-            return
 
-        # 获取生成的手牌和底牌
-        all_cards, cover_cards = self.generate_cards()
+        # 获取生成的手牌
+        all_cards, remain_cards = RoomType23Calculator.generate_cards(len(_player_in_game))
+        # 打印生成出来的牌
+        self.debug_msg("all_cards:%s,remain_cards%s" % (all_cards, remain_cards))
+
+        # 剩余牌赋值
+        _chapter['remainCards'] = remain_cards
+
+        # 玩家手牌赋值
         player_cards_data = []
         dic_index = 0
-        # 玩家手牌赋值
         for k in _player_in_game:
             cards = all_cards[dic_index]
             _player_in_game[k]["cards"] = cards
             dic_index += 1
-
 
         # 转化为客户端牌值
         for k in _player_in_game:
@@ -586,19 +540,16 @@ class RoomType23(RoomBase):
             player_cards_data.append({"accountId": int(k), "cards": client_cards})
 
         # 转化为客户端牌值
-        client_cover_cards = self.parse_card_to_client(cover_cards)
-        all_cards_data = {"playerCards": player_cards_data, "coverCards": client_cover_cards}
+        all_cards_data = {"playerCards": player_cards_data}
         # 记录发牌
         record = {}
         # 出牌相关置为 0
         record["operationType"] = 0
         # 操作  存储玩家的牌和底牌
-        record["operationArgs"] = {"playerCards": player_cards_data, "coverCards": client_cover_cards}
+        record["operationArgs"] = {"playerCards": player_cards_data}
         # 将发牌相关数据存到操作回放流程里
         _chapter["operationRecord"].append(record)
         self.send_cards_info_with_encryption(all_cards_data)
-        _chapter["dealCardAnimationTimerId"] = self.addTimer(deal_card_to_player_time, 0, 0)
-        _chapter["deadline"] = time.time() + deal_card_to_player_time
 
     def send_cards_info_with_encryption(self, all_cards_data):
         chapter = self.chapters[self.cn]
@@ -614,6 +565,16 @@ class RoomType23(RoomBase):
                     cards[x] = 1
             self.debug_msg('after encryption accountId:%s cards:%s' % (k, all_cards_data))
             self.callClientFunction(k, 'DealCards', all_cards_copy)
+
+    def select_banker(self):
+        """
+        定庄
+        """
+        chapter = self.chapters[self.cn]
+        if self.is_grab_banker_type:
+            pass
+        else:
+            pass
 
     # 获取坐下玩家数量
     def get_player_in_game_count(self):
@@ -632,67 +593,6 @@ class RoomType23(RoomBase):
         return count
 
         # 生成牌
-
-    def generate_cards(self):
-        # 黑红梅方
-        card_type = ["a", "b", "c", "d"]
-        # 14,A
-        # 15,2
-        # 16，小王
-        # 17，大王
-        card_num = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-        card_pairs = []
-        player1_cards = []
-        player2_cards = []
-        player3_cards = []
-        cover_cards = []
-        for card_color in card_type:
-            for num in card_num:
-                card_pairs.append(card_color + str(num))
-
-        card_pairs.append(str(16))
-        card_pairs.append(str(17))
-
-        random.shuffle(card_pairs)
-        random.shuffle(card_pairs)
-
-        # 洗牌
-        self.random_cards_with_time(card_pairs)
-
-        # 底牌数量
-        cover_card_num = 3
-        for index in range(0, len(card_pairs) - cover_card_num):
-            card_pair = card_pairs[index]
-            if index % 3 == 0:
-                player1_cards.append(card_pair)
-            if index % 3 == 1:
-                player2_cards.append(card_pair)
-            if index % 3 == 2:
-                player3_cards.append(card_pair)
-
-        # 双王不能在一个人手中
-        def is_have_two_joke(_cards):
-            return ('16' in _cards) and ('17' in _cards)
-
-        def swap_joke(_cards1, _cards2):
-            _index = _cards1.index('16')
-            _cards1[_index] = _cards2[_index]
-            _cards2[_index] = '16'
-            DEBUG_MSG("swap_joke %s %s" % (_cards1, _cards2))
-
-        if is_have_two_joke(player1_cards):
-            swap_joke(player1_cards, player2_cards)
-        elif is_have_two_joke(player2_cards):
-            swap_joke(player2_cards, player3_cards)
-        elif is_have_two_joke(player3_cards):
-            swap_joke(player3_cards, player1_cards)
-
-        # 底牌
-        # player1_cards = ["b7", "c7", "d7", "b8", "c8", "d8", "b6", "a6"]
-        # player2_cards = ["a3", "b3", "c3", "c4", "a4", "b4", "a7", "a8"]
-        cover_cards = card_pairs[-cover_card_num:]
-        all_cards = [player1_cards, player2_cards, player3_cards]
-        return all_cards, cover_cards
 
     # 设置回合数
     def set_current_round(self, current_round):
@@ -719,12 +619,33 @@ class RoomType23(RoomBase):
         _chapter = self.chapters[self.cn]
         _playerInGame = _chapter["playerInGame"]
 
-        if timer_handle == _chapter["chapterStartTimerId"]:
-            # 游戏开始计时器
-            DEBUG_MSG('[Room id %s]------>onTimer chapterStartTimerId %s' % (self.id, timer_handle))
+        # 开始游戏判断计时器计时结束
+        if timer_handle == _chapter["mainTimer"]:
+            all_ready = True
+            for k, v in _chapter["playerInGame"].items():
+                if not v["ready"]:
+                    all_ready = False
+                    break
+            if all_ready and len(_chapter["playerInGame"]) >= self.max_player_count:
+                self.delTimer(timer_handle)
+                _chapter["mainTimer"] = -1
+                self.chapter_start()
+        # 发牌计时器计时结束
+        elif timer_handle == _chapter['dealCardAnimationTimer']:
+            DEBUG_MSG('[Room id %s]------>onTimer dealCardAnimationTimer %s' % (self.id, timer_handle))
             self.delTimer(timer_handle)
-            _chapter["chapterStartTimerId"] = -1
-            self.chapter_start()
+            _chapter["dealCardAnimationTimer"] = -1
+            self.changeChapterState(2)
+        elif timer_handle == _chapter['grabBankerTimer']:
+            DEBUG_MSG('[Room id %s]------>onTimer grabBankerTimer %s' % (self.id, timer_handle))
+            self.delTimer(timer_handle)
+            _chapter["grabBankerTimer"] = -1
+            self.changeChapterState(3)
+        elif timer_handle == _chapter['stakeTimer']:
+            DEBUG_MSG('[Room id %s]------>onTimer stakeTimer %s' % (self.id, timer_handle))
+            self.delTimer(timer_handle)
+            _chapter['stakeTimer'] = -1
+            self.changeChapterState(4)
         elif timer_handle == _chapter["settlementTimer"]:
             # 下局开始计时器
             DEBUG_MSG('[Room id %s]------>onTimer settlementTimer %s' % (self.id, timer_handle))
@@ -755,17 +676,6 @@ class RoomType23(RoomBase):
             self.is_disbanding = False
             self.total_settlement()
             self.write_chapter_info_to_db()
-        # 1 轮询是否可以开始牌局计时器
-        elif timer_handle == _chapter["mainTimerId"]:
-            all_ready = True
-            for k, v in _chapter["playerInGame"].items():
-                if not v["ready"]:
-                    all_ready = False
-                    break
-            if all_ready and len(_chapter["playerInGame"]) >= 3:
-                self.delTimer(timer_handle)
-                _chapter["mainTimerId"] = -1
-                self.start_game()
         elif timer_handle == _chapter["settlementClearPlayers"]:
             _chapter["settlementClearPlayers"] = -1
             self.delTimer(_chapter["settlementClearPlayers"])
@@ -805,68 +715,65 @@ class RoomType23(RoomBase):
         :return:
         """
         _chapter = self.chapters[self.cn]
+        old_state = _chapter['currentState']
         _chapter["currentState"] = state
+        self.debug_msg('changeChapterState old_state:%s state:%s' % (old_state, state))
         if state == 0:
             # 准备
             _args = {"state": state, "Timer": 0}
             self.callOtherClientsFunction("changeChapterState", _args)
 
             # 第二局开始自动准备
-            #if self.cn > 0:
-            #    for k, v in _chapter["playerInGame"].items():
-            #        if v["entity"].info["isBot"] == 0:
-            #            self.player_ready(k)
+            if self.cn > 0:
+                for k, v in _chapter["playerInGame"].items():
+                    if v["entity"].info["isBot"] == 0:
+                        self.player_ready(k)
 
-            #_chapter["mainTimerId"] = self.addTimer(1, 0.2, 0)
-
-        elif state == 1:
-            # 牌局开始、发牌
+            # 开启游戏开始判断计时器
+            _chapter["mainTimer"] = self.addTimer(1, 0.2, 0)
+        # 发牌阶段
+        elif old_state == 0 and state == 1:
             _args = {"state": state, "Timer": deal_card_to_player_time}
             self.callOtherClientsFunction("changeChapterState", _args)
-        elif state == 2:
-            #
-            _args = {"state": state}
+            self.deal_cards()
+            # 发牌动画计时器
+            _chapter["dealCardAnimationTimer"] = self.addTimer(deal_card_to_player_time, 0, 0)
+            _chapter["deadline"] = time.time() + deal_card_to_player_time
+        # 定庄阶段
+        elif old_state == 1 and state == 2:
+            _args = {"state": state, 'Timer': grab_banker_time}
             self.callOtherClientsFunction("changeChapterState", _args)
-            random_index = 0
-
-
-        elif state == 3:
-            # 比赛开始
-            # 关闭叫地主计时器
-            self.delTimer(_chapter["grabDealerTimer"])
-            _chapter["grabDealerTimer"] = -1
-            _args = {"state": state}
+            # 定庄
+            self.select_banker()
+            # 抢庄动画计时器
+            _chapter["grabBankerTimer"] = self.addTimer(grab_banker_time, 0, 0)
+            _chapter["deadline"] = time.time() + grab_banker_time
+        # 下注阶段
+        elif old_state == 2 and state == 3:
+            _args = {"state": state, 'Timer': stake_time}
             self.callOtherClientsFunction("changeChapterState", _args)
-            # 设置身份
-            self.set_player_identity()
-            # # 设置倍数信息
-            # self.set_chapter_multiple()
-            # 设置底分
-            self.set_base_score()
-            # 广播玩家身份信息
-            identity_data = []
-            for k, v in _chapter["playerInGame"].items():
-                player_identity = {"accountId": int(k), "identity": v["identity"]}
-                identity_data.append(player_identity)
-            DEBUG_MSG("[Room6]----------> Change chapter 3 identity_data:%s" % identity_data)
-            _args = {"identityInfo": identity_data}
-            self.callOtherClientsFunction("PlayerIdentityInfo", _args)
-            # 给地主添加底牌
-            self.add_cover_cards()
-        elif state == 4:
-            # 结算
-            _args = {"state": state, "Timer": settlement_time}
+            # 下注计时器
+            _chapter["stakeTimer"] = self.addTimer(stake_time, 0, 0)
+            _chapter["deadline"] = time.time() + stake_time
+        # 要牌阶段
+        elif old_state == 3 and state == 4:
+            _args = {"state": state, "Timer": get_card_time}
+            self.callOtherClientsFunction("changeChapterState", _args)
+            # 通知玩家要牌
+
+        # 比牌阶段
+        elif old_state == 4 and state == 5:
+            pass
+        # 小局结算阶段
+        elif old_state == 5 and state == 6:
+            _args = {"state": state, "Timer": get_card_time}
             self.callOtherClientsFunction("changeChapterState", _args)
             self.settlement()
             for k, v in _chapter["playerInGame"].items():
                 self.player_ready(k, False)
-                
-        elif state == 5:
-            # 总结算
-            # 关闭所有计时器
-            _args = {"state": state, "Timer": 0}
-            self.callOtherClientsFunction("changeChapterState", _args)
-
+        # 总结算阶段
+        elif old_state == 6 and state == 7:
+            pass
 
     # 通过位置获取Id
     def get_account_id_with_location_index(self, location_index):
@@ -1279,7 +1186,8 @@ class RoomType23(RoomBase):
                 self.set_base_player_gold(k)
             player_settlement_info.append(
                 {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
-                 "overBilling": v["overBilling"], "otherBilling": v["otherBilling"], "headImageUrl": v["entity"].info["headImageUrl"],
+                 "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
+                 "headImageUrl": v["entity"].info["headImageUrl"],
                  "winnerBilling": v["winnerBilling"], 'gold': v['gold']})
         args = {"settlementInfo": player_settlement_info}
         self.callOtherClientsFunction("TotalSettlement", args)
@@ -1309,12 +1217,14 @@ class RoomType23(RoomBase):
     # 1 关闭所有的定时器
     def close_all_timer(self):
         chapter = self.chapters[self.cn]
-        chapter["mainTimerId"] = -1
-        self.delTimer(chapter["mainTimerId"])
-        chapter["chapterStartTimerId"] = -1
-        self.delTimer(chapter["chapterStartTimerId"])
-        chapter["dealCardAnimationTimerId"] = -1
-        self.delTimer(chapter["dealCardAnimationTimerId"])
+        chapter["mainTimer"] = -1
+        self.delTimer(chapter["mainTimer"])
+        chapter["dealCardAnimationTimer"] = -1
+        self.delTimer(chapter["dealCardAnimationTimer"])
+        chapter['grabBankerTimer'] = -1
+        self.delTimer(chapter['grabBankerTimer'])
+        chapter['stakeTimer'] = -1
+        self.delTimer(chapter['stakeTimer'])
 
         chapter["settlementTimer"] = -1
         self.delTimer(chapter["settlementTimer"])
@@ -1410,7 +1320,8 @@ class RoomType23(RoomBase):
             _playerData = {"accountId": k, "accountName": v["entity"].info["name"], "winnerBilling": v["winnerBilling"],
                            "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"], "totalGoldChange":
-                               v["totalGoldChange"], "userId": v["entity"].info["userId"], "headImageUrl": v["entity"].info["headImageUrl"]}
+                               v["totalGoldChange"], "userId": v["entity"].info["userId"],
+                           "headImageUrl": v["entity"].info["headImageUrl"]}
             # 1 玩家数据
             _playerInfo.append(_playerData)
             record_players.append(v['entity'].info['userId'])
@@ -1945,3 +1856,38 @@ class RoomType23(RoomBase):
         禁止中途解散房间
         """
         return self.info["canNotDisbandOnPlay"]
+
+    @property
+    def banker_type(self):
+        """
+        抢庄方式
+        """
+        return self.info['grabBankerType']
+
+    @property
+    def is_grab_banker_type(self):
+        """
+        是抢庄
+        """
+        return self.banker_type == 0
+
+    @property
+    def lose_type(self):
+        """
+        赔付类型
+        """
+        return self.info['loseType']
+
+    @property
+    def light_type(self):
+        """
+        明暗牌
+        """
+        return self.info['lightType']
+
+    @property
+    def max_player_count(self):
+        """
+        最大人数
+        """
+        return self.info['maxPlayerCount']
