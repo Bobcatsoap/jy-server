@@ -3,6 +3,20 @@ import random
 from random import shuffle
 
 
+def compare_cards_widget(cards1, cards2):
+    """
+    比牌
+    """
+    widget_1 = get_cards_widget(cards1)
+    widget_2 = get_cards_widget(cards2)
+    if widget_1 > widget_2:
+        return 1
+    elif widget_1 < widget_2:
+        return 2
+    else:
+        return 0
+
+
 def get_cards_widget(cards: []):
     """
     获取牌的大小权值
