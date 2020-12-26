@@ -62,7 +62,7 @@ class RoomType23(RoomBase):
         # 是否授权买入
         _chapter["hasAnthorizeBuying"] = self.info["hasAnthorizeBuying"]
         # 最大局数
-        _chapter["maxRound"] = self.info["maxRound"]
+        _chapter["maxChapterCount"] = self.info["maxChapterCount"]
         # 房间时间
         _chapter["roomTime"] = self.info["roomTime"]
         # 创建房间时刻
@@ -133,7 +133,7 @@ class RoomType23(RoomBase):
         # 实体
         _player["entity"] = accountEntity
         # 准备状态
-        _player["isReady"] = False
+        _player["ready"] = False
         # 牌
         _player["cards"] = []
         # 房间类型  card gameCoin normalGameCoin
@@ -193,7 +193,7 @@ class RoomType23(RoomBase):
         for k, v in _newChapter["playerInRoom"].items():  # 遍历在房间中玩家
             v["cards"] = []  # 牌
             v["totalBet"] = 0  # 下注总额
-            v["isReady"] = False  # 准备状态
+            v["ready"] = False  # 准备状态
             v["betList"] = []  # 玩家下注的列表
 
     def chapter_start(self):
@@ -252,7 +252,7 @@ class RoomType23(RoomBase):
                     # 判断是否大于房间最大局数,大于最大局数的时候返回
                     _hasNext = self.setz_current_round(_currentRound)
                     if not _hasNext:
-                        self.debug_msg("_currentRound=%s, maxCount=%s" % (_currentRound, self.info["maxRound"]))
+                        self.debug_msg("_currentRound=%s, maxCount=%s" % (_currentRound, self.info["maxChapterCount"]))
                         return
             _nextLocationIndex += 1
             self.debug_msg("startLocationIndex:%s" % _startLocationIndex)
@@ -370,10 +370,10 @@ class RoomType23(RoomBase):
         """
         self.debug_msg('[Room id %i]------>setCurrentRound currentRound %s' % (self.id, currentRound))
         _chapter = self.chapters[self.cn]
-        if _chapter["maxRound"] - currentRound == 1:  # maxRound 最大局数
+        if _chapter["maxChapterCount"] - currentRound == 1:  # maxChapterCount 最大局数
             self.callOtherClientsFunction("Notice", ["两轮下注后系统自动比牌"])
         # 1 当前轮数大于牌局最大轮数
-        if currentRound > _chapter["maxRound"]:  # maxRound 最大局数
+        if currentRound > _chapter["maxChapterCount"]:  # maxChapterCount 最大局数
             # 1 获取未弃牌玩家
             _playerHasNoDisCard = self.getHasNoDisCardPlayer()
             _playerHasNoDisCardKeys = list(_playerHasNoDisCard.keys())
@@ -451,7 +451,7 @@ class RoomType23(RoomBase):
         _playerInRoom = chapter["playerInRoom"]
         # 判断account_id 在房间
         if account_id in _playerInRoom.keys():
-            _playerInRoom[account_id]["isReady"] = ready
+            _playerInRoom[account_id]["ready"] = ready
             # 1 标志位置为True
             _args = {"accountId": account_id, "ready": ready}
             # 向客户端发送准备完成
@@ -879,7 +879,7 @@ class RoomType23(RoomBase):
             self.standUp(accountEntityId, int(_data["index"]))
         elif _func == "Ready":
             self.player_ready(accountEntityId)
-            if self.get_seat_player_by_entity_id(accountEntityId)["isReady"]:
+            if self.get_seat_player_by_entity_id(accountEntityId)["ready"]:
                 self.get_player_entity(accountEntityId).update_player_stage(Account.PlayerStage.READY)
                 self.notify_viewing_hall_players_room_info()
         elif _func == "SetSeat":
@@ -1101,7 +1101,7 @@ class RoomType23(RoomBase):
                        "userId": v["entity"].info["userId"],
                        "ip": v["entity"].info["ip"],
                        "name": v["entity"].info["name"], "headImageUrl": v["entity"].info["headImageUrl"],
-                       "addOn": v["entity"].info["addOn"], "ready": v["isReady"],
+                       "addOn": v["entity"].info["addOn"], "ready": v["ready"],
                        "agreeDisband": v["agreeDisband"], "cardType": cards_type,
                        'totalGoldChange': v['totalGoldChange']
                        }
@@ -1119,7 +1119,7 @@ class RoomType23(RoomBase):
                            "userId": v["entity"].info["userId"],
                            "ip": v["entity"].info["ip"],
                            "name": v["entity"].info["name"], "headImageUrl": v["entity"].info["headImageUrl"],
-                           "addOn": v["entity"].info["addOn"], "ready": v["isReady"],
+                           "addOn": v["entity"].info["addOn"], "ready": v["ready"],
                            "agreeDisband": v["agreeDisband"],
                            'totalGoldChange': v['totalGoldChange']
                            }
@@ -1224,7 +1224,7 @@ class RoomType23(RoomBase):
                        "userId": v["entity"].info["userId"],
                        "ip": v["entity"].info["ip"],
                        "name": v["entity"].info["name"], "headImageUrl": v["entity"].info["headImageUrl"],
-                       "addOn": v["entity"].info["addOn"], "ready": v["isReady"],
+                       "addOn": v["entity"].info["addOn"], "ready": v["ready"],
                        "agreeDisband": v["agreeDisband"]
                        }
             _playerOutGameNotEntity[int(k)] = _player
@@ -1514,7 +1514,7 @@ class RoomType23(RoomBase):
             title = '十点半房间' + ',冠名赛id:' + str(self.info['teaHouseId'])
         else:
             title = '十点半房间'
-        max_round = '最大轮数：' + str(self.info['maxRound'])
+        max_round = '最大轮数：' + str(self.info['maxChapterCount'])
         max_chapter_count = '最大玩家数量:' + str(self.info['maxChapterCount'])
         if 'canVoice' in self.info:
             can_voice = '语音开启' if self.info['canVoice'] else '禁用语音'
@@ -1667,7 +1667,7 @@ class RoomType23(RoomBase):
                     # 如果是满人开始，有玩家没准备，上分后自动准备
                     if _chapter["currentState"] == 0:
                         if self.info['gameStartType'] in correct_list:
-                            if not v['isReady']:
+                            if not v['ready']:
                                 self.player_ready(k)
                     break
 
@@ -1747,4 +1747,4 @@ class RoomType23(RoomBase):
         """
         最大人数
         """
-        return self.info['maxPlayerCount']
+        return self.info['maxPlayersCount']
