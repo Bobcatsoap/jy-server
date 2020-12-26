@@ -82,9 +82,9 @@ class RoomType23(RoomBase):
         # 房间总注
         _chapter["totalBet"] = 0
         # 轮询是否可以开始牌局计时器
-        _chapter["mainTimerId"] = -1
-        # 牌局开始倒计时计时器
-        _chapter["chapterStartTimerId"] = 0
+        _chapter["mainTimer"] = -1
+        # 抢庄计时器
+        _chapter['grabBankerTimer'] = -1
         # 下注计时器
         _chapter["operateTimerId"] = -1
         # 下注动画计时器
@@ -264,6 +264,52 @@ class RoomType23(RoomBase):
                 # 1 设置当前操作玩家位置
                 self.set_current_location_index(_nextLocationIndex, k)
 
+    def notice_grab_banker(self):
+        """
+        通知玩家抢庄
+        """
+        self.callOtherClientsFunction("StartGrabBanker", {})
+
+    def random_select_banker(self):
+        """
+        定庄,随机一个庄家
+        :return:
+        """
+        self.debug_msg('random_select_banker ' % self.id)
+        _chapter = self.chapters[self.cn]
+        _playerInGame = _chapter["playerInGame"]
+        # 从在游戏中玩家随机生成一个玩家为庄家
+        banker_id = random.choice(list(_chapter["playerInGame"].keys()))
+        _banker = [banker_id]
+        # 设置庄家为牌局的当前操作玩家
+        _chapter["currentLocationIndex"] = _playerInGame[_banker[0]]["locationIndex"]
+        _locationIndexs = {}
+        # 1 循环游戏中的玩家
+        for k, v in _playerInGame.items():
+            _locationIndexs[int(v["locationIndex"])] = v
+        # 1 开始的玩家的下标
+        _startLocationIndex = int(_chapter["currentLocationIndex"]) + 1
+        max_player_count = _chapter["maxPlayerCount"]
+        max_player_count *= 10
+        for i in range(max_player_count):
+            if _startLocationIndex >= _chapter["maxPlayerCount"]:
+                _startLocationIndex %= _chapter["maxPlayerCount"]
+            if _startLocationIndex in _locationIndexs.keys():
+                break
+            _startLocationIndex += 1
+        # 1 牌局开始玩家的下标
+        _chapter["startLocationIndex"] = _startLocationIndex
+        _startAccountId = 0
+        for k, v in _playerInGame.items():
+            # 1 找到开始玩家把id设置为开始的ID
+            if int(v["locationIndex"]) == _startLocationIndex:
+                _startAccountId = k
+        _chapter["banker"] = _banker[0]
+        _chapter["startAccountId"] = _startAccountId
+        _args = {"banker": _banker[0], "startLocationIndex": str(_chapter["startLocationIndex"]),
+                 "startAccountId": _startAccountId}
+        self.callOtherClientsFunction("SetBanker", _args)
+
     def deal_cards(self):
         """
         发牌
@@ -337,47 +383,6 @@ class RoomType23(RoomBase):
         _args = {"currentRound": _chapter["currentRound"]}
         self.callOtherClientsFunction("RetCurrentRound", _args)
         return True
-
-    def setBanker(self):
-        """
-        定庄,随机一个庄家
-        :return:
-        """
-        self.debug_msg('[Room id %i]------>setBanker ' % self.id)
-        _chapter = self.chapters[self.cn]
-        _playerInGame = _chapter["playerInGame"]  # 游戏中玩家
-        # 1 从在游戏中玩家随机生成一个玩家为庄家   sample生成的是一个列表
-        banker_id = self.banker_area_random(list(_chapter["playerInGame"].keys()))
-        _banker = [banker_id]
-        # _banker = random.sample(_chapter["playerInGame"].keys(), 1)
-        # 1 设置庄家为牌局的当前操作玩家
-        _chapter["currentLocationIndex"] = _playerInGame[_banker[0]]["locationIndex"]
-        _locationIndexs = {}
-        # 1 循环游戏中的玩家
-        for k, v in _playerInGame.items():
-            _locationIndexs[int(v["locationIndex"])] = v
-        # 1 开始的玩家的下标
-        _startLocationIndex = int(_chapter["currentLocationIndex"]) + 1
-        max_player_count = _chapter["maxPlayerCount"]
-        max_player_count *= 10
-        for i in range(max_player_count):
-            if _startLocationIndex >= _chapter["maxPlayerCount"]:
-                _startLocationIndex %= _chapter["maxPlayerCount"]
-            if _startLocationIndex in _locationIndexs.keys():
-                break
-            _startLocationIndex += 1
-        # 1 牌局开始玩家的下标
-        _chapter["startLocationIndex"] = _startLocationIndex
-        _startAccountId = 0
-        for k, v in _playerInGame.items():
-            # 1 找到开始玩家把id设置为开始的ID
-            if int(v["locationIndex"]) == _startLocationIndex:
-                _startAccountId = k
-        _chapter["banker"] = _banker[0]
-        _chapter["startAccountId"] = _startAccountId
-        _args = {"banker": _banker[0], "startLocationIndex": str(_chapter["startLocationIndex"]),
-                 "startAccountId": _startAccountId}
-        self.callOtherClientsFunction("SetBanker", _args)
 
     def get_seat_players(self):
         chapter = self.get_current_chapter()
@@ -810,7 +815,7 @@ class RoomType23(RoomBase):
                     self.player_ready(k)
 
             # 开启游戏开始判断计时器
-            _chapter["mainTimerId"] = self.addTimer(1, 0.2, 0)
+            _chapter["mainTimer"] = self.addTimer(1, 0.2, 0)
         # 发牌阶段
         elif old_state == 0 and state == 1:
             _args = {"state": state, "Timer": deal_card_to_player_time}
@@ -823,11 +828,15 @@ class RoomType23(RoomBase):
         elif old_state == 1 and state == 2:
             _args = {"state": state, 'Timer': grab_banker_time}
             self.callOtherClientsFunction("changeChapterState", _args)
-            # 定庄
-            self.select_banker()
-            # 抢庄动画计时器
-            _chapter["grabBankerTimer"] = self.addTimer(grab_banker_time, 0, 0)
-            _chapter["deadline"] = time.time() + grab_banker_time
+            # 抢庄模式
+            if self.is_grab_banker_type:
+                self.notice_grab_banker()
+            # 轮庄模式
+            else:
+                self.random_select_banker()
+                # 选庄动画计时器
+                _chapter["grabBankerTimer"] = self.addTimer(grab_banker_time, 0, 0)
+                _chapter["deadline"] = time.time() + grab_banker_time
         # 下注阶段
         elif old_state == 2 and state == 3:
             _args = {"state": state, 'Timer': stake_time}
@@ -1516,10 +1525,8 @@ class RoomType23(RoomBase):
 
     def close_all_timer(self):
         chapter = self.chapters[self.cn]
-        chapter["mainTimerId"] = -1
-        self.delTimer(chapter["mainTimerId"])
-        chapter["chapterStartTimerId"] = -1
-        self.delTimer(chapter["chapterStartTimerId"])
+        chapter["mainTimer"] = -1
+        self.delTimer(chapter["mainTimer"])
         chapter["operateTimerId"] = -1
         self.delTimer(chapter["operateTimerId"])
         chapter["dealCardAnimationTimer"] = -1
