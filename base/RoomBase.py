@@ -348,9 +348,9 @@ class RoomBase(KBEngine.Entity):
             consume_lucky_card = v['consumeLuckyCard']
             count = v['count']
             award_type = v['type']
-            DEBUG_MSG('account_db_id%s consume_lucky_card%s award_type%s count%s' % (account_db_id,
-                                                                                     consume_lucky_card, award_type,
-                                                                                     count))
+            # DEBUG_MSG('account_db_id%s consume_lucky_card%s award_type%s count%s' % (account_db_id,
+                                                                                    #  consume_lucky_card, award_type,
+                                                                                    #  count))
             if award_type == 1:
                 # 钻石
                 self.account_mgr.modify_room_card(account_db_id, count, consume_type='award')
@@ -358,7 +358,7 @@ class RoomBase(KBEngine.Entity):
                 # 金币
                 self.account_mgr.modify_gold(account_db_id, count)
             try:
-                DEBUG_MSG('RoomBase consume:%s,teaHouseId:%s' % (count, self.info['teaHouseId']))
+                # DEBUG_MSG('RoomBase consume:%s,teaHouseId:%s' % (count, self.info['teaHouseId']))
                 # 消耗福卡
                 tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(self.info['teaHouseId'])
                 tea_house_entity.consume_lucky_card(account_db_id, consume_lucky_card)
@@ -433,7 +433,7 @@ class RoomBase(KBEngine.Entity):
 
         sql = "INSERT IGNORE into player_battle_score(teaHouseId,playerId,roomType,totalGoldChange,roomId,winner,winScore,bill, gold, totalGold, accountName, settleTime) values"
         sql += values[:-1]
-        DEBUG_MSG("保存大战绩save_player_score --->sql %s" % sql)
+        # DEBUG_MSG("保存大战绩save_player_score --->sql %s" % sql)
         DBCommand.exec_normal_sql(sql)
 
         tea_house = tea_house_manager().get_tea_house_with_id(tea_house_id)

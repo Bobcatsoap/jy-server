@@ -856,6 +856,7 @@ class TeaHouse(KBEngine.Entity):
 
         up_players = []
         # up_players 存储从楼主顺序往下的所有上级，楼主没有上级玩家列表
+        # if origin_player.level != TeaHousePlayerLevel.Creator:
         if origin_player.level != TeaHousePlayerLevel.Creator:
             find_belong_to_recursive(origin_player, up_players)
         # 如果是战队长，上级里加上自己
@@ -882,7 +883,7 @@ class TeaHouse(KBEngine.Entity):
             # 该上级分成等于分成减去下级应得分成
             _performance = _add - next_performance
             _add = next_performance
-            DEBUG_MSG('index%s,player_db_id:%s,performance:%s,_add:%s' % (_index, player.db_id, _performance, _add))
+            # DEBUG_MSG('index%s,player_db_id:%s,performance:%s,_add:%s' % (_index, player.db_id, _performance, _add))
             # 保留两位小数，减少长度
             _performance = round(_performance, 2)
 
@@ -898,7 +899,7 @@ class TeaHouse(KBEngine.Entity):
 
             self.performance_detail[player.db_id] = _performance_detail
             tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-            DEBUG_MSG('roomType--------------------%s' % roomType)
+            # DEBUG_MSG('roomType--------------------%s' % roomType)
             tea_house_performance.create_one_item(origin_player.db_id, player.db_id, int(time.time()),
                                                   _add, _performance, player.proportion, self.teaHouseId, roomType)
 
@@ -915,7 +916,7 @@ class TeaHouse(KBEngine.Entity):
                     self.todayGameCoinBilling[len(self.todayGameCoinBilling) - 1]["gameCoinBilling"] += _performance
 
                 # 只存两天的记录
-                DEBUG_MSG("[TeaHouse]------>add_today_game_coin_billing %s:" % self.todayGameCoinBilling)
+                # DEBUG_MSG("[TeaHouse]------>add_today_game_coin_billing %s:" % self.todayGameCoinBilling)
                 if len(self.todayGameCoinBilling) > 2:
                     del self.todayGameCoinBilling[0]
                 call_back()
@@ -1028,7 +1029,7 @@ class TeaHouse(KBEngine.Entity):
         获取单个玩家的成员信息
         :return:
         """
-        DEBUG_MSG("1111111111111111")
+        # DEBUG_MSG("1111111111111111")
         # DEBUG_MSG( self.memberInfo.items())
         for k, v in self.memberInfo.items():
             if account_db_id == k:
@@ -1036,7 +1037,7 @@ class TeaHouse(KBEngine.Entity):
                 account_entity = get_account_entity_with_db_id(k)
                 up_entity = get_account_entity_with_db_id(v.belong_to)
                 online_state = bool(account_entity and account_entity.client)
-                members_info = {"level": v.level, "name": v.name, "gameCoin": round(v.game_coin, 1),
+                members_info = {"level": v.level, "name": v.name, "gameCoin":  round(v.game_coin, 1),
                                 "accountDBId": k, "state": online_state,
                                 "belongTo": v.belong_to,
                                 "belongToName": up_entity.name if up_entity else "",
@@ -1268,7 +1269,7 @@ class TeaHouse(KBEngine.Entity):
             json_info[k] = info
         return json.dumps(json_info)
 
-    def  get_tea_house_player(self, account_db_id):
+    def get_tea_house_player(self, account_db_id):
         """
         获取冠名赛玩家
         :param account_db_id:
@@ -1534,7 +1535,7 @@ class TeaHouse(KBEngine.Entity):
         # if self.memberInfo[modifier].game_coin < 0:
         #     self.memberInfo[modifier].game_coin = 0
         self.memberInfoJson = self.get_member_info_json()
-        DEBUG_MSG("|||||||||||||||||||||||||||||||||||||||||||||||||create_charge_item2")
+        # DEBUG_MSG("|||||||||||||||||||||||||||||||||||||||||||||||||create_charge_item2")
         self.create_charge_item(modifier, operator_entity,
                                 game_coin_change, self.memberInfo[modifier].game_coin)
 
@@ -1575,7 +1576,7 @@ class TeaHouse(KBEngine.Entity):
                                     from_public=True)
             # 如果玩家在游戏中通知
             self.refresh_game_coin_in_room(modifier, game_coin_change)
-            DEBUG_MSG("----------------------------------%s" % str(modifier))
+            # DEBUG_MSG("----------------------------------%s" % str(modifier))
 
             if on_success:
                 on_success()
@@ -1597,8 +1598,8 @@ class TeaHouse(KBEngine.Entity):
         def callback(modifier_entity, modifier_db_id, wasActive):
             # 比赛分修改成功,生成一条充值记录
             charge_item = KBEngine.createEntityLocally("GameCoinChargeHistory", {})
-            DEBUG_MSG(operator)
-            DEBUG_MSG("|||||||||||||||||||||||||||||||||||||||||||||||||")
+            # DEBUG_MSG(operator)
+            # DEBUG_MSG("|||||||||||||||||||||||||||||||||||||||||||||||||")
             charge_item.create_one_item(self.teaHouseId, modifier_db_id, modifier_entity.name, modifier_entity.phone,
                                         operator.databaseID, operator.name, operator.phone, operator.proxyType,
                                         modify_count, modified_game_coin)
@@ -1739,7 +1740,7 @@ class TeaHouse(KBEngine.Entity):
             if new_level == TeaHousePlayerLevel.Admin:
                 on_fail("管理者不能设为助理")
                 return
-        DEBUG_MSG('----------------------new_level1 %s ' % str(new_level))
+        # DEBUG_MSG('----------------------new_level1 %s ' % str(new_level))
         # 如果要把合伙人以下级别的人升为合伙人，则此人上级为楼主，并移除战队数据
         if self.memberInfo[modify_player_db_id].level < TeaHousePlayerLevel.Partner and \
                 new_level == TeaHousePlayerLevel.Partner:
@@ -1766,7 +1767,7 @@ class TeaHouse(KBEngine.Entity):
                         # 名下成员降级并切归为原来的上级
                         down_player.level = TeaHousePlayerLevel.Normal
                         down_player.belong_to = modify_player.belong_to
-        DEBUG_MSG('----------------------new_level2 %s ' % str(new_level))
+        # DEBUG_MSG('----------------------new_level2 %s ' % str(new_level))
         modify_player.level = new_level
         modify_player.proportion = 0
         #modify_player. = 0
@@ -1816,7 +1817,7 @@ class TeaHouse(KBEngine.Entity):
                 ERROR_MSG('TeaHouse get_rooms_with_page %s' % e)
 
         _room_ids = self.rooms_sort(_room_ids)
-        DEBUG_MSG('roomIds after sorted:%s' % _room_ids)
+        # DEBUG_MSG('roomIds after sorted:%s' % _room_ids)
 
         index = 0
         for _id in _room_ids:
@@ -1841,8 +1842,8 @@ class TeaHouse(KBEngine.Entity):
         items = sorted(items, key=lambda i: self.is_base_room(self.rooms[i].info['roomId']),
                        reverse=self.empty_location == 0)
 
-        for i in items:
-            DEBUG_MSG(self.rooms[i].info)
+        # for i in items:
+            # DEBUG_MSG(self.rooms[i].info)
 
         return items
 
@@ -2296,7 +2297,7 @@ class TeaHouse(KBEngine.Entity):
                 old_room_index = index
                 break
 
-        DEBUG_MSG('create_room old_room_index:%s' % old_room_index)
+        # DEBUG_MSG('create_room old_room_index:%s' % old_room_index)
 
         creator_id = self.creatorDBID
         creator_name = self.get_tea_house_player(creator_id).name
@@ -2453,7 +2454,7 @@ class TeaHouse(KBEngine.Entity):
         rank_list.append(arr)
         # 按照分数排序,大的在前面
         rank_list.sort(key=lambda x: -x['rankScore'])
-        DEBUG_MSG(self.rank[date]['rankList'])
+        # DEBUG_MSG(self.rank[date]['rankList'])
         return
 
     def get_tea_house_rank(self, date, account_id, current_page):
@@ -2557,7 +2558,7 @@ class TeaHouse(KBEngine.Entity):
 
     def del_rank_info_from_db_id(self, dataBaseId):
         date = time.strftime('%Y%m%d', time.localtime(int(time.time())))
-        DEBUG_MSG(date)
+        # DEBUG_MSG(date)
         if date not in self.rank.keys():
             return
         for i, rankifo in enumerate(self.rank[date]['rankList']):
@@ -2571,7 +2572,7 @@ class TeaHouse(KBEngine.Entity):
         :param exit_player_level:
         :return:
         """
-        DEBUG_MSG('del_rank_info_from_db_id %s' % dataBaseId)
+        # DEBUG_MSG('del_rank_info_from_db_id %s' % dataBaseId)
         date = time.strftime('%Y%m', time.localtime(int(time.time())))
         if date not in self.teamRank.keys():
             return
@@ -2624,7 +2625,7 @@ class TeaHouse(KBEngine.Entity):
                 return
         if date not in self.teamRank.keys():
             return
-        DEBUG_MSG('队长ID%s' % leader_db_id)
+        # DEBUG_MSG('队长ID%s' % leader_db_id)
 
         # 如果没有本月数据，初始化数据
         if date not in self.teamRank or leader_db_id not in self.teamRank[date]:
@@ -3187,7 +3188,7 @@ class TeaHouse(KBEngine.Entity):
         if not other_list:
             return False
         tea_house_player = self.memberInfo[account_db_id]
-        DEBUG_MSG("is_exclude_same_room %s %s %s %s" % (accountid, otherids, account_db_id, other_list))
+        # DEBUG_MSG("is_exclude_same_room %s %s %s %s" % (accountid, otherids, account_db_id, other_list))
         if tea_house_player.is_exclude_others(other_list):
             return True
         for db_id in other_list:

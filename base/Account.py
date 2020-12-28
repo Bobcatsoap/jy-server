@@ -463,7 +463,7 @@ class Account(KBEngine.Proxy):
                 if tea_house_entity:
                     control_val = tea_house_entity.get_need_control_score(self.databaseID)
                     _dic["controlScore"] = list(control_val)
-                    DEBUG_MSG('reqAccountMutableInfo %s' % _dic["controlScore"])
+                  #  DEBUG_MSG('reqAccountMutableInfo %s' % _dic["controlScore"])
 
         self.cell.baseToCell({"func": "retAccountMutableInfo", "dic": _dic})
 
@@ -506,7 +506,7 @@ class Account(KBEngine.Proxy):
         :return:
         """
         for key in pyDic.keys():
-            DEBUG_MSG('[setAccountMutableInfo key %s]------>cellToBase jsonData %s' % (str(key), str(pyDic)))
+            # DEBUG_MSG('[setAccountMutableInfo key %s]------>cellToBase jsonData %s' % (str(key), str(pyDic)))
             if key == "gold":
                 self.gold = round(float(pyDic["gold"]), 1)
                 self.ret_gold()
@@ -521,7 +521,7 @@ class Account(KBEngine.Proxy):
                     # if not tea_house_entity.gameCoinSwitch:
                     #     return
                     self.gold = round(float(pyDic["gameCoin"]), 1)
-                    DEBUG_MSG('[setAccountMutableInfo]------>cellToBase self.gold %s' % str(self.gold))
+                    # DEBUG_MSG('[setAccountMutableInfo]------>cellToBase self.gold %s' % str(self.gold))
                     tea_house_entity.set_game_coin(self.databaseID, round(float(pyDic["gameCoin"]), 1))
                     self.ret_gold()
 
@@ -1479,7 +1479,7 @@ class Account(KBEngine.Proxy):
             self.give_gold_record(_args)  # 赠送金币记录
         elif _func_name == "commission":  # 我的佣金
             self.get_surplus_commission(_args)
-            DEBUG_MSG('commission-------------:%s' % self.surplus_commission)
+            # DEBUG_MSG('commission-------------:%s' % self.surplus_commission)
             self.get_commission(_args)
         elif _func_name == "luck_draw": # 抽奖
             self.luck_draw(_args)
@@ -2819,7 +2819,7 @@ class Account(KBEngine.Proxy):
                 # 找到合伙人相关的收取记录
                 for detail in performance_detail:
                     # 如果收取记录是这个人的
-                    DEBUG_MSG("This Value was detail：", detail)
+                    # DEBUG_MSG("This Value was detail：", detail)
                     if detail['accountDBID'] == k:
                         # 记录收取
                         if yesterday_start <= detail['time'] < today_start:
@@ -3581,7 +3581,7 @@ class Account(KBEngine.Proxy):
         tea_houses = self.tea_house_mgr.get_tea_houses_by_account_dbid(playerId)
         for k, v in tea_houses.items():
             new_tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(v.teaHouseId)
-            new_tea_house_entity.set_game_coin(playerId, player_gold - give_go-ld)
+            new_tea_house_entity.set_game_coin(playerId, player_gold - give_gold)
             new_tea_house_entity.refresh_game_coin_in_room(playerId,-give_gold)
 
         # 添加赠送记录
@@ -3660,7 +3660,7 @@ class Account(KBEngine.Proxy):
             map ={'partnerInfo': partner_info_list,"totalPages": int(total_pages),"memberCount": member_count,"user_total_gold": user_total_gold,"player_total_gold": self.player_give_gold}
             self.call_client_func("getGiveGoldRecords", map)
         command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where user_id=%s or player_id=%s ORDER BY addtime DESC ' % (account_db_id, account_db_id)
-        DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
+        # DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
     def get_history_commission_record(self, _args):
@@ -3672,8 +3672,6 @@ class Account(KBEngine.Proxy):
             self.call_client_func('Notice', ['冠名赛不存在'])
         def callback(result, rows, insertid, error):
             record_info_list = []
-            # DEBUG_MSG("[get_history_commission_record] result ----------------")
-            # DEBUG_MSG(result)
             if not result or len(result) == 0:
                 self.call_client_func("historyCommissionResult", {
                     'partnerInfo': record_info_list,
@@ -3685,15 +3683,14 @@ class Account(KBEngine.Proxy):
             for info in result:
                 item = dict()
                 item['accountDBID'] = int(info[0])
+
                 try:
                     item['name'] = tea_house_entity.get_tea_house_player(item['accountDBID']).name
                     item['headImageUrl'] = tea_house_entity.get_tea_house_player(item['accountDBID']).head_image
                 except:
-                    DEBUG_MSG("ERROR")
-                    DEBUG_MSG(result)
+                    # DEBUG_MSG("ERROR")
+                    # DEBUG_MSG(result)
                     continue
-                # item['name'] = self.account_mgr.get_account(item['accountDBID']).name
-                # item['headImageUrl'] = self.account_mgr.get_account(item['accountDBID']).headImageUrl
                 item['time'] = int(info[2])
                 item['count'] = int(info[3])
                 item['double_count'] = float(info[4])
@@ -3702,8 +3699,7 @@ class Account(KBEngine.Proxy):
                     record_info_list.append(item)
             member_count = len(record_info_list)
             # 计算总页数
-            DEBUG_MSG("========================================")
-            # DEBUG_MSG(record_info_list)
+            # DEBUG_MSG("========================================")
             total_pages = math.ceil(len(record_info_list) / Const.history_list_page_item)
             page_start = page_index * Const.partner_list_page_item
             page_end = page_start + Const.partner_list_page_item
@@ -3716,7 +3712,7 @@ class Account(KBEngine.Proxy):
         command_sql = "select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance " \
                       "where sm_superior=%s order by sm_time desc " % account_db_id
         # select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance where sm_superior =10216;
-        DEBUG_MSG("[get_history_commission_record]command_sql 执行----------------%s" % str(command_sql))
+        # DEBUG_MSG("[get_history_commission_record]command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
 
@@ -3754,7 +3750,7 @@ class Account(KBEngine.Proxy):
             })
 
         command_sql = 'select count, addtime from extract_commission where accountDBID=%s order by addtime desc' % account_db_id
-        DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
+        # DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
 
@@ -3785,7 +3781,7 @@ class Account(KBEngine.Proxy):
                 """
                 if error is None:
                     sql = "INSERT INTO safe_deposit_box_record(accountDBID,deposit_count,take_out_count,balance,addtime) VALUES (%s,%s,%s,%s,%s)" % (account_db_id, deposit_gold,0,self.surplus_total_count, int(time.time()))
-                    DEBUG_MSG("deposit_money command_sql3 执行--%s" % str(common_sql))
+                    # DEBUG_MSG("deposit_money command_sql3 执行--%s" % str(common_sql))
                     self.surplus_total_count = 0
                     KBEngine.executeRawDatabaseCommand(sql, None)
                     self.call_client_func("depositMoneySuccess", ["存取成功"])
@@ -3804,13 +3800,13 @@ class Account(KBEngine.Proxy):
                 else:  # 记录不存在, 第一次存钱
                     self.surplus_total_count = deposit_gold
                     common_sql = "INSERT INTO safe_deposit_box(accountDBID, count, addtime) VALUES (%s, %s, %s)" % (account_db_id, deposit_gold, int(time.time()))
-                DEBUG_MSG("deposit_money command_sql2 执行--%s" % str(common_sql))
+                # DEBUG_MSG("deposit_money command_sql2 执行--%s" % str(common_sql))
                 KBEngine.executeRawDatabaseCommand(common_sql, _func2)
             else:
                 self.call_client_func("depositMoneyFail", ["存取失败"])
 
         common_sql = "select * from safe_deposit_box where accountDBID=%s" % account_db_id
-        DEBUG_MSG("deposit_money command_sql1 执行--%s" % str(common_sql))
+        # DEBUG_MSG("deposit_money command_sql1 执行--%s" % str(common_sql))
         KBEngine.executeRawDatabaseCommand(common_sql, _db_callback_count)
 
 
@@ -3836,7 +3832,7 @@ class Account(KBEngine.Proxy):
                 if error is None:
                     # 添加提现记录
                     sql = "INSERT INTO safe_deposit_box_record(accountDBID,deposit_count,take_out_count,balance,addtime) VALUES (%s,%s,%s,%s,%s)" % (account_db_id, 0, task_out_gold, self.surplus_total_count, int(time.time()))
-                    DEBUG_MSG("take_out_money command_sql3 执行--%s" % str(sql))
+                    # DEBUG_MSG("take_out_money command_sql3 执行--%s" % str(sql))
                     self.surplus_total_count = 0
                     KBEngine.executeRawDatabaseCommand(sql, None)
                     self.call_client_func("takeOutMoneySuccess", ["取出成功"])
@@ -3853,14 +3849,14 @@ class Account(KBEngine.Proxy):
                     self.surplus_total_count = count - task_out_gold
                     # 开始取出
                     common_sql = "UPDATE safe_deposit_box set count=%s, addtime=%s where accountDBID=%s" % (self.surplus_total_count, int(time.time()), account_db_id)
-                    DEBUG_MSG("take_out_money command_sql2 执行--%s" % str(common_sql))
+                    # DEBUG_MSG("take_out_money command_sql2 执行--%s" % str(common_sql))
                     KBEngine.executeRawDatabaseCommand(common_sql, _func2)
                 else:  # 记录不存在, 第一次存钱
                     self.call_client_func("takeOutMoneyFail", ["取出失败，无存入记录"])
             else:
                 self.call_client_func("takeOutMoneyFail", ["取出失败"])
         common_sql = "select * from safe_deposit_box where accountDBID=%s" % account_db_id
-        DEBUG_MSG("take_out_money command_sql1 执行--%s" % str(common_sql))
+        # DEBUG_MSG("take_out_money command_sql1 执行--%s" % str(common_sql))
         KBEngine.executeRawDatabaseCommand(common_sql, _db_callback_count)
 
     def safe_deposit_box_record(self, _args):
@@ -3909,7 +3905,7 @@ class Account(KBEngine.Proxy):
         # balance 余额
         # addtime 时间
         common_sql = "select deposit_count, take_out_count, balance,addtime from safe_deposit_box_record where accountDBID=%s" % account_db_id
-        DEBUG_MSG("safe_deposit_box_record command_sql 执行----------------%s" % str(common_sql))
+        # DEBUG_MSG("safe_deposit_box_record command_sql 执行----------------%s" % str(common_sql))
         KBEngine.executeRawDatabaseCommand(common_sql, _db_callback_count)
 
     def current_safe_deposit_box_money(self, _args):
@@ -3935,7 +3931,7 @@ class Account(KBEngine.Proxy):
             return
 
         common_sql = "select count from safe_deposit_box where accountDBID=%s" % account_db_id
-        DEBUG_MSG("safe_deposit_box_record command_sql 执行----------------%s" % str(common_sql))
+        # DEBUG_MSG("safe_deposit_box_record command_sql 执行----------------%s" % str(common_sql))
         KBEngine.executeRawDatabaseCommand(common_sql, _db_callback_count)
 
 
@@ -4011,7 +4007,7 @@ class Account(KBEngine.Proxy):
 
     def sava_extract_commission(self, account_db_id, extractMoney):
         sql_command = "INSERT INTO extract_commission(accountDBID, count, addtime) VALUES(%s, '%s', %s) " % (account_db_id, str(extractMoney), int(time.time()))
-        DEBUG_MSG('sava_extract_commission update_sql:%s' % sql_command)
+        # DEBUG_MSG('sava_extract_commission update_sql:%s' % sql_command)
         KBEngine.executeRawDatabaseCommand(sql_command, None)
 
     def get_commission(self, _args):
@@ -4030,19 +4026,19 @@ class Account(KBEngine.Proxy):
             last_today_time = time.mktime(time.strptime(time.strftime('%Y-%m-%d 23:59:59', t), '%Y-%m-%d %H:%M:%S'))
             today_commission = 0
             history_commission = 0
-            DEBUG_MSG('=======================================')
-            DEBUG_MSG(result)
+            # DEBUG_MSG('=======================================')
+            # DEBUG_MSG(result)
             for info in result:
-                DEBUG_MSG("[get_today_commission] callback------------")
-                DEBUG_MSG(info)
+                # DEBUG_MSG("[get_today_commission] callback------------")
+                # DEBUG_MSG(info)
                 double_commission = float(info[3])
                 history_commission += double_commission
                 sm_time = int(info[5])
                 if sm_time > today_zero_time and sm_time < last_today_time:
                     today_commission += double_commission
-            DEBUG_MSG('todayCommission :%s' % str(today_commission))   # 今日贡献
-            DEBUG_MSG('historyCommission :%s' % str(history_commission))  # 历史佣金
-            DEBUG_MSG('surplusCommission :%s' % str(self.surplus_commission))  # 累计贡献
+            # DEBUG_MSG('todayCommission :%s' % str(today_commission))   # 今日贡献
+            # DEBUG_MSG('historyCommission :%s' % str(history_commission))  # 历史佣金
+            # DEBUG_MSG('surplusCommission :%s' % str(self.surplus_commission))  # 累计贡献
             self.call_client_func("CommissionResult", {
                 "todayCommission": float(today_commission),
                 "historyCommission": round(float(history_commission),2),
@@ -4074,7 +4070,7 @@ class Account(KBEngine.Proxy):
 
     def luck_draw_record(self, _args):
         command_sql = "select name,accountid,type,count from luck_draw"
-        DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
+        # DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         page_index = _args['pageIndex']
         def callback(result, rows, insertid, error):
             record_list = []
@@ -4101,7 +4097,7 @@ class Account(KBEngine.Proxy):
         import pymysql
         conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
         cursor = conn.cursor()
-        DEBUG_MSG('get_surplus_commission sql:%s' % sql_common)
+        # DEBUG_MSG('get_surplus_commission sql:%s' % sql_common)
         cursor.execute(sql_common)
         result = cursor.fetchone()
         if not result:
@@ -4294,14 +4290,14 @@ class Account(KBEngine.Proxy):
             :param chapter_info:
             :return:
             """
-            DEBUG_MSG('query_record::chapter_info %s' % chapter_info)
+            # DEBUG_MSG('query_record::chapter_info %s' % chapter_info)
             player_db_id_s = []
             if type(chapter_info['playerInfo']) == dict:
                 player_db_id_s = [x['userId'] for x in chapter_info['playerInfo'].values()]
             elif type(chapter_info['playerInfo']) == list:
                 player_db_id_s = [x['userId'] for x in chapter_info['playerInfo']]
 
-            DEBUG_MSG('query_record::player_db_id_s %s' % player_db_id_s)
+            # DEBUG_MSG('query_record::player_db_id_s %s' % player_db_id_s)
             if player_db_id_s and self.userId in player_db_id_s:
                 return True
             return False
@@ -4331,7 +4327,7 @@ class Account(KBEngine.Proxy):
                 baseRef.last_query_tick = time.time()
             else:
                 chapter_infos_count += 1
-            DEBUG_MSG('_rooms:%s,chapter_count%s' % (len(_rooms), chapter_infos_count))
+            # DEBUG_MSG('_rooms:%s,chapter_count%s' % (len(_rooms), chapter_infos_count))
             if chapter_infos_count == len(_rooms):
                 # 按时间倒序排序
                 _new_data = collections.OrderedDict()
@@ -4381,7 +4377,7 @@ class Account(KBEngine.Proxy):
             self.call_client_func("queryRecordResult", _data)
             return
         for _room in _rooms:
-            DEBUG_MSG('_room%s' % _room)
+            # DEBUG_MSG('_room%s' % _room)
             # 循环创建房间实体
             KBEngine.createEntityFromDBID(_args["roomType"], int(_room), on_success_callback)
 
