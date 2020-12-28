@@ -1323,10 +1323,15 @@ class RoomType13(RoomBase):
         server_cards = self.change_value_to_server(client_cards)
         # 如果玩家成功出牌
         if result == 1:
+         # 将牌从玩家手中移除，添加到已出牌堆
+            for i in server_cards:
+                if i in player_cards:
+                    player_cards.remove(i)
+                player_played_cards.append(i)
             # 如果开启空炸不算分并且是空炸，不调用炸弹算分
             if self.initiative_bomb_not_score and (chapter["prePlayer"] == -1 or chapter["prePlayer"] == account_id):
                 DEBUG_MSG("initiative_bomb_not_score account_id:%s server_cards:%s" % (account_id, server_cards))
-            else:
+            elif len(player_cards) > 0:
                 self.boom_score_for_total(server_cards, cards_type, account_id)
             # 将上个出牌玩家置为当前玩家
             if chapter['prePlayer'] == account_id:
@@ -1336,11 +1341,7 @@ class RoomType13(RoomBase):
             chapter["prePlayer"] = account_id
             # 将上家出牌值置为当前玩家出牌值
             chapter["prePlayerPlayCards"] = server_cards
-            # 将牌从玩家手中移除，添加到已出牌堆
-            for i in server_cards:
-                if i in player_cards:
-                    player_cards.remove(i)
-                player_played_cards.append(i)
+
             # 此玩家的出牌次数更新
             chapter["playerInGame"][account_id]["playCount"] += 1
             count_time = chapter["playerInGame"][account_id]["playCount"]

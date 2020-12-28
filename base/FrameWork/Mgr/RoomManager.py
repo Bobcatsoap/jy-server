@@ -679,6 +679,11 @@ class RoomManager(Manger):
             _room.info['bankerLimit'] = _config['bankerLimit']
             # 倒计时 int
             _room.info['timeDown'] = _config['timeDown']
+            # 首位开始：100
+            # 准备开始：101
+            # 房主开始：102
+            # 满x人开始：x
+            _room.info["gameStartType"] = _config["gameStartType"]
         if _roomType == "card":
             # todo:其他游戏类型开房门槛
             self.rooms[_type].roominfos[_roomType][_room.info["roomId"]] = _room

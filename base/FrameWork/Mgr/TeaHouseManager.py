@@ -621,10 +621,17 @@ class TeaHouseManager(Manger):
                 # 所有房间
                 _rooms = tea_house_entity.get_rooms_with_page(room_type, anonymity, page_index, started_disappear)
                 DEBUG_MSG("-------------rooms-------------------")
-                DEBUG_MSG(_rooms)
                 import time
                 start_time = time.time()
                 room_robot_count = self.get_room_robot_count(room_type)
+                DEBUG_MSG(room_type)
+                if room_type == "" and (score_level <= 0 or score_level == 1):
+                    room_robot_count4 = self.get_room_robot_count("RoomType4")
+                    room_robot_count1 = self.get_room_robot_count("RoomType1")
+                    room_robot_count12 = self.get_room_robot_count("RoomType12")
+                    room_robot_count13 = self.get_room_robot_count("RoomType13")
+                    _dataitem = {"RoomType4": room_robot_count4, "RoomType1": room_robot_count1, "RoomType12": room_robot_count12, "RoomType13": room_robot_count13}
+                    DEBUG_MSG(_dataitem)
                 end_time = time.time()
                 DEBUG_MSG("耗时----%s秒" % str(end_time - start_time))
                 room_robot_count_list = self.split_integer(room_robot_count, 7)
@@ -647,16 +654,17 @@ class TeaHouseManager(Manger):
                     import collections
                     new_rooms = collections.OrderedDict()
                     for k, v in _rooms.items():
-                        if v['type'] == "RoomType1" or v['type'] == "RoomType4":
-                            base_score = v["betBase"]
-                        else:
-                            base_score = v["baseScore"]
-                        DEBUG_MSG("-------------score_level-------------%s" % str(score_level))
-                        DEBUG_MSG("-------------rooms----k----------%s" % str(k))
-                        DEBUG_MSG("-------------rooms------gameLevel--------%s" % str(base_score))
-                        DEBUG_MSG(v)
-                        if float(base_score) == float(score_level):
-                            new_rooms[k] = v
+                        if v['type'] != "RoomType23":
+                            if v['type'] == "RoomType1" or v['type'] == "RoomType4":
+                                base_score = v["betBase"]
+                            else:
+                                base_score = v["baseScore"]
+                            DEBUG_MSG("-------------score_level-------------%s" % str(score_level))
+                            DEBUG_MSG("-------------rooms----k----------%s" % str(k))
+                            DEBUG_MSG("-------------rooms------gameLevel--------%s" % str(base_score))
+                            DEBUG_MSG(v)
+                            if float(base_score) == float(score_level):
+                                new_rooms[k] = v
                     _rooms = new_rooms
                 # 页数
                 _total_page = tea_house_entity.get_rooms_total_page(room_type, anonymity, started_disappear)
@@ -668,6 +676,8 @@ class TeaHouseManager(Manger):
                 DEBUG_MSG('----datas')
                 DEBUG_MSG(_data)
                 account_manager().get_account(requester).call_client_func("GetTeaHouseRoomsWithPageIndex", _data)
+                if room_type == "" and (score_level <= 0 or score_level == 1):
+                    account_manager().get_account(requester).call_client_func("RobotRoomCount", _dataitem)
             else:
                 account_manager().get_account(requester).call_client_func("Notice", ['玩家不存在'])
         else:
@@ -676,7 +686,7 @@ class TeaHouseManager(Manger):
     def get_room_robot_count(self, roomtype):
         room_robot_count = 0
         import pymysql
-        conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
+        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
         cursor = conn.cursor()
 
         sql = "select * from room_robot where room_type='%s'" % str(roomtype)

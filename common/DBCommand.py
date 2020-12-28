@@ -296,7 +296,7 @@ def modify_total_commssion(account_db_id, superior, teaHouseId, addtime, count, 
     """
     performanceDetail = round(performanceDetail, 2)
     import pymysql
-    conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
+    conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
     cursor = conn.cursor()
     sql = "select count, performanceDetail from commssion_total where superior=%s" % superior
     DEBUG_MSG('modify_total_commssion select_sql:%s' % sql)

@@ -3509,6 +3509,7 @@ class Account(KBEngine.Proxy):
         for k, v in tea_houses.items():
             new_tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(v.teaHouseId)
             new_tea_house_entity.set_game_coin(playerId, player_gold + give_gold)
+            new_tea_house_entity.refresh_game_coin_in_room(playerId,give_gold)
         command_sql = "INSERT INTO give_gold_info(user_id,player_id,gold,user_name,player_name, addtime) VALUES (%s, %s, %s, '%s', '%s', %s)" % (
         self.databaseID, playerId, give_gold, self.name, player_name, int(time.time()))
         tea_house_entity.set_game_coin(self.databaseID, self.gold - give_gold)
@@ -3580,7 +3581,8 @@ class Account(KBEngine.Proxy):
         tea_houses = self.tea_house_mgr.get_tea_houses_by_account_dbid(playerId)
         for k, v in tea_houses.items():
             new_tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(v.teaHouseId)
-            new_tea_house_entity.set_game_coin(playerId, player_gold - give_gold)
+            new_tea_house_entity.set_game_coin(playerId, player_gold - give_go-ld)
+            new_tea_house_entity.refresh_game_coin_in_room(playerId,-give_gold)
 
         # 添加赠送记录
         command_sql = "INSERT INTO give_gold_info(user_id,player_id,gold,user_name,player_name, addtime) VALUES (%s, %s, %s, '%s', '%s', %s)" % (
@@ -3951,7 +3953,7 @@ class Account(KBEngine.Proxy):
             self.call_client_func('extractCommissionResult', {"status": 0,"message": "冠名赛不存在"})
 
         import pymysql
-        conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
+        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
         cursor = conn.cursor()
         sql_command = "select performanceDetail from commssion_total where superior=%s" % account_db_id
         cursor.execute(sql_command)
@@ -4097,7 +4099,7 @@ class Account(KBEngine.Proxy):
         account_db_id = _args["accountDBID"]
         sql_common = "select performanceDetail from commssion_total where superior=%s" % account_db_id
         import pymysql
-        conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
+        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
         cursor = conn.cursor()
         DEBUG_MSG('get_surplus_commission sql:%s' % sql_common)
         cursor.execute(sql_common)
@@ -4119,7 +4121,7 @@ class Account(KBEngine.Proxy):
 
     def get_total_gold(self, player_id):
         import pymysql
-        conn = pymysql.connect('localhost', 'root', '123456', 'kbe')
+        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
         cursor = conn.cursor()
         command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where player_id=%s' % player_id
         cursor.execute(command_sql)
