@@ -3880,10 +3880,11 @@ class RoomType12(RoomBase):
         """
         _chapter = self.chapters[self.cn]
         if self.info["roomType"] == "gameCoin":
-            for k, v in _chapter[PLAYER_IN_GAME].items():
-                if v["entity"].info["dataBaseId"] == account_db_id:
-                    v["baseSyncGoldChange"] += modify_count
-                    break
+            if not self.pot:
+                for k, v in _chapter[PLAYER_IN_GAME].items():
+                    if v["entity"].info["dataBaseId"] == account_db_id:
+                        v["baseSyncGoldChange"] += modify_count
+                        break
         self.sync_true_gold()
 
         # 如果都满足准备条件，关闭倒计时

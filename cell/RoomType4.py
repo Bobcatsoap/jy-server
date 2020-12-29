@@ -2381,11 +2381,12 @@ class RoomType4(RoomBase):
         """
         _chapter = self.chapters[self.cn]
         if self.info["roomType"] == "gameCoin":
-            for k, v in _chapter["playerInRoom"].items():
-                if v["entity"].info["dataBaseId"] == account_db_id:
-                    v["score"] += modify_count
-                    self.callOtherClientsFunction("refreshGameCoin", {"gameCoin": v["score"], "accountId": k})
-                    break
+            if not self.pot:
+                for k, v in _chapter["playerInRoom"].items():
+                    if v["entity"].info["dataBaseId"] == account_db_id:
+                        v["score"] += modify_count
+                        self.callOtherClientsFunction("refreshGameCoin", {"gameCoin": v["score"], "accountId": k})
+                        break
 
     def refresh_gold(self, account_db_id, count, isModify=False):
         """
