@@ -58,6 +58,10 @@ class RoomType13(RoomBase):
     gameWinner = -1
     disband_timer = -1
 
+    add_gold_ids = []
+    add_golds = []
+
+
     # 初始化继承父类属性及自身属性
     def __init__(self):
         """
@@ -2024,6 +2028,13 @@ class RoomType13(RoomBase):
             else:
                 self.set_base_player_gold(k)  # 设置玩家金币数量
 
+        if self.pot:
+            for index, id in enumerate(self.add_gold_ids):
+                gold = self.add_golds[index]
+                self.set_base_player_game_coin_2(id, gold)
+
+        self.add_gold_ids = []
+        self.add_golds = []
         # 忽略判断，创建一个房间
         self.base.cellToBase({"func": "autoCreateRoom", "roomInfo": self.info, 'ignoreJudge': True, 'onRoomEnd': True})
         self.save_record_str()
@@ -2150,6 +2161,23 @@ class RoomType13(RoomBase):
         _player["entity"].base.cellToBase({"func": "setAccountMutableInfo", "dic": {
             "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
             "gameCoin": _player["entity"].accountMutableInfo["gameCoin"]}})
+
+    def set_base_player_game_coin_2(self, accountId, gold):
+        """
+        设置玩家比赛分数量,通知base
+        :param accountId:
+        :return:
+        """
+        if self.info['roomType'] != 'gameCoin':
+            return
+        _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
+        _playerInRoom = _chapter["playerInRoom"]
+        _player = _playerInRoom[accountId]
+        # 如果是锅子模式，恢复比赛分
+        if self.pot:
+            _player["entity"].base.cellToBase({"func": "setAccountMutableInfo", "dic": {
+                "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
+                "gameCoin": _player["entity"].accountMutableInfo["gameCoin"] + gold}})
 
     # 结算统计
     def cl_card_chapter(self):
@@ -3353,6 +3381,11 @@ class RoomType13(RoomBase):
                         self.callOtherClientsFunction("refreshGameCoin", {"gameCoin": v["gold"], "accountId": k})
                         self.reconnect(k)
                         break
+            else:
+                for k, v in _chapter["playerInRoom"].items():
+                    if v["entity"].info["dataBaseId"] == account_db_id:
+                        self.add_gold_ids.append(k)
+                        self.add_golds.append(modify_count)
 
         # 如果都满足准备条件，关闭倒计时
         all_can_ready = self.check_ready_gold_disband()

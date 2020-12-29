@@ -863,6 +863,8 @@ class TeaHouse(KBEngine.Entity):
         #if origin_player.level == TeaHousePlayerLevel.Partner:
         #    up_players.append(origin_player)
         # 从大到小排列
+
+
         up_players.reverse()
         # TODO 如果是代理 抽成
         if int(origin_player.level) > 1:  # 是代理
