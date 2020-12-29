@@ -3346,12 +3346,13 @@ class RoomType13(RoomBase):
         """
         _chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标  self.cn 当前局数下标
         if self.info["roomType"] == "gameCoin":
-            for k, v in _chapter["playerInRoom"].items():
-                if v["entity"].info["dataBaseId"] == account_db_id:
-                    v["gold"] += modify_count
-                    self.callOtherClientsFunction("refreshGameCoin", {"gameCoin": v["gold"], "accountId": k})
-                    self.reconnect(k)
-                    break
+            if not self.pot:
+                for k, v in _chapter["playerInRoom"].items():
+                    if v["entity"].info["dataBaseId"] == account_db_id:
+                        v["gold"] += modify_count
+                        self.callOtherClientsFunction("refreshGameCoin", {"gameCoin": v["gold"], "accountId": k})
+                        self.reconnect(k)
+                        break
 
         # 如果都满足准备条件，关闭倒计时
         all_can_ready = self.check_ready_gold_disband()
