@@ -866,7 +866,6 @@ class TeaHouse(KBEngine.Entity):
         up_players.reverse()
         # TODO 如果是代理 抽成
         if int(origin_player.level) == 50:  # 是代理
-            DEBUG_MSG("开始添加代理111")
             up_players.append(origin_player)
 
         today_date = datetime.date.today()
