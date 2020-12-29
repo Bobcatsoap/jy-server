@@ -675,9 +675,10 @@ class TeaHouseManager(Manger):
                 _data['room_robot_count'] = room_robot_count
                 DEBUG_MSG('----datas')
                 DEBUG_MSG(_data)
-                account_manager().get_account(requester).call_client_func("GetTeaHouseRoomsWithPageIndex", _data)
                 if room_type == "" and (score_level <= 0 or score_level == 1):
                     account_manager().get_account(requester).call_client_func("RobotRoomCount", _dataitem)
+                account_manager().get_account(requester).call_client_func("GetTeaHouseRoomsWithPageIndex", _data)
+
             else:
                 account_manager().get_account(requester).call_client_func("Notice", ['玩家不存在'])
         else:
