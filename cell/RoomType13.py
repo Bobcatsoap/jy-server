@@ -2023,7 +2023,6 @@ class RoomType13(RoomBase):
         args = {"settlementInfo": player_settlement_info_s, "isDisband": is_disband}
         self.callOtherClientsFunction("TotalSettlement", args)
 
-
         for k, v in chapter["playerInGame"].items():
             # 同步玩家比赛分给base
             if self.info["roomType"] == "gameCoin":

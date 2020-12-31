@@ -2307,10 +2307,10 @@ class RoomType1(RoomBase):
         # 同步金币到 base
         player_settlement_info = []
         for k, v in chapter["playerInGame"].items():
+            v["score"] = 0
             if self.info["roomType"] == "gameCoin":
                 # TODO 设置玩家金币数量
                 self.set_base_player_game_coin(k)
-
             else:
                 self.set_base_player_gold(k)
             player_settlement_info.append(
