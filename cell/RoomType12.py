@@ -1300,7 +1300,10 @@ class RoomType12(RoomBase):
         # 大局结算抽水
         if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
             # self.mj_lottery()
-            self.mj_total_settlement_billing()
+            billing_count = 0
+            if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
+                billing_count = self.info['billingCount']
+            self.mj_total_settlement_billing(billing_count)
 
         # 收集统计数据
         for sdp in sd[SD_PLAYERS].values():

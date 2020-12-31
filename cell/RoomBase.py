@@ -1914,7 +1914,7 @@ class RoomBase(KBEngine.Entity):
                 return v['totalGoldChange']
 
     # 麻将总结算抽水
-    def mj_total_settlement_billing(self):
+    def mj_total_settlement_billing(self, billing_count):
         chapter = self.chapters[self.cn]
         total_settlement_winner = self.mj_get_winner()
         # 获取大赢家
@@ -1924,9 +1924,13 @@ class RoomBase(KBEngine.Entity):
             total_settlement_winner_true_gold = self.mj_total_settlement_gold(total_settlement_winner_account_id)
             total_settlement_winner_billing = total_settlement_winner_true_gold * self.info['totalSettlementBilling']
             v['totalGoldChange'] -= total_settlement_winner_billing
+            v['totalGoldChange'] -= billing_count
             v['totalGoldChange'] = round(float(v['totalGoldChange']), 1)
             v["gold"] -= total_settlement_winner_billing
+            v["gold"] -= billing_count
             v["gold"] = round(float(v['gold']), 1)
+            # 将房费加给楼主
+            self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
