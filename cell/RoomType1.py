@@ -2294,9 +2294,10 @@ class RoomType1(RoomBase):
         DEBUG_MSG(self.settlement_count)
         DEBUG_MSG(self.info["roomType"])
         if self.info["roomType"] == "gameCoin" and self.settlement_count >= 0:
+            billing_count = 0
             if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
                 billing_count = self.info['billingCount']
-                self.jh_total_settlement_billing(billing_count)
+            self.jh_total_settlement_billing(billing_count)
 
         # 清理观战的玩家
         _playerOutGameCopy = chapter["playerOutGame"].copy()

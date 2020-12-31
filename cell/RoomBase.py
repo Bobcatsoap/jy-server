@@ -1801,7 +1801,7 @@ class RoomBase(KBEngine.Entity):
                 return v['totalGoldChange']
 
     # 牛牛总结算抽水
-    def nn_total_settlement_billing(self):
+    def nn_total_settlement_billing(self, billing_count):
         chapter = self.chapters[self.cn]
         total_settlement_winner = self.nn_get_winner()
         # 获取大赢家
@@ -1822,6 +1822,7 @@ class RoomBase(KBEngine.Entity):
             DEBUG_MSG('RoomType4 大局抽水 抽水后 totalGoldChange %s' % v["totalGoldChange"])
             DEBUG_MSG('RoomType4 大局抽水 抽水前 gold %s' % v["score"])
             v['score'] -= total_settlement_winner_billing
+            v['score'] -= billing_count
             v['score'] =  round(float(v['score']), 1)
             DEBUG_MSG('RoomType4 大局抽水 抽水后 gold %s' % v["score"])
             # 同步房费给base

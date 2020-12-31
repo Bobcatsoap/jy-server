@@ -1535,7 +1535,10 @@ class RoomType4(RoomBase):
 
         # todo:大局抽水
         if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            self.nn_total_settlement_billing()
+            billing_count = 0
+            if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
+                billing_count = self.info['billingCount']
+            self.nn_total_settlement_billing(billing_count)
 
         # 同步金币到 base
         player_settlement_info = []
