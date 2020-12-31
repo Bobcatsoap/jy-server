@@ -1543,6 +1543,7 @@ class RoomType4(RoomBase):
         # 同步金币到 base
         player_settlement_info = []
         for k, v in chapter["playerInGame"].items():
+            v["score"] = 0
             # 同步货币
             player_settlement_info.append(
                 {"accountId": v['entity'].id, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
