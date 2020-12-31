@@ -230,8 +230,6 @@ IS_HUANG_ZHUANG = 'isHuangZhuang'
 IS_GANG_SHANG_KAI_HUA = "isGangShangKaiHua"
 # 本局中剩余牌的数量
 LEFT_PAI_COUNT = "leftPaiCount"
-# 有玩家金币为0 ；
-LEFT_PLANY_COUNT = False
 # 房主，第一个进入房间的玩家，默认为房主
 ROOM_MASTER = "roomMaster"
 # 胡牌的类型 -1:表示没有结束;0:荒庄;1:自摸;2:点炮;3:抢杠
@@ -639,7 +637,9 @@ class RoomType12(RoomBase):
                 self.callClientFunction(account_id, "wantNextGameSit", _args)
                 self.wait_to_seat.append(account_id)
                 self.callOtherClientsFunction("NextGameCanSit", self.wait_to_seat)
-                self.get_player_entity(account_id).update_player_stage(Account.PlayerStage.PLAYING, self.max_chapter_count, self.current_chapter_count)
+                self.get_player_entity(account_id).update_player_stage(Account.PlayerStage.PLAYING,
+                                                                       self.max_chapter_count,
+                                                                       self.current_chapter_count)
             else:
                 _args = {"result": 0}
                 self.callClientFunction(account_id, "wantNextGameSit", _args)
@@ -705,12 +705,6 @@ class RoomType12(RoomBase):
             if i["entity"].id == accountEntity.id:
                 return None
         # 创建牌局玩家 并分配一个座位
-        # 玩家牌局中的初始金币数 默认为玩家账户中的总金币数
-        _gold = 0
-        if self.info["roomType"] == "card":
-            _gold = 0
-        elif self.info["roomType"] == "gameCoin":
-            _gold = accountEntity.accountMutableInfo["gameCoin"]
         DEBUG_MSG('new player totalGoldChange %s' % total_gold_change)
         _player = {'locationIndex': -1,
                    'entity': accountEntity,
@@ -729,12 +723,14 @@ class RoomType12(RoomBase):
                    'baseSyncGoldChange': base_sync_gold_change,
                    # 是否已经扣过AA支付的钻石
                    'AARoomCardConsumed': False}
+        # 玩家牌局中的初始金币数 默认为玩家账户中的总金币数
+        _gold = 0
         # 钻石场
         if self.info["roomType"] == "card":
-            _player["gold"] = accountEntity.accountMutableInfo["gold"]
+            _player["gold"] = 0
         # 比赛分场
         elif self.info["roomType"] == "gameCoin":
-            _player["gold"] = accountEntity.accountMutableInfo["gameCoin"]
+            _player["gold"] = 0
         # 普通比赛分场
         elif self.info['roomType'] == 'normalGameCoin':
             _player["gold"] = accountEntity.accountMutableInfo["gold"]
@@ -859,17 +855,17 @@ class RoomType12(RoomBase):
         """
         _chapter = self.chapters[self.cn]
         # 只有准备阶段可以准备
-        if _chapter["chapterState"] != 0 and _chapter['chapterState']!=3:
+        if _chapter["chapterState"] != 0 and _chapter['chapterState'] != 3:
             return
         # 如果是比赛场,准备时金币不能小于0
-        if self.info["roomType"] == "gameCoin" and self.get_true_gold(entityId) < self.info['readyGoldLimit'] and ready:
-            self.callClientFunction(entityId, 'Notice', ['您的比赛分不足,请您立即充值.'])
-            info_args = {"accountId": entityId}
-            self.callOtherClientsFunction("ScoreIsLess", info_args)
-            if self.ready_gold_disband_timer == -1 and not self.is_forbid_disband_room():
-                self.debug_msg("addTimer ready_gold_disband_timer")
-                self.ready_gold_disband_timer = self.addTimer(120, 0, 0)
-            return
+        # if self.info["roomType"] == "gameCoin" and self.get_true_gold(entityId) < self.info['readyGoldLimit'] and ready:
+        #     self.callClientFunction(entityId, 'Notice', ['您的比赛分不足,请您立即充值.'])
+        #     info_args = {"accountId": entityId}
+        #     self.callOtherClientsFunction("ScoreIsLess", info_args)
+        #     if self.ready_gold_disband_timer == -1 and not self.is_forbid_disband_room():
+        #         self.debug_msg("addTimer ready_gold_disband_timer")
+        #         self.ready_gold_disband_timer = self.addTimer(120, 0, 0)
+        #     return
         _players = _chapter["players"]
         _player = self.get_seat_player_by_entity_id(entityId)
         account_entity = KBEngine.entities[entityId]
@@ -1000,20 +996,15 @@ class RoomType12(RoomBase):
 
             # 结算
             self.settlement()
-            # for k, v in _players.items():
-            #     self.on_player_ready(v['entity'].id, False)
 
             # 超出局数，总结算。开启锅子，没有局数限制
             if not self.pot and self.info["maxChapterCount"] == self.cn + 1:
                 self.total_settlement()
                 return
-            if LEFT_PLANY_COUNT == True:
-                self.total_settlement()
-                return
             # 如果比赛场有人不满足离场分，结束游戏
-            elif self.info["roomType"] == "gameCoin" and self.have_player_do_not_meet_end_score():
-                self.total_settlement()
-                return
+            # elif self.info["roomType"] == "gameCoin" and self.have_player_do_not_meet_end_score():
+            #     self.total_settlement()
+            #     return
             else:
                 self.delTimer(_chapter['playCardTimer'])
                 _chapter['playCardTimer'] = -1
@@ -1022,9 +1013,6 @@ class RoomType12(RoomBase):
                 _chapter['resOutPaiTimer'] = -1
 
                 _chapter['restartTimer'] = self.addTimer(RESTART_TIME, 0, 0)
-                # self.start_next_chapter()
-                # self.sync_timer_count_down(RESTART_TIME)
-                # _chapter['deadLine'] = time.time() + RESTART_TIME
         elif state == 4:
             _chapter["chapterState"] = state
             DEBUG_MSG('[RoomType12 id %i]------->changeChapterState to %s' % (self.id, state))
@@ -1054,7 +1042,7 @@ class RoomType12(RoomBase):
         """
         是否有玩家不满足离场分
         """
-        _chapter=self.chapters[self.cn]
+        _chapter = self.chapters[self.cn]
         for k, v in _chapter[PLAYER_IN_GAME].items():
             true_gold = self.get_true_gold(v['entity'].id)
             if true_gold <= self.info['endScore']:
@@ -1100,7 +1088,6 @@ class RoomType12(RoomBase):
                     hu_score = 0
                     fish_range = []
 
-
                 lose_range = fish_range
 
                 # 根据特殊规则翻倍
@@ -1119,7 +1106,7 @@ class RoomType12(RoomBase):
                 fish_score = self.info['fish'] if self.single_fish else self.info['fish'] * 2
                 for _player in _chapter[PLAYER_IN_GAME].values():
                     for _v in lose_range:
-                        if _player['entity'].id == _v['entity'].id :
+                        if _player['entity'].id == _v['entity'].id:
                             _player['goldChange'] -= hu_score
                             _player['goldChange'] -= fish_score
                 # 扣鱼子分
@@ -1168,47 +1155,14 @@ class RoomType12(RoomBase):
                         _gang_p['goldChange'] += an_score
                         _p['anGangGold'] -= an_score
                         _gang_p['anGangGold'] += an_score
-            for _p in _chapter[PLAYER_IN_GAME].values():
-                DEBUG_MSG("78787878787878787878")
-                DEBUG_MSG(no_hu_players)
-                for _v in  no_hu_players:
-                    if _p['entity'].id == _v['entity'].id:
-                        if self.pot:
-                            if self.potScore + _p['totalGoldChange'] + _p['goldChange']  <= 0 :
-                                # _p['goldChange'] = _p['gold'] + _p['totalGoldChange']
-                                _p['goldChange'] = self.potScore - (_p['totalGoldChange'] * -1)
-                                _p['goldChange'] = _p['goldChange'] * -1
-                                LEFT_PLANY_COUNT = True
-                                for _k in _chapter[PLAYER_IN_GAME].values():
-                                    for _j in hu_players:
-                                        DEBUG_MSG("888888888888888888888")
-                                        DEBUG_MSG(_j)
-                                        if _k['entity'].id == _j['entity'].id:
-                                           _k['goldChange'] = self.potScore - (_p['totalGoldChange'] * -1)
-                                        DEBUG_MSG("88888888888888888888888888 %s" % str( _k['goldChange']))
         else:
             pass
 
-
         if self.info["roomType"] == "gameCoin":
-            # 首局结算抽水
-            if self.settlement_count == 0:
-                for _p in players:
-                    if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
-                        DEBUG_MSG('RoomType12 billing_count not enough account_id:%s' % _p['entity'].id)
-                        continue
-                    billing_count = self.info['billingCount']
-                    # _p['gold'] -= billing_count
-                    if self.potScore + _p['totalGoldChange'] + _p['goldChange'] - billing_count <= 0 :
-                        continue
-                    _p['totalGoldChange'] -= billing_count
-                    DEBUG_MSG('RoomType12 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
-                    # 将房费加给楼主
-                    self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
             # 每小局结算大赢家抽水,保留整数
             # 获取大赢家
             settlement_winners = self.mj_get_settlement_winners()
-            for location_index,v in settlement_winners.items():
+            for location_index, v in settlement_winners.items():
                 settlement_winner_account_id = v['entity'].id
                 # 计算大赢家小局抽水
                 settlement_winner_true_gold = self.mj_get_true_gold(settlement_winner_account_id)
@@ -1222,11 +1176,10 @@ class RoomType12(RoomBase):
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
-                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType12") + "小局"})
+                                      "userId": v["entity"].info["userId"],
+                                      "roomType": Const.get_name_by_type("RoomType12") + "小局"})
 
                 # 赋值总金币改变
-
-
 
         for _p in _chapter[PLAYER_IN_GAME].values():
             _p['totalGoldChange'] += _p['goldChange']
@@ -1270,7 +1223,6 @@ class RoomType12(RoomBase):
 
         # 统计全局数据
 
-
         self.global_data(players)
         self.sync_true_gold()
         self.settlement_count += 1
@@ -1297,13 +1249,11 @@ class RoomType12(RoomBase):
         big_winner_max = 0
         big_winner_indexes = []
 
-        # 大局结算抽水
+        # 如果是大赢家支付房费
         if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
             # self.mj_lottery()
-            billing_count = 0
             if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
-                billing_count = self.info['billingCount']
-            self.mj_total_settlement_billing(billing_count)
+                pass
 
         # 收集统计数据
         for sdp in sd[SD_PLAYERS].values():
@@ -1341,14 +1291,14 @@ class RoomType12(RoomBase):
         self.base.cellToBase({"func": "autoCreateRoom", "roomInfo": self.info, 'ignoreJudge': True, 'onRoomEnd': True})
         self.save_record_str()
 
-
         # 同步金币变化到房间外
         for p in chapter[PLAYER_IN_GAME].values():
             # 同步金币到 base
-            if self.info["roomType"] == "gameCoin":
-                self.set_base_player_game_coin(p)
-            else:
-                self.set_base_player_gold(p)
+            # if self.info["roomType"] == "gameCoin":
+            #     self.set_base_player_game_coin(p)
+            # else:
+            #     self.set_base_player_gold(p)
+            pass
 
         # 同步局数
         if self.is_tea_house_room and self.settlement_count >= 1:
@@ -2344,11 +2294,11 @@ class RoomType12(RoomBase):
         if player['continue']:
             return
         # 如果是比赛场,准备时金币不能小于指定值
-        if self.info["roomType"] == "gameCoin" and self.get_true_gold(entity_id) < self.info['readyGoldLimit']:
-            self.callClientFunction(entity_id, 'Notice', ['您的比赛分不足,请您立即充值.'])
-            info_args = {"accountId": entity_id}
-            self.callOtherClientsFunction("ScoreIsLess", info_args)
-            return
+        # if self.info["roomType"] == "gameCoin" and self.get_true_gold(entity_id) < self.info['readyGoldLimit']:
+        #     self.callClientFunction(entity_id, 'Notice', ['您的比赛分不足,请您立即充值.'])
+        #     info_args = {"accountId": entity_id}
+        #     self.callOtherClientsFunction("ScoreIsLess", info_args)
+        #     return
         player['continue'] = True
         # 同步准备消息
         player['isReady'] = True
@@ -2475,7 +2425,8 @@ class RoomType12(RoomBase):
         player_in_game_db_id = []
         for _p in _players.values():
             player_in_game_db_id.append(_p['entity'].info['dataBaseId'])
-            self.player_entity(_p).update_player_stage(Account.PlayerStage.PLAYING, self.max_chapter_count, self.current_chapter_count)
+            self.player_entity(_p).update_player_stage(Account.PlayerStage.PLAYING, self.max_chapter_count,
+                                                       self.current_chapter_count)
         self.notify_viewing_hall_players_chapter_start()
         self.base.cellToBase({"func": "roomStart", "roomInfo": self.info, "playerInGameDBID": player_in_game_db_id})
         # 房间开始，并且人未满时创建新的房间(onRoomEnd为true时插入在当前房间后面)
@@ -2510,7 +2461,8 @@ class RoomType12(RoomBase):
             luck_player, max_losing_streak_count = self.get_max_losing_streak_player(players)
             if max_losing_streak_count < 5:
                 luck_player = None
-            DEBUG_MSG('最大连输 %s %s' % (max_losing_streak_count, luck_player['entity'].id if luck_player else luck_player))
+            DEBUG_MSG(
+                '最大连输 %s %s' % (max_losing_streak_count, luck_player['entity'].id if luck_player else luck_player))
 
         if not luck_player:
             # 幸运数字玩家
@@ -3307,7 +3259,8 @@ class RoomType12(RoomBase):
             }
 
             # 如果能碰，能大明杠、能吃、能胡将所有可以操作的玩家及允许的操作保存起来
-            if (p[CAN_PENG] and self.can_peng(p)) or can_da_ming_gang or (p[CAN_HU] and self.can_dian_pao(p, out_pai)) or len(_chi) != 0:
+            if (p[CAN_PENG] and self.can_peng(p)) or can_da_ming_gang or (
+                    p[CAN_HU] and self.can_dian_pao(p, out_pai)) or len(_chi) != 0:
                 # 如果玩家不在线，不考虑能进行的操作
                 if not p['entity'].client_death:
                     check_results.append(check_result)
@@ -3526,7 +3479,7 @@ class RoomType12(RoomBase):
             self.notify_out_pai(player)
         # 如果有小明杠，暗杠，通知操作
         else:
-            self.check_can_opt_after_deal(player,is_gang_after_peng=True)
+            self.check_can_opt_after_deal(player, is_gang_after_peng=True)
 
     def res_play_card_da_ming_gang_opt(self, player, pai):
         """
@@ -4057,12 +4010,11 @@ class RoomType12(RoomBase):
 
         return True
 
-    def can_peng(self,player):
+    def can_peng(self, player):
         """
         能不能碰
         """
         return not (self.passHuAndPeng and player['qiPeng'])
-
 
     def can_dian_pao(self, player, out_card):
         """
@@ -4375,7 +4327,6 @@ class RoomType12(RoomBase):
         """
         for k, v in players_dic.items():
             v["entity"].base.cellToBase({"func": "setLosingStreakCount", "count": v['entity'].info['losingstreak']})
-
 
     def save_record_str(self):
         game_type = '划水麻将'
