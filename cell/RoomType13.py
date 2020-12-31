@@ -1995,7 +1995,10 @@ class RoomType13(RoomBase):
         # 整理大结算数据
         if self.info["roomType"] == "gameCoin" and self.settlement_count >= 0:
             # self.normal_lottery()
-            self.pdk_total_settlement_billing()
+            billing_count = 0
+            if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
+                billing_count = self.info['billingCount']
+            self.pdk_total_settlement_billing(billing_count)
         # 寻找大赢家
         DEBUG_MSG('chapter["playerInGame"]--------------')
         DEBUG_MSG(chapter["playerInGame"])
