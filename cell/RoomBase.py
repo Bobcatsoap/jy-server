@@ -1726,10 +1726,13 @@ class RoomBase(KBEngine.Entity):
             total_settlement_winner_true_gold = self.jh_total_settlement_gold(k)
             total_settlement_winner_billing = total_settlement_winner_true_gold * self.info['totalSettlementBilling']
             v['totalGoldChange'] -= total_settlement_winner_billing
+            v['totalGoldChange'] -= billing_count
             v['totalGoldChange'] = round(float(v['totalGoldChange']), 1)
             v['score'] -= total_settlement_winner_billing
             v['score'] -= billing_count
             v['score'] = round(float(v['score']), 1)
+            # 将房费加给楼主
+            self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
@@ -1818,13 +1821,16 @@ class RoomBase(KBEngine.Entity):
             DEBUG_MSG('RoomType4 大局抽水 抽水金额 billing %s' % total_settlement_winner_billing)
             DEBUG_MSG('RoomType4 大局抽水 抽水前 totalGoldChange %s' % v["totalGoldChange"])
             v['totalGoldChange'] -= total_settlement_winner_billing
+            v['totalGoldChange'] -= billing_count
             v['totalGoldChange'] = round(float(v['totalGoldChange']), 1)
             DEBUG_MSG('RoomType4 大局抽水 抽水后 totalGoldChange %s' % v["totalGoldChange"])
             DEBUG_MSG('RoomType4 大局抽水 抽水前 gold %s' % v["score"])
             v['score'] -= total_settlement_winner_billing
             v['score'] -= billing_count
-            v['score'] =  round(float(v['score']), 1)
+            v['score'] = round(float(v['score']), 1)
             DEBUG_MSG('RoomType4 大局抽水 抽水后 gold %s' % v["score"])
+            # 将房费加给楼主
+            self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
             # 同步房费给base
             self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                   "todayGameCoinAdd": total_settlement_winner_billing,
