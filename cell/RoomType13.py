@@ -124,15 +124,15 @@ class RoomType13(RoomBase):
             # for k, v in _chapter["playerInGame"].items():
             #     DEBUG_MSG("%s 结算完毕 开始准备 " % str(k))
             #     self.player_ready(k)
-                # 结算信息没有自动准备
+            # 结算信息没有自动准备
             # 如果超过局数，总结算。锅子模式没有局数限制
             if not self.pot and self.settlement_count >= self.info["maxChapterCount"]:
                 self.changeChapterState(5)
                 return
-            # 如果比赛场有人不满足离场分，结束游戏
-            elif self.info["roomType"] == "gameCoin" and self.have_player_do_not_meet_end_score():
-                self.changeChapterState(5)
-                return
+            # # 如果比赛场有人不满足离场分，结束游戏
+            # elif self.info["roomType"] == "gameCoin" and self.have_player_do_not_meet_end_score():
+            #     self.changeChapterState(5)
+            #     return
             else:
                 # 整理结算信息
                 self.cl_card_chapter()
@@ -325,14 +325,14 @@ class RoomType13(RoomBase):
         # 拿到牌局玩家信息
         _player = chapter["playerInGame"][account_id]
         # 如果是比赛场,准备时金币不能小于0
-        if self.info["roomType"] == "gameCoin" and _player['gold'] < self.info['readyGoldLimit'] and bReady:
-            self.callClientFunction(account_id, 'Notice', ['您的比赛分不足,请您立即充值.'])
-            info_args = {"accountId": account_id}
-            self.callOtherClientsFunction("ScoreIsLess", info_args)
-            if self.ready_gold_disband_timer == -1 and not self.is_forbid_disband_room():
-                self.debug_msg("addTimer ready_gold_disband_timer")
-                self.ready_gold_disband_timer = self.addTimer(120, 0, 0)
-            return
+        # if self.info["roomType"] == "gameCoin" and _player['gold'] < self.info['readyGoldLimit'] and bReady:
+        #     self.callClientFunction(account_id, 'Notice', ['您的比赛分不足,请您立即充值.'])
+        #     info_args = {"accountId": account_id}
+        #     self.callOtherClientsFunction("ScoreIsLess", info_args)
+        #     if self.ready_gold_disband_timer == -1 and not self.is_forbid_disband_room():
+        #         self.debug_msg("addTimer ready_gold_disband_timer")
+        #         self.ready_gold_disband_timer = self.addTimer(120, 0, 0)
+        #     return
         # 判断房间限制
         # if self.have_gold_limit() and _player["gold"] < self.info["gameLevel"]:
         #     return
@@ -401,15 +401,13 @@ class RoomType13(RoomBase):
         DEBUG_MSG("将房间状态修正为开始")
         DEBUG_MSG(self.is_gold_session_room())
         DEBUG_MSG(self.info['level'])
-        if self.is_gold_session_room():
+        # if self.is_gold_session_room():
         # if self.info["roomType"] == "gameCoin":
-            DEBUG_MSG("开始扣除房费----->")
-            DEBUG_MSG(_playerInGame.items)
-            for k, v in _playerInGame.items():
-                DEBUG_MSG("--玩家 %s  gold %s 房费 %s" % (str(v['entity'].info['name']), v['gold'], self.info['roomRate']))
-                v['gold'] -= self.info['roomRate']
-                DEBUG_MSG("--玩家 %s  gold %s 房费 %s" % (str(v['entity'].info['name']), v['gold'], self.info['roomRate']))
-                self.set_base_player_gold(k)  # 设置玩家金币数量
+        #     DEBUG_MSG("开始扣除房费----->")
+        #     DEBUG_MSG(_playerInGame.items)
+        #     for k, v in _playerInGame.items():
+        #         v['gold'] -= self.info['roomRate']
+        #         self.set_base_player_gold(k)  # 设置玩家金币数量
 
         # 起始局
         if self.cn == 0:  # self.cn 当前局数下标
@@ -486,9 +484,9 @@ class RoomType13(RoomBase):
         _player["overCardLift"] = False
         # 钻石场默认为0，金币场使用的是大厅金币，比赛分场使用的是账户再朋友圈的比赛分
         if self.info["roomType"] == "card":
-            _player["gold"] = accountEntity.accountMutableInfo["gold"]
+            _player["gold"] = 0
         elif self.info["roomType"] == "gameCoin":
-            _player["gold"] = accountEntity.accountMutableInfo["gameCoin"]
+            _player["gold"] = 0
             # 如果是锅子模式，分数等于锅子分
             if self.pot:
                 _player['gold'] = self.potScore
@@ -1872,20 +1870,6 @@ class RoomType13(RoomBase):
         if abs(dealer["singMax"]) < abs(dealer["goldChange"]):
             dealer["singMax"] = dealer["goldChange"]
 
-
-
-        if self.info["roomType"] == "gameCoin":
-            # 首局结算抽水
-            if self.settlement_count == 0:
-                for k,_p in chapter["playerInGame"].items():
-                    if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
-                        DEBUG_MSG('RoomType12 billing_count not enough---account_id:%s' % _p['entity'].id)
-                        continue
-                    billing_count = self.info['billingCount']
-                    # _p['totalGoldChange'] -= billing_count  # TODO 原扣房费
-                    _p['gold'] -= billing_count
-                    #将房费加给楼主
-                    self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
             # 每小局结算大赢家抽水,保留整数
             # 获取大赢家
             settlement_winners = self.pdk_get_settlement_winners()
@@ -1994,11 +1978,8 @@ class RoomType13(RoomBase):
         max_win_gold = -1
         # 整理大结算数据
         if self.info["roomType"] == "gameCoin" and self.settlement_count >= 0:
-            # self.normal_lottery()
-            billing_count = 0
-            if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
-                billing_count = self.info['billingCount']
-            self.pdk_total_settlement_billing(billing_count)
+            # 大赢家支付房费
+            pass
         # 寻找大赢家
         DEBUG_MSG('chapter["playerInGame"]--------------')
         DEBUG_MSG(chapter["playerInGame"])
@@ -2024,11 +2005,12 @@ class RoomType13(RoomBase):
         self.callOtherClientsFunction("TotalSettlement", args)
 
         for k, v in chapter["playerInGame"].items():
-            # 同步玩家比赛分给base
-            if self.info["roomType"] == "gameCoin":
-                self.set_base_player_game_coin(k)
-            else:
-                self.set_base_player_gold(k)  # 设置玩家金币数量
+            # # 同步玩家比赛分给base
+            # if self.info["roomType"] == "gameCoin":
+            #     self.set_base_player_game_coin(k)
+            # else:
+            #     self.set_base_player_gold(k)  # 设置玩家金币数量
+            pass
 
         if self.pot:
             for index, id in enumerate(self.add_gold_ids):
@@ -2229,9 +2211,9 @@ class RoomType13(RoomBase):
         # 如果是正常大结算
         if not self.pot and self.settlement_count >= self.info["maxChapterCount"]:
             self.total_settlement()
-        # 如果比赛场有人不满足离场分，结束游戏
-        elif self.info["roomType"] == "gameCoin" and self.have_player_do_not_meet_end_score():
-            self.total_settlement()
+        # # 如果比赛场有人不满足离场分，结束游戏
+        # elif self.info["roomType"] == "gameCoin" and self.have_player_do_not_meet_end_score():
+        #     self.total_settlement()
         else:
             self.total_settlement(is_disband=True)
 
@@ -2682,11 +2664,11 @@ class RoomType13(RoomBase):
             return
 
         _player = chapter["playerInGame"][account_id]
-        # 如果是比赛场,准备时金币不能小于0
-        if self.info["roomType"] == "gameCoin" and _player['gold'] < self.info['readyGoldLimit']:
-            self.callClientFunction(account_id, 'Notice', ['您的比赛分不足,请您立即充值.'])
-            # 设置玩家准备状态为False
-            return
+        # # 如果是比赛场,准备时金币不能小于0
+        # if self.info["roomType"] == "gameCoin" and _player['gold'] < self.info['readyGoldLimit']:
+        #     self.callClientFunction(account_id, 'Notice', ['您的比赛分不足,请您立即充值.'])
+        #     # 设置玩家准备状态为False
+        #     return
         chapter["playerInGame"][account_id]["goToNext"] = True
         for k, v in chapter["playerInGame"].items():
             if not v["goToNext"]:
