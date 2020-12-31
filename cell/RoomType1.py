@@ -29,7 +29,6 @@ time_disband = 30
 settlement_clear_players_time = 30
 
 
-
 class RoomType1(RoomBase):
     # 1 牌局信息
     _chapterInfos = {}
@@ -49,6 +48,7 @@ class RoomType1(RoomBase):
         self.wait_to_seat = []
 
         self.player_leave_info = []
+
     def newStatisticalData(self):
         self.emptyLocationIndex = list(range(0, self.info["maxPlayersCount"]))
 
@@ -210,8 +210,8 @@ class RoomType1(RoomBase):
         #     self.check_gold()
         DEBUG_MSG('[Room id %i]------>chapterRestart ' % self.id)
         _chapter = self.chapters[self.cn]
-        _playerInGame = _chapter["playerInGame"]    # 在游戏中的玩家
-        _playerInRoom = _chapter["playerInRoom"]    # 在房间中的玩家
+        _playerInGame = _chapter["playerInGame"]  # 在游戏中的玩家
+        _playerInRoom = _chapter["playerInRoom"]  # 在房间中的玩家
         _playerOutGame = _chapter["playerOutGame"]  # 在游戏中观战的玩家
         _newChapter = self.newChapter(_chapter["maxPlayerCount"])  # 游戏中最大的玩家人数
         if self.cn >= int(self.info["maxChapterCount"]):
@@ -224,10 +224,10 @@ class RoomType1(RoomBase):
         # _newChapter["emptyLocation"] = copy.deepcopy(_chapter["emptyLocation"])
         _newChapter["playerInRoom"].update(_newChapter["playerInGame"])
         _newChapter["playerInRoom"].update(_newChapter["playerOutGame"])
-        for k, v in _newChapter["playerInRoom"].items():   # 遍历在房间中玩家
+        for k, v in _newChapter["playerInRoom"].items():  # 遍历在房间中玩家
             v["cards"] = []  # 牌
             v["hasLookCard"] = False  # 是否看过牌
-            v["isCompareDisCard"] = False   # 是否是比牌弃牌
+            v["isCompareDisCard"] = False  # 是否是比牌弃牌
             v["hasFollowEnd"] = False  # 是否开启跟到底
             v["hasDisCard"] = False  # 是否弃牌
             v["totalBet"] = 0  # 下注总额
@@ -241,7 +241,7 @@ class RoomType1(RoomBase):
         """
         DEBUG_MSG('[Room id %i]------>chapterStart ' % self.id)
         self.started = True
-        self.info["started"] = True   # 准备状态
+        self.info["started"] = True  # 准备状态
         _chapter = self.chapters[self.cn]
         _playerInGame = _chapter["playerInGame"]  # 在游戏中的玩家
         # 金币场扣除房费
@@ -418,7 +418,8 @@ class RoomType1(RoomBase):
             luck_player, max_losing_streak_count = self.get_max_losing_streak_player(_playerInGame.values())
             if max_losing_streak_count < 5:
                 luck_player = None
-            DEBUG_MSG('最大连输 %s %s' % (max_losing_streak_count, luck_player['entity'].id if luck_player else luck_player))
+            DEBUG_MSG(
+                '最大连输 %s %s' % (max_losing_streak_count, luck_player['entity'].id if luck_player else luck_player))
 
             # 60%概率发
             rand_num = random.randint(1, 100)
@@ -539,7 +540,7 @@ class RoomType1(RoomBase):
         if _chapter["maxRound"] - currentRound == 1:  # maxRound 最大局数
             self.callOtherClientsFunction("Notice", ["两轮下注后系统自动比牌"])
         # 1 当前轮数大于牌局最大轮数
-        if currentRound > _chapter["maxRound"]:   # maxRound 最大局数
+        if currentRound > _chapter["maxRound"]:  # maxRound 最大局数
             # 1 获取未弃牌玩家
             _playerHasNoDisCard = self.getHasNoDisCardPlayer()
             _playerHasNoDisCardKeys = list(_playerHasNoDisCard.keys())
@@ -718,7 +719,7 @@ class RoomType1(RoomBase):
         """
         DEBUG_MSG('[Room id %i]------>setBanker ' % self.id)
         _chapter = self.chapters[self.cn]
-        _playerInGame = _chapter["playerInGame"]   # 游戏中玩家
+        _playerInGame = _chapter["playerInGame"]  # 游戏中玩家
         # 1 从在游戏中玩家随机生成一个玩家为庄家   sample生成的是一个列表
         banker_id = self.banker_area_random(list(_chapter["playerInGame"].keys()))
         _banker = [banker_id]
@@ -788,7 +789,7 @@ class RoomType1(RoomBase):
         DEBUG_MSG('[Room id %i]------>setSeat accountId %s, locationIndex %s ' % (self.id, accountId, locationIndex))
         _chapter = self.chapters[self.cn]
         # 1 不在观战玩家列表中
-        if accountId not in _chapter["playerOutGame"]: # playerOutGame 观战玩家列表
+        if accountId not in _chapter["playerOutGame"]:  # playerOutGame 观战玩家列表
             return
         # 1 循环游戏中的玩家
         for player in _chapter["playerInGame"].values():
@@ -1098,7 +1099,7 @@ class RoomType1(RoomBase):
             # DEBUG_MSG('[Room id %i]------>settlement totalBet:%s chapterTotalBet%s cutRatio%s' % (
             #     self.id, v["totalBet"], _chapterTotalBet, self.cutRatio))
             # 1 胜者的  总下注-牌局总下注  等于负的赢钱的价值
-            v["totalBet"] =round(float(v["totalBet"] - _chapterTotalBet), 1)
+            v["totalBet"] = round(float(v["totalBet"] - _chapterTotalBet), 1)
             # 1 获取到赢家的牌型
             cards = _playerInGame[k]["cards"]
             cards_type = RoomType1Calculator.type_of_cards(cards, self.info) if \
@@ -1120,9 +1121,8 @@ class RoomType1(RoomBase):
                         n["totalBet"] += self.info["leopardXiQian"]
                         v["totalBet"] -= self.info["leopardXiQian"]
 
-
         if self.info["roomType"] == "gameCoin":
-            # 首局结算抽水
+            # 首局结算抽水 扣除房费
             if self.settlement_count == 0:
                 for k, _p in _playerInGame.items():
                     if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
@@ -1147,7 +1147,8 @@ class RoomType1(RoomBase):
                 # 同步房费给base
                 self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
                                       "todayGameCoinAdd": settlement_winner_billing,
-                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType1") + "小局"})
+                                      "userId": v["entity"].info["userId"],
+                                      "roomType": Const.get_name_by_type("RoomType1") + "小局"})
         _args = {}
         _toBaseArgs = dict()
         for k, v in _playerInGame.items():
@@ -1185,12 +1186,13 @@ class RoomType1(RoomBase):
             self.check_gold()
             pass
         else:
-            item =0
+            item = 0
             for k, v in _playerInGame.items():
                 if v["score"] <= 0:
-                    self.player_leave_info.append({"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
-                 "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
-                 "winnerBilling": v["winnerBilling"], 'gold': v['score']})
+                    self.player_leave_info.append(
+                        {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
+                         "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
+                         "winnerBilling": v["winnerBilling"], 'gold': v['score']})
                     self.set_base_player_game_coin(k)
                     self.callClientFunction(k, "Notice", ["金币不足"])
                 else:
@@ -1205,8 +1207,6 @@ class RoomType1(RoomBase):
         self.settlement_count += 1
         if self.settlement_count == 1:
             self.base.cellToBase({'func': 'addTodayRoom'})
-
-
 
         # 如果是AA支付，扣除钻石
         if self.info['payType'] == Const.PayType.AA:
@@ -1686,7 +1686,8 @@ class RoomType1(RoomBase):
             _playerData = {"accountId": k, "accountName": v["entity"].info["name"],
                            "winnerBilling": v["winnerBilling"], "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"],
-                           "totalGoldChange": v["totalGoldChange"], "userId": v["entity"].info["userId"], "headImageUrl": v["entity"].info["headImageUrl"],
+                           "totalGoldChange": v["totalGoldChange"], "userId": v["entity"].info["userId"],
+                           "headImageUrl": v["entity"].info["headImageUrl"],
                            # "totalGold": v['gold'] + v['baseSyncGoldChange'] + v['totalGoldChange']  TODO----
                            "gold": v["score"] - v['totalGoldChange'],
                            "totalGold": v["score"]
@@ -1735,7 +1736,7 @@ class RoomType1(RoomBase):
                 type(RoomType1Calculator.type_of_cards(cards, self.info)) == float or \
                 type(RoomType1Calculator.type_of_cards(cards, self.info)) == int else -1
             _player = {"cards": v["cards"], "hasLookCard": v["hasLookCard"], "hasFollowCard": v["hasLookCard"],
-                       "hasDisCard": v["hasDisCard"],   # 是否弃牌
+                       "hasDisCard": v["hasDisCard"],  # 是否弃牌
                        "isCompareDisCard": v["isCompareDisCard"],
                        "gold": v["score"] if _chapter['currentState'] == 2 or _chapter['currentState'] == 3
                        else v['score'] - v['totalBet'],
@@ -2281,7 +2282,7 @@ class RoomType1(RoomBase):
 
     # 总结算
     def total_settlement(self):
-        if self.total_settlement_ed:   # TODO total_settlement_ed 总结算标志位  False未结算 True已结算
+        if self.total_settlement_ed:  # TODO total_settlement_ed 总结算标志位  False未结算 True已结算
             return
         self.close_all_timer()
         self.changeChapterState(3)
@@ -2293,7 +2294,9 @@ class RoomType1(RoomBase):
         DEBUG_MSG(self.settlement_count)
         DEBUG_MSG(self.info["roomType"])
         if self.info["roomType"] == "gameCoin" and self.settlement_count >= 0:
-            self.jh_total_settlement_billing()
+            if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
+                billing_count = self.info['billingCount']
+                self.jh_total_settlement_billing(billing_count)
 
         # 清理观战的玩家
         _playerOutGameCopy = chapter["playerOutGame"].copy()
@@ -2313,7 +2316,7 @@ class RoomType1(RoomBase):
                 {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
                  "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
                  "winnerBilling": v["winnerBilling"], 'gold': v['score']})
-        if len(self.player_leave_info) >0:
+        if len(self.player_leave_info) > 0:
             player_settlement_info = player_settlement_info + self.player_leave_info
         args = {"settlementInfo": player_settlement_info}
         self.callOtherClientsFunction("TotalSettlement", args)
@@ -2336,7 +2339,6 @@ class RoomType1(RoomBase):
         chapter["settlementClearPlayers"] = self.addTimer(settlement_clear_players_time, 0, 0)
         chapter["deadline"] = time.time() + settlement_clear_players_time
         self.player_leave_info = []
-
 
     def set_base_player_game_coin(self, account_id):
         """

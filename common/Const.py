@@ -36,6 +36,7 @@ class Record:
 class PayType:
     RoomCreator = 0
     AA = 1
+    Winer = 2
 
 
 # to_do_list类型
