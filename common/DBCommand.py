@@ -296,7 +296,7 @@ def modify_total_commssion(account_db_id, superior, teaHouseId, addtime, count, 
     """
     performanceDetail = round(performanceDetail, 2)
     import pymysql
-    conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
+    conn = pymysql.connect('localhost', 'kbe', 'pwd12345603', 'kbe')
     cursor = conn.cursor()
     sql = "select count, performanceDetail from commssion_total where superior=%s" % superior
     DEBUG_MSG('modify_total_commssion select_sql:%s' % sql)
@@ -339,7 +339,7 @@ def modify_total_commssion(account_db_id, superior, teaHouseId, addtime, count, 
     # DEBUG_MSG('modify_total_commssion select_sql:%s' % sql_command)
     # KBEngine.executeRawDatabaseCommand(sql_command, on_query_over)
 
-def modify_room_card_to_db(account_db_id, modify_count, date_time, account_name, consume_type):
+def modify_room_card_to_db(account_db_id, modify_count, date_time, account_name, consume_type,teaHouseId=None):
     """
     修改玩家钻石数量
     :param consume_type: 消耗类型
@@ -357,13 +357,14 @@ def modify_room_card_to_db(account_db_id, modify_count, date_time, account_name,
                 modify_count, date_time, account_db_id, consume_type)
             KBEngine.executeRawDatabaseCommand(sql_command, None)
         else:
-            sql_command = "insert into room_card_statistics (account_db_id,room_card_count,date_time,account_name,consume_type) VALUES (%s,%s,%s,'%s','%s')" % (
-                account_db_id, modify_count, date_time, account_name, consume_type)
+            sql_command = "insert into room_card_statistics (account_db_id,room_card_count,date_time,account_name,consume_type,teaHouseId) VALUES (%s,%s,%s,'%s','%s', %s)" % (
+                account_db_id, modify_count, date_time, account_name, consume_type, teaHouseId)
             KBEngine.executeRawDatabaseCommand(sql_command, None)
 
     sql_command = "select * from room_card_statistics where date_time=%s and account_db_id=%s and consume_type='%s'" % (
         date_time, account_db_id, consume_type)
     KBEngine.executeRawDatabaseCommand(sql_command, on_query_over)
+
 
 
 def modify_room_count_to_db(account_db_id, account_name, modify_count, date_time, level=0):
@@ -621,7 +622,7 @@ def update_online_player_count(player_count):
 def clear_history_battle_score():
     """清除15天以上战绩"""
     days_ago = time.time() - 15 * 24 * 60 * 60
-    sql = 'delete from player_battle_score where settleTime<from_unixtime(%s)' % days_ago
+    sql = 'delete from player_battle_score where settleTime<%s' % int(days_ago)
     KBEngine.executeRawDatabaseCommand(sql)
 
 

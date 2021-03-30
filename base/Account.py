@@ -44,10 +44,6 @@ def remove_emoji(str):
     return "*"
 
 
-
-
-
-
 class Account(KBEngine.Proxy):
     """
     账号实体
@@ -86,6 +82,8 @@ class Account(KBEngine.Proxy):
     # 代理类型
     # 1：群主 2：高级代理 3：总代理
     proxyType = 0
+    # 下级玩家
+    downPlayer = []
     # 是否冻结
     frozen = 0
     # 位置
@@ -138,14 +136,13 @@ class Account(KBEngine.Proxy):
     # 定义一个类变量，存放查询用的房间实体
     history_room = {}
     partnerSwitch = 0
+    balance = 0
     gpsLocation = False
     player_give_gold = 0  # 总被赠送金币
 
     surplus_commission = 0
 
     surplus_total_count = 0  # 保险箱余额
-
-
 
     def __init__(self):
         KBEngine.Proxy.__init__(self)
@@ -166,6 +163,7 @@ class Account(KBEngine.Proxy):
         self.get_account_info()
         self.redeem_code = 0
         self.redeem_ticket = 0
+        self.downPlayer = []
 
     def wx_login_correct_find_old_account(self):
         """
@@ -281,13 +279,11 @@ class Account(KBEngine.Proxy):
         _name = self.__ACCOUNT_NAME__
         INFO_MSG("[Account %i] name=%s" % (self.id, _name))
 
-
         if '*' in _name:
             _l = list()
             _l.append(_name[0])
             _l.append(_name[2:len(_name)])
             if _l[0] == 'w':
-
                 # 微信
                 self.req_wx_name(_l[1])
 
@@ -300,6 +296,7 @@ class Account(KBEngine.Proxy):
         self.roomCard = float(Const.GameConfigJson.config_json['Hall']['giftDiamondCount'])
         self.goldIngot = float(Const.ServerGameConfigJson.config_json["Hall"]['giftGoldIngotCount'])
         self.userId = self.databaseID
+        self.balance = round(float(0), 2)
         DEBUG_MSG("account_init-------> userId %s" % self.userId)
         self.writeToDB()
 
@@ -463,7 +460,7 @@ class Account(KBEngine.Proxy):
                 if tea_house_entity:
                     control_val = tea_house_entity.get_need_control_score(self.databaseID)
                     _dic["controlScore"] = list(control_val)
-                  #  DEBUG_MSG('reqAccountMutableInfo %s' % _dic["controlScore"])
+                #  DEBUG_MSG('reqAccountMutableInfo %s' % _dic["controlScore"])
 
         self.cell.baseToCell({"func": "retAccountMutableInfo", "dic": _dic})
 
@@ -525,6 +522,16 @@ class Account(KBEngine.Proxy):
                     tea_house_entity.set_game_coin(self.databaseID, round(float(pyDic["gameCoin"]), 1))
                     self.ret_gold()
 
+    def sum_account_win_or_lose_score(self, pyDic):
+        """
+        统计玩家分数改变
+        cell---->base
+        :param pyDic:
+        :return:
+        """
+        # todo 统计玩家分数改变
+        pass
+
     def set_account_total_gold_change(self, pyDic):
         """
         同步房间内分数改变
@@ -535,13 +542,15 @@ class Account(KBEngine.Proxy):
         _type = pyDic['type']
         _tea_house_id = pyDic['teaHouseId']
         _total_gold_change = pyDic['totalGoldChange']
-        DEBUG_MSG('[set_account_total_gold_change type %s]------>cellToBase jsonData %s %s' % (str(_type), _tea_house_id, _total_gold_change))
+        DEBUG_MSG('[set_account_total_gold_change type %s]------>cellToBase jsonData %s %s' % (
+            str(_type), _tea_house_id, _total_gold_change))
         if _type == 'gold':
             self.gold += _total_gold_change
             self.ret_gold()
         elif _type == 'gameCoin':
             tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_tea_house_id)
-            DEBUG_MSG('[set_account_total_gold_change]------>tea_house_entity.gameCoinSwitch %s' % (str(tea_house_entity.gameCoinSwitch)))
+            DEBUG_MSG('[set_account_total_gold_change]------>tea_house_entity.gameCoinSwitch %s' % (
+                str(tea_house_entity.gameCoinSwitch)))
             if tea_house_entity:
                 # 如果比赛币功能没开，不同步比赛币
                 # if not tea_house_entity.gameCoinSwitch:
@@ -620,7 +629,13 @@ class Account(KBEngine.Proxy):
         elif _func_name == 'reqChallengeWinControl':
             data = self.challenge_mgr.get_challenge_result_control(self.databaseID, pyDic)
             self.cell.baseToCell({"func": "retChallengeWinControl", "dic": data})
-
+        elif _func_name == 'sendWinOrLoseScoreToBase':
+            _p = pyDic["dic"]
+            tea_house_id = _p['teaHouseId']
+            room_type = _p['type']
+            total_gold_change = _p['totalGoldChange']
+            if room_type == 'gameCoin':
+                self.tea_house_mgr.member_score_sum(tea_house_id, self.userId, total_gold_change)
 
     def clientToBase(self, jsonData):
         """
@@ -690,7 +705,7 @@ class Account(KBEngine.Proxy):
                     self.call_client_func("Notice", ["无法加入此房间，你已不在此茶楼中"])
                     return
                 if tea_house_entity.is_freeze_player(self.userId):
-                    self.call_client_func("Notice", ["无法加入此房间，你已被冻结"])
+                    self.call_client_func("Notice", ["无法加入此房间，你已被拉黑"])
                     return
                 # 如果冠名赛已经打烊，提示冠名赛打烊，进入房间失败
                 if tea_house_entity and tea_house_entity.isSnoring == 1:
@@ -978,6 +993,9 @@ class Account(KBEngine.Proxy):
             self.get_tea_house_info(_args["teaHouseId"])
         elif _func_name == "OnOpenTeaHousePanel":
             # 更新冠名赛中玩家的金币
+            if self.frozen == 1:
+                self.call_client_func("Notice", ["您的账号已经被冻结"])
+                return
 
             # 如果冠名赛不存在
             tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args["teaHouseId"])
@@ -1074,7 +1092,8 @@ class Account(KBEngine.Proxy):
                 for k, v in tea_house_entity.memberInfo.items():
                     if v.invitation_code == inviter_db_id:
                         inviter_db_id = v.db_id
-                tea_house_entity.application_join(self.databaseID, self.name, self.headImageUrl, inviter_db_id, self.gold,
+                tea_house_entity.application_join(self.databaseID, self.name, self.headImageUrl, inviter_db_id,
+                                                  self.gold,
                                                   on_success=application_success)
             else:
                 self.call_client_func("JoinTeaHouseResp", ["找不到此冠名赛"])
@@ -1477,11 +1496,13 @@ class Account(KBEngine.Proxy):
         elif _func_name == "giveGoldRecord":  # 赠送金币记录
             self.get_total_gold(_args["accountDBID"])
             self.give_gold_record(_args)  # 赠送金币记录
+        elif _func_name == "updateEmptyLocation":  # 修改桌子顺序
+            self.update_empty_location(_args)
         elif _func_name == "commission":  # 我的佣金
             self.get_surplus_commission(_args)
             # DEBUG_MSG('commission-------------:%s' % self.surplus_commission)
             self.get_commission(_args)
-        elif _func_name == "luck_draw": # 抽奖
+        elif _func_name == "luck_draw":  # 抽奖
             self.luck_draw(_args)
         elif _func_name == "luck_draw_record":  # 抽奖记录
             self.luck_draw_record(_args)
@@ -1521,9 +1542,23 @@ class Account(KBEngine.Proxy):
             self.call_client_func("BelongToResp", {"belongTo": self.belong_to})
         elif _func_name == 'GetSingleMemberInfo':
             self.get_single_member_info(_args['teaHouseId'], _args['accountDBID'])
-        elif _func_name == 'GetMembersWithPageIndex':  # TODO GetMembersWithPageIndex
+        elif _func_name == 'GetMembersWithPageIndex':
             self.get_members_with_page_index(_args['teaHouseId'], _args['accountDBID'],
                                              _args['pageIndex'])
+        elif _func_name == 'GetMemberBlackInfoWithPageIndex':
+            self.get_member_black_info_with_page_index(_args['teaHouseId'], _args['accountDBID'], _args['pageIndex'])
+        elif _func_name == 'GetDownPlayer':
+            self.get_down_player(_args['teaHouseId'], _args['accountDBID'])
+        elif _func_name == 'SetTeaHouseBlackScore':
+            self.set_tea_house_black_score(_args['teaHouseId'], _args['score'])
+        elif _func_name == "SetTeaHouseName":  # 设置亲友圈名称
+            self.set_tea_house_name(_args['teaHouseId'], _args['name'], _args['notice'])
+        elif _func_name == "setMemberUnseal":  # 解封
+            self.set_member_unseal(_args['teaHouseId'], _args['account_id'])
+        elif _func_name == 'SetTeaHouseProxyBlackScore':
+            self.set_tea_house_member_black_score(_args['teaHouseId'], _args['proxyId'], _args['score'])
+        elif _func_name == 'SetTeaHouseMemberBlackScore':
+            self.set_tea_house_member_black_score(_args['teaHouseId'], _args['memberId'], _args['score'])
         elif _func_name == 'SearchMember':
             self.search_member(_args['teaHouseId'], _args['keyWord'])
         elif _func_name == 'GetCanAddSameTablePlayers':
@@ -1540,7 +1575,7 @@ class Account(KBEngine.Proxy):
                                                   _args['pageIndex'], _args['levelFilter']),
         elif _func_name == "GetPartnerInfoWithPageIndex2":  # 通过页数获取合伙人信息
             self.get_partner_info_with_page_index2(_args['teaHouseId'], _args['accountDBID'],
-                                                  _args['pageIndex'], _args['levelFilter']),
+                                                   _args['pageIndex'], _args['levelFilter']),
 
         # 增加查询战绩函数
         elif _func_name == 'GetPlayerBattleScore':
@@ -1609,8 +1644,8 @@ class Account(KBEngine.Proxy):
             self.redeem_code = random.randint(100000, 999999)
             self.redeem_ticket = time.time()
             url = "%s/prize/redeem/?userid=%s&prizecode=%s" % (
-            Const.ServerGameConfigJson.config_json["Hall"]["challengeRedeemUrl"],
-            self.databaseID, self.redeem_code)
+                Const.ServerGameConfigJson.config_json["Hall"]["challengeRedeemUrl"],
+                self.databaseID, self.redeem_code)
             self.call_client_func("GetChallengeConvertUrl", {"url": url})
         elif _func_name == "GetRedeemCode":
             # self.redeem_code = random.randint(100000, 999999)
@@ -1642,40 +1677,88 @@ class Account(KBEngine.Proxy):
         elif _func_name == 'HallVideoButton':
             self.hall_video_button()
         elif _func_name == 'addPayerToRank':
+            pass
             # 获取茶楼实体
-            tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args["teaHouseId"])
-            date = str(_args['date'])
-            players_db_id = []
-            all_selected = _args['allSelected']
-            # 如果全选  则这个茶楼内所有的人都要上报,否则不管
-            if all_selected == 1:
-                for k, v in tea_house_entity.memberInfo.items():
-                    if k in _args["playerDBId"]:
-                        continue
-                    players_db_id.append(k)
-            elif all_selected == 0:
-                players_db_id = _args['playerDBId']
-            for player_db_id in players_db_id:
-                # 如果玩家在茶楼中游戏，则不能给玩家下分
-                player = self.account_mgr.get_account(player_db_id)
-                try:
-                    if player.in_tea_house_room(_args['teaHouseId']):
-                        self.call_client_func('addPayerToRank',
-                                              {'state': 0, 'content': '上报失败，{}正在游戏中'.format(player.name)})
-                        return
-                except Exception as e:
-                    DEBUG_MSG('player:%s error%s' % (player, e))
-                    pass
-            for player_db_id in players_db_id:
-                tea_house_entity.add_player_to_rank(player_db_id, date)
-            self.call_client_func('addPayerToRank', {'state': 1, 'content': '上报成功'})
+            # tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args["teaHouseId"])
+            # date = str(_args['date'])
+            # players_db_id = []
+            # all_selected = _args['allSelected']
+            # # 如果全选  则这个茶楼内所有的人都要上报,否则不管
+            # if all_selected == 1:
+            #     for k, v in tea_house_entity.memberInfo.items():
+            #         if k in _args["playerDBId"]:
+            #             continue
+            #         players_db_id.append(k)
+            # elif all_selected == 0:
+            #     players_db_id = _args['playerDBId']
+            # for player_db_id in players_db_id:
+            #     # 如果玩家在茶楼中游戏，则不能给玩家下分
+            #     player = self.account_mgr.get_account(player_db_id)
+            #     try:
+            #         if player.in_tea_house_room(_args['teaHouseId']):
+            #             self.call_client_func('addPayerToRank',
+            #                                   {'state': 0, 'content': '上报失败，{}正在游戏中'.format(player.name)})
+            #             return
+            #     except Exception as e:
+            #         DEBUG_MSG('player:%s error%s' % (player, e))
+            #         pass
+            # for player_db_id in players_db_id:
+            #     tea_house_entity.add_player_to_rank(player_db_id, date)
+            # self.call_client_func('addPayerToRank', {'state': 1, 'content': '上报成功'})
         elif _func_name == 'GetTeahouseRank':
+            DEBUG_MSG("GetTeahouseRank----------------------->")
+            DEBUG_MSG(_args)
+            DEBUG_MSG(_args)
+            DEBUG_MSG(_args)
+            
+            # -------新增添服务器获取时间戳start
+            import time
+            import datetime
+            if _args['date'] == 0:
+                # 今天日期
+                today = datetime.date.today()
+                yesterday = today - datetime.timedelta(days=1)
+                # 明天时间
+                tomorrow = today + datetime.timedelta(days=1)
+                today_end_time = int(time.mktime(time.strptime(str(tomorrow), '%Y-%m-%d'))) - 1
+            else:
+                today = datetime.date.today()
+                yesterday = today - datetime.timedelta(days=-1)
+                # 明天时间
+                tomorrow = today + datetime.timedelta(days=-1)
+                today_end_time = int(time.mktime(time.strptime(str(tomorrow), '%Y-%m-%d'))) - 1
+            _args['date'] = today_end_time
+            # -------新增添服务器获取时间戳end
+            DEBUG_MSG(_args)
+            
+            
+            #---------------第二次添加逻辑
+            # import time
+            # import datetime
+            # # 范围时间
+            # start_time = datetime.datetime.strptime(str(datetime.datetime.now().date())+'0:01', '%Y-%m-%d%H:%M')
+            # end_time =  datetime.datetime.strptime(str(datetime.datetime.now().date())+'9:30', '%Y-%m-%d%H:%M')
+            # # 当前时间
+            # now_time = datetime.datetime.now()
+            # if now_time > start_time and now_time<end_time:
+            #     # 今天日期
+            #     today = datetime.date.today()
+            #     yesterday = today - datetime.timedelta(days=1)
+            #     # 明天时间
+            #     tomorrow = today + datetime.timedelta(days=1)
+            #     today_end_time = int(time.mktime(time.strptime(str(tomorrow), '%Y-%m-%d'))) - 1
+            #     _args['date'] = today_end_time
+            # #----------------end
+            # DEBUG_MSG(_args)
+            
+            
             tea_house = self.tea_house_mgr.get_tea_house_with_id(_args["teaHouseId"])
             rank = tea_house.get_tea_house_rank(_args['date'], _args['playerDBId'], _args['currentPage'])
             self.call_client_func('GetTeahouseRank', rank)
         elif _func_name == 'SetRewards':
             # 获取茶楼实体
             reward_type = _args['rewardType']
+
             def callback(state):
                 content = '设置成功' if state else '设置失败'
                 self.call_client_func('SetRewards', {'state': state, 'content': content})
@@ -1786,11 +1869,12 @@ class Account(KBEngine.Proxy):
                     account_db_id_s.append(k)
             elif all_selected == 0:
                 account_db_id_s = _args['playerDBId']
-            add_game_coin = round(float(_args['game_coin']),1)
+            add_game_coin = round(float(_args['game_coin']), 1)
             # 如果合伙人比赛币这个字段存在，则证明是合伙人上分，判断合伙人分数是否足够
             if flag == 1:
                 if not partner_game_coin >= len(account_db_id_s) * add_game_coin:
                     return self.call_client_func('setOriginGameCoin', {'state': 0, 'content': '设置失败,比赛分不足'})
+
             def success():
                 pass
 
@@ -1874,8 +1958,8 @@ class Account(KBEngine.Proxy):
             tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
             if tea_house_entity:
                 if tea_house_entity.is_administrator(self.userId):
-                    if tea_house_entity.set_frezz_state(account_db_id, freeze_state):
-                        tea_house_entity.update_single_member_info_to_client(account_db_id)
+                    if tea_house_entity.set_freeze_state(account_db_id, freeze_state):
+                        tea_house_entity.update_single_member_info_to_client(account_db_id, self.userId)
                         self.call_client_func("Notice", ["%s成功" % ("冻结" if freeze_state else "解冻")])
                     else:
                         self.call_client_func("Notice", ["冻结操作失败"])
@@ -1885,6 +1969,10 @@ class Account(KBEngine.Proxy):
             if tea_house_entity:
                 is_admin = tea_house_entity.is_administrator(self.userId)
                 self.room_mgr.get_player_in_room(self, _args, is_admin)
+        elif _func_name == 'GetTeaHouseProxyInfo':
+            self.tea_house_mgr.get_tea_house_proxy_info(_args['teaHouseId'], self.userId)
+        elif _func_name == 'GetDownPlayersInfo':
+            self.account_mgr.send_down_players_info(_args['upPlayer'], self.userId)
         elif _func_name == 'KickOutPlayerInRoom':
             tea_house_id = _args['teaHouseId']
             user_id = _args['userId']
@@ -1904,7 +1992,7 @@ class Account(KBEngine.Proxy):
         elif _func_name == 'RecurInningSend':
             _thisroomid = _args['roomID']
             _thisroomType = _args["roomType"]
-            self.room_mgr.RecurInning(self,_thisroomid, _thisroomType)
+            self.room_mgr.RecurInning(self, _thisroomid, _thisroomType)
         else:
             ERROR_MSG("[Account id %s] clientToBase------>func: %s not exit" % (self.id, _func_name))
 
@@ -2192,24 +2280,45 @@ class Account(KBEngine.Proxy):
                 # 创建者在线
                 creator_entity.call_client_func("NewApplication", {"list": tea_house_entity.applicationList})
 
-        # 找到冠名赛的 DBID
+        # 找到冠名赛
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args["teaHouseId"])
-        # 如果冠名赛存在，提示客户端等待同意
         if tea_house_entity:
             # 如果已经加入，直接返回
-
             if self.databaseID in tea_house_entity.memberInfo.keys():
                 self.call_client_func("JoinTeaHouseResp", ["你已加入此冠名赛"])
                 return
             self.call_client_func("JoinTeaHouseResp", ["申请已提交,请等待老板同意"])
             # 加入冠名赛申请列表
-            tea_house_entity.application_join(self.databaseID, self.name, self.headImageUrl, _args["inviterDBID"], self.gold,
+            tea_house_entity.application_join(self.databaseID, self.name, self.headImageUrl, _args["inviterDBID"],
+                                              self.gold,
                                               on_success=application_success)
         else:
             self.call_client_func("JoinTeaHouseResp", ["找不到此冠名赛"])
             return
 
-    def exit_tea_house_request(self, _args, on_success=None):
+    def exit_tea_house_request(self, _args):
+        """
+        直接退出茶楼申请
+        """
+
+        # 通知客户端
+        def write_db_success():
+            self.call_client_func("ExitTeaHouseSuccess", {})
+            self.get_joined_tea_house_list()
+
+        # 申请失败，通知客户端
+        def write_db_fail():
+            pass
+
+        # 找到冠名赛的 DBID
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args["teaHouseId"])
+        if tea_house_entity:
+            tea_house_entity.player_exit(self.userId, write_db_success, write_db_fail)
+
+    def exit_tea_house_request_2(self, _args):
+        """
+        带有审核的退出茶楼申请
+        """
         # 找到冠名赛的 DBID
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args["teaHouseId"])
         if not tea_house_entity:
@@ -2271,7 +2380,7 @@ class Account(KBEngine.Proxy):
                 self.call_client_func('Notice', ['奖杯不足'])
                 return
             # 扣除2个奖杯数量
-            #consume = diamond * Const.GameConfigJson.config_json['Hall']['playerLotteryConsume']
+            # consume = diamond * Const.GameConfigJson.config_json['Hall']['playerLotteryConsume']
             self.account_mgr.modify_room_card(self.userId, -diamond, consume_type='convertToGold')
             #  self.account_mgr.modify_gold(self.userId, gold_add)
             index = 0
@@ -2351,6 +2460,7 @@ class Account(KBEngine.Proxy):
             self.call_client_func('SearchMember', {'memberInfo': member_info})
         else:
             self.call_client_func('Notice', ['找不到此玩家'])
+
     def get_player_battle_score(self, tea_house_id, account_db_id, page_index):
         """
         E查询战绩记录
@@ -2362,6 +2472,7 @@ class Account(KBEngine.Proxy):
         player = tea_house_entity.get_tea_house_player(account_db_id)
         if not player:
             self.call_client_func("playerBattleScoreRecord", {"partnerInfo": [], "totalPages": 0, "memberCount": 0})
+
         def on_success(charge_info):
             if tea_house_entity:
                 charge_record_list = []
@@ -2388,9 +2499,8 @@ class Account(KBEngine.Proxy):
                     "totalPages": int(total_pages),
                     "memberCount": member_count
                 })
+
         DBCommand.check_out_get_player_battle_score(account_db_id, tea_house_id, on_success=on_success)
-
-
 
     def get_partner_info_with_page_index(self, tea_house_id, account_db_id, page_index, level_filter=0):
         """
@@ -2413,19 +2523,86 @@ class Account(KBEngine.Proxy):
                     'totalPages': int(total_pages),
                     'memberCount': members_count,
                 })
+
     def get_partner_info_with_page_index2(self, tea_house_id, account_db_id, page_index, level_filter=0):
         """
         通过页数获取合伙人信息
         """
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
         if tea_house_entity:
-            partner_info, total_pages, members_count = tea_house_entity.get_partner_info_with_page2(account_db_id, page_index, level_filter)
+            partner_info, total_pages, members_count = tea_house_entity.get_partner_info_with_page2(account_db_id,
+                                                                                                    page_index,
+                                                                                                    level_filter)
             self.call_client_func('GetPartnerInfoWithPageIndex2', {
                 'partnerInfo': partner_info,
                 'totalPages': int(total_pages),
                 'memberCount': members_count,
             })
 
+    def set_tea_house_black_score(self, tea_house_id, score):
+        """
+        设置茶楼拉黑分数
+        """
+        result = self.tea_house_mgr.set_tea_house_black_score(tea_house_id, score)
+        if result:
+            self.call_client_func('Notice', ['设置拉黑分数成功'])
+        else:
+            self.call_client_func('Notice', ['设置拉黑分数失败'])
+            
+    def set_tea_house_name(self, tea_house_id, name, notice):
+        """
+        设置茶楼名称
+        """
+        result = self.tea_house_mgr.set_tea_house_name(tea_house_id, name, notice)
+        if result:
+            self.call_client_func('Notice', ['设置亲友圈名字成功'])
+        else:
+            self.call_client_func('Notice', ['设置亲友圈名字失败'])
+    
+    def set_member_unseal(self, tea_house_id, account_db_id):
+        """
+        解封
+        """
+        result = self.tea_house_mgr.set_member_unseal(tea_house_id, account_db_id)
+        if result:
+            self.call_client_func('Notice', ['解封成功'])
+        else:
+            self.call_client_func('Notice', ['解封失败'])
+        
+
+    def set_tea_house_member_black_score(self, tea_house_id, account_db_id, score):
+        """
+        设置茶楼成员拉黑分数
+        """
+        result = self.tea_house_mgr.set_tea_house_member_black_score(tea_house_id, account_db_id, score)
+        if result:
+            self.call_client_func('Notice', ['设置成员拉黑分数成功'])
+        else:
+            self.call_client_func('Notice', ['设置成员拉黑分数失败'])
+
+    def get_member_black_info_with_page_index(self, tea_house_id, account_db_id, page_index):
+        """
+        获取指定冠名赛指定页码的成员信息
+        :param page_index:
+        :param tea_house_id:
+        :return:
+        """
+        member_info, total_pages, member_count, online_count = \
+            self.tea_house_mgr.get_members_black_info_with_page(tea_house_id, account_db_id, page_index)
+        if member_info and total_pages:
+            self.call_client_func('GetMemberBlackInfoWithPageIndex', {
+                'memberInfo': member_info,
+                'totalPages': int(total_pages),
+                'memberCount': member_count,
+                'onlineCount': online_count})
+                
+    def get_down_player(self, tea_house_id, account_db_id):
+        """ 查询下级 """
+        member_info = self.tea_house_mgr.get_members_black_info_with_page3(tea_house_id, account_db_id)
+        if len(member_info) > 0:
+            self.call_client_func("GetDownPlayer", member_info)
+        else:
+            self.call_client_func("GetDownPlayer", [])
 
     def get_members_with_page_index(self, tea_house_id, account_db_id, page_index):
         """
@@ -2520,31 +2697,20 @@ class Account(KBEngine.Proxy):
     def create_tea_house(self, _args):
 
         def on_create_success(entity):
-            args = {"id": entity.teaHouseId, "name": entity.name, "headImage": entity.headImage,
-                    "contactWay": entity.contactWay}
-            self.call_client_func("createTeaHouseSuccess", args)
-            self.get_joined_tea_house_list()
-            # 修改房卡
-            modify_count = Const.GameConfigJson.config_json['Hall']['teaHouseCreateDiamondConsume']
-            self.account_mgr.modify_room_card(self.databaseID, -modify_count, consume_type='createTeaHouse')
+            pass
 
         def on_create_fail(fail_content):
-            args = {"content": fail_content}
-            self.call_client_func("createTeaHouseFail", args)
-
-        # todo:remove 暂时不能开启比赛场
-        # if _args["teaHouseType"] == 0:
-        #     self.call_client_func('Notice', ['当前无法创建比赛场茶楼'])
-        #     return
+            pass
 
         if self.roomCard < Const.GameConfigJson.config_json['Hall']['teaHouseCreateDiamondConsume']:
             args = {"content": "创建失败，钻石不足"}
             self.call_client_func("createTeaHouseFail", args)
             return
 
-        self.tea_house_mgr.create(self.databaseID, self.headImageUrl, _args["headImage"], _args["name"],
-                                  _args["teaHouseType"], self.name, self.proxyType, self.gold,
-                                  on_create_success, on_create_fail)
+        self.tea_house_mgr.application_create_tea_house(self.databaseID, self.headImageUrl, _args["headImage"],
+                                                        _args["name"],
+                                                        _args["teaHouseType"], self.name, self.proxyType, self.gold,
+                                                        on_create_success, on_create_fail)
 
     def create_tea_house_room(self, _args, auto_create=False, room_end=False, old_room_id=-1, creator_entity=None,
                               record_sql=True):
@@ -2970,7 +3136,7 @@ class Account(KBEngine.Proxy):
         _json_data = json.dumps(py_dic, ensure_ascii=False)
         if self.client is not None:
             DEBUG_MSG('[Account id %s]------>call_client_func %s, args %s' % (
-            self.id, func_name, "..." if func_name in self.log_filter else _args))
+                self.id, func_name, "..." if func_name in self.log_filter else _args))
             self.client.baseToClient(func_name, _json_data)
         else:
             # 机器人进入
@@ -3038,7 +3204,7 @@ class Account(KBEngine.Proxy):
         """
         if self.isBot and self.ip == '0':
             self.ip = self.rand_ip()
-        _args = {"accountName": self.name, "userId": self.userId, "gold": round(self.gold, 1) ,
+        _args = {"accountName": self.name, "userId": self.userId, "gold": round(self.gold, 1),
                  "roomCard": round(self.roomCard, 2),
                  "goldIngot": round(self.goldIngot, 2),
                  "dataBaseId": self.databaseID,
@@ -3054,7 +3220,7 @@ class Account(KBEngine.Proxy):
 
     def rand_ip(self):
         ip = "%s.%s.%s.%s" % (
-        random.randint(1, 223), random.randint(1, 254), random.randint(0, 254), random.randint(1, 254))
+            random.randint(1, 223), random.randint(1, 254), random.randint(0, 254), random.randint(1, 254))
         return ip
 
     def onClientEnabled(self):
@@ -3124,10 +3290,6 @@ class Account(KBEngine.Proxy):
                 self.call_client_func('urlAddress', {'addresses': url_address_es})
 
         DBCommand.check_out_url_address(cb, url_type=url_type)
-
-
-
-
 
     def onClientDeath(self):
         """
@@ -3228,6 +3390,7 @@ class Account(KBEngine.Proxy):
                             account.call_client_func("DestroyTeaHouseSuccess", {})
                         if account:
                             account.get_joined_tea_house_list()
+
                     # 踢出房间
                     tea_house_entity.kick_out(account_db_id, self.databaseID, on_success=callback)
             else:
@@ -3260,6 +3423,10 @@ class Account(KBEngine.Proxy):
             tea_house_entity.join(_args["joinerDBId"], on_success=write_db_success, on_fail=write_db_fail)
 
     def agree_exit_tea_house(self, _args):
+        """
+        同意退出茶楼
+        """
+
         # 通知客户端
         def write_db_success():
             exit_entity = self.account_mgr.get_account(_args["exitDBID"])
@@ -3509,18 +3676,12 @@ class Account(KBEngine.Proxy):
         for k, v in tea_houses.items():
             new_tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(v.teaHouseId)
             new_tea_house_entity.set_game_coin(playerId, player_gold + give_gold)
-            new_tea_house_entity.refresh_game_coin_in_room(playerId,give_gold)
+            new_tea_house_entity.refresh_game_coin_in_room(playerId, give_gold)
         command_sql = "INSERT INTO give_gold_info(user_id,player_id,gold,user_name,player_name, addtime) VALUES (%s, %s, %s, '%s', '%s', %s)" % (
-        self.databaseID, playerId, give_gold, self.name, player_name, int(time.time()))
+            self.databaseID, playerId, give_gold, self.name, player_name, int(time.time()))
         tea_house_entity.set_game_coin(self.databaseID, self.gold - give_gold)
         self.call_client_func("giveGoldSuccess", ["赠送金币成功"])
         KBEngine.executeRawDatabaseCommand(command_sql, None)
-
-
-
-
-
-
 
         # def _db_callback_count(result, rows, insertid, error):
         #     if result:
@@ -3582,15 +3743,14 @@ class Account(KBEngine.Proxy):
         for k, v in tea_houses.items():
             new_tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(v.teaHouseId)
             new_tea_house_entity.set_game_coin(playerId, player_gold - give_gold)
-            new_tea_house_entity.refresh_game_coin_in_room(playerId,-give_gold)
+            new_tea_house_entity.refresh_game_coin_in_room(playerId, -give_gold)
 
         # 添加赠送记录
         command_sql = "INSERT INTO give_gold_info(user_id,player_id,gold,user_name,player_name, addtime) VALUES (%s, %s, %s, '%s', '%s', %s)" % (
-                self.databaseID, playerId, -give_gold, self.name, player_name, int(time.time()))
+            self.databaseID, playerId, -give_gold, self.name, player_name, int(time.time()))
         tea_house_entity.set_game_coin(self.databaseID, self.gold + give_gold)
         self.call_client_func("downGoldSuccess", ["下金币成功"])
         KBEngine.executeRawDatabaseCommand(command_sql, None)
-
 
         # def _db_callback_count(result, rows, insertid, error):
         #     if result:
@@ -3621,6 +3781,21 @@ class Account(KBEngine.Proxy):
         # sql = "select * from tbl_account WHERE id=%s" % playerId
         # tea_house_entity.set_game_coin(self.databaseID, self.gold + give_gold)
         # KBEngine.executeRawDatabaseCommand(sql, _db_callback_count)
+    def update_empty_location(self, _args):
+        """
+        修改桌子顺序
+        """
+        DEBUG_MSG("---update_empty_location----")
+        DEBUG_MSG(_args)
+        index = _args['index']
+        tea_house_id = _args["teaHouseId"]
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
+        if not tea_house_entity:
+            self.call_client_func('Notice', ['冠名赛不存在'])
+            return
+        tea_house_entity.set_empty_location(index)
+        self.call_client_func("updateEmptyLocationSuccess", ["修改成功"])
+        
 
     def give_gold_record(self, _args):
         """
@@ -3628,6 +3803,7 @@ class Account(KBEngine.Proxy):
         """
         account_db_id = _args["accountDBID"]
         page_index = _args['pageIndex']
+
         def callback(result, rows, insertid, error):
             give_gold_record_info_list = []
             user_total_gold = 0
@@ -3657,9 +3833,12 @@ class Account(KBEngine.Proxy):
             page_start = page_index * Const.partner_list_page_item
             page_end = page_start + Const.partner_list_page_item
             partner_info_list = give_gold_record_info_list[page_start:page_end]
-            map ={'partnerInfo': partner_info_list,"totalPages": int(total_pages),"memberCount": member_count,"user_total_gold": user_total_gold,"player_total_gold": self.player_give_gold}
+            map = {'partnerInfo': partner_info_list, "totalPages": int(total_pages), "memberCount": member_count,
+                   "user_total_gold": user_total_gold, "player_total_gold": self.player_give_gold}
             self.call_client_func("getGiveGoldRecords", map)
-        command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where user_id=%s or player_id=%s ORDER BY addtime DESC ' % (account_db_id, account_db_id)
+
+        command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where user_id=%s or player_id=%s ORDER BY addtime DESC ' % (
+            account_db_id, account_db_id)
         # DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
@@ -3670,6 +3849,7 @@ class Account(KBEngine.Proxy):
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
         if not tea_house_entity:
             self.call_client_func('Notice', ['冠名赛不存在'])
+
         def callback(result, rows, insertid, error):
             record_info_list = []
             if not result or len(result) == 0:
@@ -3709,12 +3889,12 @@ class Account(KBEngine.Proxy):
                 "totalPages": int(total_pages),
                 "memberCount": member_count,
             })
+
         command_sql = "select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance " \
                       "where sm_superior=%s order by sm_time desc " % account_db_id
         # select sm_accountDBID, sm_superior, sm_time, sm_count, sm_performanceDetail, sm_proportion, sm_roomType from tbl_teahouseperformance where sm_superior =10216;
         # DEBUG_MSG("[get_history_commission_record]command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
-
 
     def extract_commission_record(self, _args):
         """
@@ -3722,6 +3902,7 @@ class Account(KBEngine.Proxy):
         """
         account_db_id = _args["accountDBID"]
         page_index = _args['pageIndex']
+
         def callback(result, rows, insertid, error):
             record_list = []
             if not result:
@@ -3753,7 +3934,6 @@ class Account(KBEngine.Proxy):
         # DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
-
     def deposit_money(self, _args):
         """
         保险箱存入
@@ -3774,13 +3954,15 @@ class Account(KBEngine.Proxy):
         if deposit_gold > self.gold:
             self.call_client_func('Notice', ['存入金币大于你所有金币'])
             return
+
         def _db_callback_count(result, rows, insertid, error):
             def _func2(result, rows, insertid, error):
                 """
                 添加存取记录
                 """
                 if error is None:
-                    sql = "INSERT INTO safe_deposit_box_record(accountDBID,deposit_count,take_out_count,balance,addtime) VALUES (%s,%s,%s,%s,%s)" % (account_db_id, deposit_gold,0,self.surplus_total_count, int(time.time()))
+                    sql = "INSERT INTO safe_deposit_box_record(accountDBID,deposit_count,take_out_count,balance,addtime) VALUES (%s,%s,%s,%s,%s)" % (
+                        account_db_id, deposit_gold, 0, self.surplus_total_count, int(time.time()))
                     # DEBUG_MSG("deposit_money command_sql3 执行--%s" % str(common_sql))
                     self.surplus_total_count = 0
                     KBEngine.executeRawDatabaseCommand(sql, None)
@@ -3789,17 +3971,20 @@ class Account(KBEngine.Proxy):
                     tea_house_entity.set_game_coin(account_db_id, self.gold - deposit_gold)
                 else:
                     self.call_client_func("depositMoneyFail", ["存取失败"])
+
             if error is None:
                 if result:  # 记录存在, 加钱
                     # 剩余金币
                     surplus_count = result[0][2]
-                    surplus_count =  round(float(surplus_count), 1)
-                    surplus_total_count = surplus_count+deposit_gold
+                    surplus_count = round(float(surplus_count), 1)
+                    surplus_total_count = surplus_count + deposit_gold
                     self.surplus_total_count = surplus_total_count
-                    common_sql = "UPDATE safe_deposit_box set count=%s, addtime=%s where accountDBID=%s" % (surplus_total_count, int(time.time()), account_db_id)
+                    common_sql = "UPDATE safe_deposit_box set count=%s, addtime=%s where accountDBID=%s" % (
+                        surplus_total_count, int(time.time()), account_db_id)
                 else:  # 记录不存在, 第一次存钱
                     self.surplus_total_count = deposit_gold
-                    common_sql = "INSERT INTO safe_deposit_box(accountDBID, count, addtime) VALUES (%s, %s, %s)" % (account_db_id, deposit_gold, int(time.time()))
+                    common_sql = "INSERT INTO safe_deposit_box(accountDBID, count, addtime) VALUES (%s, %s, %s)" % (
+                        account_db_id, deposit_gold, int(time.time()))
                 # DEBUG_MSG("deposit_money command_sql2 执行--%s" % str(common_sql))
                 KBEngine.executeRawDatabaseCommand(common_sql, _func2)
             else:
@@ -3808,7 +3993,6 @@ class Account(KBEngine.Proxy):
         common_sql = "select * from safe_deposit_box where accountDBID=%s" % account_db_id
         # DEBUG_MSG("deposit_money command_sql1 执行--%s" % str(common_sql))
         KBEngine.executeRawDatabaseCommand(common_sql, _db_callback_count)
-
 
     def take_out_money(self, _args):
         """
@@ -3827,11 +4011,13 @@ class Account(KBEngine.Proxy):
         if not tea_house_entity:
             self.call_client_func('Notice', ['冠名赛不存在'])
             return
+
         def _db_callback_count(result, rows, insertid, error):
             def _func2(result, rows, insertid, error):
                 if error is None:
                     # 添加提现记录
-                    sql = "INSERT INTO safe_deposit_box_record(accountDBID,deposit_count,take_out_count,balance,addtime) VALUES (%s,%s,%s,%s,%s)" % (account_db_id, 0, task_out_gold, self.surplus_total_count, int(time.time()))
+                    sql = "INSERT INTO safe_deposit_box_record(accountDBID,deposit_count,take_out_count,balance,addtime) VALUES (%s,%s,%s,%s,%s)" % (
+                        account_db_id, 0, task_out_gold, self.surplus_total_count, int(time.time()))
                     # DEBUG_MSG("take_out_money command_sql3 执行--%s" % str(sql))
                     self.surplus_total_count = 0
                     KBEngine.executeRawDatabaseCommand(sql, None)
@@ -3840,6 +4026,7 @@ class Account(KBEngine.Proxy):
                     tea_house_entity.set_game_coin(account_db_id, self.gold + task_out_gold)
                 else:
                     self.call_client_func("takeOutMoneyFail", ["取出失败"])
+
             if error is None:
                 if result:  # 记录存在, 加钱
                     count = result[0][2]
@@ -3848,13 +4035,15 @@ class Account(KBEngine.Proxy):
                         self.call_client_func("takeOutMoneyFail", ["取出失败，取出金额大于银行余额"])
                     self.surplus_total_count = count - task_out_gold
                     # 开始取出
-                    common_sql = "UPDATE safe_deposit_box set count=%s, addtime=%s where accountDBID=%s" % (self.surplus_total_count, int(time.time()), account_db_id)
+                    common_sql = "UPDATE safe_deposit_box set count=%s, addtime=%s where accountDBID=%s" % (
+                        self.surplus_total_count, int(time.time()), account_db_id)
                     # DEBUG_MSG("take_out_money command_sql2 执行--%s" % str(common_sql))
                     KBEngine.executeRawDatabaseCommand(common_sql, _func2)
                 else:  # 记录不存在, 第一次存钱
                     self.call_client_func("takeOutMoneyFail", ["取出失败，无存入记录"])
             else:
                 self.call_client_func("takeOutMoneyFail", ["取出失败"])
+
         common_sql = "select * from safe_deposit_box where accountDBID=%s" % account_db_id
         # DEBUG_MSG("take_out_money command_sql1 执行--%s" % str(common_sql))
         KBEngine.executeRawDatabaseCommand(common_sql, _db_callback_count)
@@ -3873,6 +4062,7 @@ class Account(KBEngine.Proxy):
         if not tea_house_entity:
             self.call_client_func('Notice', ['冠名赛不存在'])
             return
+
         def _db_callback_count(result, rows, insertid, error):
             record_info_list = []
             if not result:
@@ -3900,6 +4090,7 @@ class Account(KBEngine.Proxy):
                 "totalPages": int(total_pages),
                 "memberCount": member_count,
             })
+
         # deposit_count 存入金额
         # take_out_count 取出金额
         # balance 余额
@@ -3918,6 +4109,7 @@ class Account(KBEngine.Proxy):
         if not tea_house_entity:
             self.call_client_func('Notice', ['冠名赛不存在'])
             return
+
         def _db_callback_count(result, rows, insertid, error):
             if not result:
                 self.call_client_func("currentSafeDepositBoxMoneyResult", {
@@ -3934,9 +4126,6 @@ class Account(KBEngine.Proxy):
         # DEBUG_MSG("safe_deposit_box_record command_sql 执行----------------%s" % str(common_sql))
         KBEngine.executeRawDatabaseCommand(common_sql, _db_callback_count)
 
-
-
-
     def extract_commission(self, _args):
         """
         提取佣金
@@ -3946,10 +4135,11 @@ class Account(KBEngine.Proxy):
         extractMoney = _args["extractMoney"]
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
         if not tea_house_entity:
-            self.call_client_func('extractCommissionResult', {"status": 0,"message": "冠名赛不存在"})
+            self.call_client_func('extractCommissionResult', {"status": 0, "message": "冠名赛不存在"})
 
         import pymysql
-        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
+        conn = pymysql.connect('localhost', 'kbe', 'pwd12345603', 'kbe')
+        # conn = pymysql.connect('localhost', 'root', '123456', 'game')
         cursor = conn.cursor()
         sql_command = "select performanceDetail from commssion_total where superior=%s" % account_db_id
         cursor.execute(sql_command)
@@ -3958,11 +4148,11 @@ class Account(KBEngine.Proxy):
             commission = float(result[0])
             DEBUG_MSG('extractMoney--->%s   ---->%s' % (str(extractMoney), str(commission)))
             if extractMoney > commission:
-                self.call_client_func('extractCommissionResult', {"status": 0,"message": "提取佣金不能大于当前佣金"})
+                self.call_client_func('extractCommissionResult', {"status": 0, "message": "提取佣金不能大于当前佣金"})
                 return
             try:
                 sql_command = "update commssion_total set addtime=%s,  performanceDetail= '%s' where superior=%s" % (
-                int(time.time()), str(round(float(commission-extractMoney), 2)), account_db_id)
+                    int(time.time()), str(round(float(commission - extractMoney), 2)), account_db_id)
                 cursor.execute(sql_command)
             except Exception as e:
                 conn.rollback()
@@ -3975,7 +4165,6 @@ class Account(KBEngine.Proxy):
             tea_house_entity.set_game_coin(self.databaseID, self.gold + float(extractMoney))
         else:
             self.call_client_func('extractCommissionResult', {"status": 0, "message": "无佣金记录"})
-
 
         #
         # def callback(result, rows, insertid, error):
@@ -4006,7 +4195,8 @@ class Account(KBEngine.Proxy):
         # KBEngine.executeRawDatabaseCommand(sql_command, callback)
 
     def sava_extract_commission(self, account_db_id, extractMoney):
-        sql_command = "INSERT INTO extract_commission(accountDBID, count, addtime) VALUES(%s, '%s', %s) " % (account_db_id, str(extractMoney), int(time.time()))
+        sql_command = "INSERT INTO extract_commission(accountDBID, count, addtime) VALUES(%s, '%s', %s) " % (
+            account_db_id, str(extractMoney), int(time.time()))
         # DEBUG_MSG('sava_extract_commission update_sql:%s' % sql_command)
         KBEngine.executeRawDatabaseCommand(sql_command, None)
 
@@ -4041,14 +4231,14 @@ class Account(KBEngine.Proxy):
             # DEBUG_MSG('surplusCommission :%s' % str(self.surplus_commission))  # 累计贡献
             self.call_client_func("CommissionResult", {
                 "todayCommission": float(today_commission),
-                "historyCommission": round(float(history_commission),2),
+                "historyCommission": round(float(history_commission), 2),
                 "surplusCommission": round(float(self.surplus_commission), 2)
             })
+
         command_sql = "select sm_accountDBID, sm_superior, sm_count,sm_performanceDetail,sm_proportion, sm_time from " \
                       "tbl_teahouseperformance where sm_superior=%s" % (
                           account_db_id)
         KBEngine.executeRawDatabaseCommand(command_sql, callback)
-
 
     def luck_draw(self, _args):
         tea_house_id = _args["teaHouseId"]
@@ -4059,7 +4249,8 @@ class Account(KBEngine.Proxy):
             self.call_client_func('Notice', ['冠名赛不存在'])
 
         name = tea_house_entity.get_tea_house_player(self.databaseID).name
-        command_sql = "INSERT INTO luck_draw(name, accountid, type, count) VALUES ('%s', %s,%s,%s)" % (name, self.databaseID, luck_type, count)
+        command_sql = "INSERT INTO luck_draw(name, accountid, type, count) VALUES ('%s', %s,%s,%s)" % (
+            name, self.databaseID, luck_type, count)
         if luck_type == 0:
             self.account_mgr.give_gold_modify(self.databaseID, count, tea_house_id)
             tea_house_entity.set_game_coin(self.databaseID, self.gold + count)
@@ -4072,6 +4263,7 @@ class Account(KBEngine.Proxy):
         command_sql = "select name,accountid,type,count from luck_draw"
         # DEBUG_MSG("command_sql 执行----------------%s" % str(command_sql))
         page_index = _args['pageIndex']
+
         def callback(result, rows, insertid, error):
             record_list = []
             for info in result:
@@ -4083,19 +4275,20 @@ class Account(KBEngine.Proxy):
                 record_list.append(item)
             member_count = len(record_list)
             total_pages = math.ceil(len(record_list) / Const.partner_list_page_item)
-           # page_start = page_index * Const.partner_list_page_item
-           # page_end = page_start + Const.partner_list_page_item
+            # page_start = page_index * Const.partner_list_page_item
+            # page_end = page_start + Const.partner_list_page_item
             partner_info_list = record_list
-            result_map = {'partnerInfo': partner_info_list,"totalPages": int(total_pages),"memberCount": member_count}
+            result_map = {'partnerInfo': partner_info_list, "totalPages": int(total_pages), "memberCount": member_count}
             self.call_client_func("LuckDrawRecords", result_map)
-        KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
     def get_surplus_commission(self, _args):
         account_db_id = _args["accountDBID"]
         sql_common = "select performanceDetail from commssion_total where superior=%s" % account_db_id
         import pymysql
-        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
+        conn = pymysql.connect('localhost', 'kbe', 'pwd12345603', 'kbe')
+        # conn = pymysql.connect('localhost', 'root', '123456', 'game')
         cursor = conn.cursor()
         # DEBUG_MSG('get_surplus_commission sql:%s' % sql_common)
         cursor.execute(sql_common)
@@ -4113,11 +4306,10 @@ class Account(KBEngine.Proxy):
         # DEBUG_MSG('get_surplus_commission sql:%s' % sql_common)
         # KBEngine.executeRawDatabaseCommand(sql_common, callback)
 
-
-
     def get_total_gold(self, player_id):
         import pymysql
-        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
+        conn = pymysql.connect('localhost', 'kbe', 'pwd12345603', 'kbe')
+        # conn = pymysql.connect('localhost', 'root', '123456', 'game')
         cursor = conn.cursor()
         command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where player_id=%s' % player_id
         cursor.execute(command_sql)
@@ -4140,7 +4332,6 @@ class Account(KBEngine.Proxy):
         # command_sql = 'select id,user_id,player_id, gold, user_name, player_name, addtime from give_gold_info where player_id=%s' % player_id
         #
         # KBEngine.executeRawDatabaseCommand(command_sql, callback)
-
 
     def is_friend(self, people):
         people_relation = {}
@@ -4214,31 +4405,32 @@ class Account(KBEngine.Proxy):
         :param user_id:
         :return:
         """
+        pass
 
-        def on_success_callback(baseRef, databaseID, wasActive):
-            if baseRef:
-                # 如果要绑定人的邀请码是0,同时也不是代理
-                if baseRef.invitation_code == 0 and baseRef.proxyType == 0:
-                    # 找到上级绑定的邀请码
-                    _belong_to = baseRef.belong_to
-                    # 上级的user_id
-                    if _belong_to != 0:
-                        account_db_id = self.account_mgr.invitation_codes[_belong_to]
-                        # 递归
-                        self.binding_proxy_by_user_id(account_db_id)
-                else:
-                    self.belong_to = baseRef.invitation_code
-                    self.call_client_func("BindingProxySuccess", ["绑定成功"])
-                    self.roomCard += int(Const.GameConfigJson.config_json['Hall']['bindingProxyGiftDiamondCount'])
-                    self.retRoomCard()
-                    self.writeToDB()
-                    if not wasActive:
-                        baseRef.destroy()
-                    return
-            else:
-                pass
-
-        KBEngine.createEntityFromDBID("Account", user_id, on_success_callback)
+        # def on_success_callback(baseRef, databaseID, wasActive):
+        #     if baseRef:
+        #         # 如果要绑定人的邀请码是0,同时也不是代理
+        #         if baseRef.invitation_code == 0 and baseRef.proxyType == 0:
+        #             # 找到上级绑定的邀请码
+        #             _belong_to = baseRef.belong_to
+        #             # 上级的user_id
+        #             if _belong_to != 0:
+        #                 account_db_id = self.account_mgr.invitation_codes[_belong_to]
+        #                 # 递归
+        #                 self.binding_proxy_by_user_id(account_db_id)
+        #         else:
+        #             self.belong_to = baseRef.invitation_code
+        #             self.call_client_func("BindingProxySuccess", ["绑定成功"])
+        #             self.roomCard += int(Const.GameConfigJson.config_json['Hall']['bindingProxyGiftDiamondCount'])
+        #             self.retRoomCard()
+        #             self.writeToDB()
+        #             if not wasActive:
+        #                 baseRef.destroy()
+        #             return
+        #     else:
+        #         pass
+        #
+        # KBEngine.createEntityFromDBID("Account", user_id, on_success_callback)
 
     def binding_proxy(self, _args):
         """
@@ -4246,32 +4438,46 @@ class Account(KBEngine.Proxy):
         :param _args:
         :return:
         """
-        invitation_code = _args["invitationCode"]
-        if invitation_code not in self.account_mgr.invitation_codes.keys():
-            self.call_client_func("BindingProxyFail", ["绑定失败，邀请码不存在"])
-            return
-        if self.belong_to != 0:
-            self.call_client_func("BindingProxyFail", ["绑定失败，已绑定代理"])
-            return
+        up_id = _args["invitationCode"]
 
         def on_success_callback(baseRef, databaseID, wasActive):
             if baseRef:
                 if self.proxyType >= baseRef.proxyType and self.databaseID != databaseID:
-                    self.call_client_func("BindingProxyFail", ["绑定失败"])
+                    self.call_client_func("BindingProxyFail", ["绑定失败，绑定的用户不是代理"])
                     return
-                self.belong_to = invitation_code
-                self.call_client_func("BindingProxySuccess", ["绑定成功"])
-                self.roomCard += int(Const.GameConfigJson.config_json['Hall']['bindingProxyGiftDiamondCount'])
-                self.retRoomCard()
-                self.writeToDB()
+                if baseRef.proxyType == 0:
+                    self.call_client_func("BindingProxyFail", ["绑定失败，绑定的用户不是代理"])
+                    return
+                if self.belong_to != 0:
+                    self.call_client_func("BindingProxyFail", ["绑定失败，你已绑定代理"])
+                    return
+                self.check_binding_record(up_id)
+                # self.roomCard += int(Const.GameConfigJson.config_json['Hall']['bindingProxyGiftDiamondCount'])
+                # self.retRoomCard()
+                # self.writeToDB()
                 if not wasActive:
                     baseRef.destroy()
             else:
-                pass
+                self.call_client_func("BindingProxyFail", ["绑定失败，用户不存在"])
+                return
 
         # 绑定人的userId
-        account_db_id = self.account_mgr.invitation_codes[invitation_code]
-        KBEngine.createEntityFromDBID("Account", account_db_id, on_success_callback)
+        KBEngine.createEntityFromDBID("Account", up_id, on_success_callback)
+
+    def check_binding_record(self, up):
+        """
+        检查是否可以绑定
+        """
+
+        def callback(result, rows, insertid, error):
+            if result:
+                self.call_client_func("BindingProxyFail", ["您已经绑定过代理，等待审核"])
+                return
+            self.account_mgr.insert_binding_proxy_req(up, self.userId, -1)
+
+        command_sql = 'SELECT * FROM binding_proxy_record where down=%s and result=-1' % self.userId
+        DEBUG_MSG('AccountMgr check_binding_record sql:%s' % command_sql)
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
 
     def query_record(self, _args):
         """
@@ -4565,7 +4771,7 @@ class Account(KBEngine.Proxy):
             # 被邀请玩家在线
             invited_entity.call_client_func("InviteJoinRoom", {"inviterName": self.name, "type": game_type,
                                                                "typeName": Const.
-                                             get_name_by_type(game_type),
+                                            get_name_by_type(game_type),
                                                                "roomType": room_type, "roomId": room_id,
                                                                "teaHouseId": tea_house_id,
                                                                "inviterDBID": self.databaseID, "anonymity": anonymity,

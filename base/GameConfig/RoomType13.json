@@ -1,9 +1,9 @@
 {
   "card": {
     "chapterLimitAndRoomCard": {
-      "5": [0, 0],
-      "8": [0, 0],
-      "10": [0, 0]
+      "8": [2, 1],
+      "16": [4, 2],
+      "32": [8, 4]
     },
     "refreshButtonVisible": true,
     "boomScoreSize": [2,5,10,20,30],
@@ -13,9 +13,9 @@
   },
   "gameCoin": {
     "chapterLimitAndRoomCard": {
-      "5": [0, 0],
-      "8": [0, 0],
-      "10": [0, 0]
+     "8": [2, 1],
+      "16": [4, 2],
+      "32": [8, 4]
     },
     "refreshButtonVisible": true,
     "boomScoreSize": [2,5,10,20,30],
@@ -25,9 +25,9 @@
   },
   "normalGameCoin": {
     "chapterLimitAndRoomCard": {
-      "5": [0, 0],
-      "8": [0, 0],
-      "10": [0, 0]
+      "8": [2, 1],
+      "16": [4, 2],
+      "32": [8, 4]
     },
     "refreshButtonVisible": true,
     "boomScoreSize": [2,5,10,20,30],

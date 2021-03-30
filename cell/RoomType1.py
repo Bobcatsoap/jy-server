@@ -171,12 +171,15 @@ class RoomType1(RoomBase):
         _player["hasDisCard"] = False
         # 房间类型  card gameCoin normalGameCoin
         if self.info["roomType"] == "card":
-            _player["score"] = accountEntity.accountMutableInfo["gold"]
+            # _player["score"] = accountEntity.accountMutableInfo["gold"]
+            _player["score"] = 0
         elif self.info["roomType"] == "gameCoin":
             # 比赛分场修改使用比赛分为使用金币
-            _player["score"] = accountEntity.accountMutableInfo["gold"]
+            # _player["score"] = accountEntity.accountMutableInfo["gold"]
+            _player["score"] = 0
         elif self.info["roomType"] == "normalGameCoin":
-            _player["score"] = accountEntity.accountMutableInfo["gold"]
+            # _player["score"] = accountEntity.accountMutableInfo["gold"]
+            _player["score"] = 0
         # 总带入
         _player["totalScore"] = 0
         # 总金币变化
@@ -837,8 +840,8 @@ class RoomType1(RoomBase):
         _player = chapter["playerInGame"][account_id]
         # 如果玩家的币小于底分 return
         # TODO self.have_gold_limit() 根据是否是比赛币场和比赛币开关判断是否有金币限制
-        if self.have_gold_limit() and _player["score"] < self.info["betBase"]:
-            return
+        # if self.have_gold_limit() and _player["score"] < self.info["betBase"]:
+        #     return
         # 如果小于房费返回
         # TODO self.is_gold_session_room() 是否是金币场房间
         if self.is_gold_session_room() and _player['score'] < self.info['roomRate']:
@@ -869,8 +872,9 @@ class RoomType1(RoomBase):
         _playerOutGame = chapter["playerOutGame"]
         # 如果玩家id 在 观战玩家中
         if _playerOutGame[account_id]['score'] < self.info['gameLevel']:
-            self.callClientFunction(account_id, 'Notice', ['金币不足，无法坐下'])
-            return
+            pass
+            # self.callClientFunction(account_id, 'Notice', ['金币不足，无法坐下'])
+            # return
         if account_id in _playerOutGame:
             # 已经坐下
             if account_id in self.wait_to_seat:  # self.wait_to_seat 观战中的下局可以开始坐下的玩家
@@ -908,7 +912,8 @@ class RoomType1(RoomBase):
             return
         if self.info["roomType"] == "gameCoin":
             # TODO 设置玩家金币数量
-            self.set_base_player_game_coin(accountId)
+            # self.set_base_player_game_coin(accountId)
+            pass
         _chapter["playerOutGame"][accountId] = _chapter["playerInGame"][accountId]
         itemIndex = _chapter["playerInGame"][accountId]["locationIndex"]
         DEBUG_MSG('[获取站起玩家位置id]------>standUp accountId %s' % locationIndex)
@@ -934,11 +939,12 @@ class RoomType1(RoomBase):
         #  1 totalBet   下注总额
         # 如果是金币场 并且所带金币小于基本金币 禁止入场
         # self.have_gold_limit()  根据是否是比赛币场和比赛币开关判断是否有金币限制
-        if self.have_gold_limit() and addBetSum > _player["score"] - _player["totalBet"]:
-            self.callClientFunction(accountId, "Notice", ["%s不足,请继续带入" % self.gold_name])
+        # if self.have_gold_limit() and addBetSum > _player["score"] - _player["totalBet"]:
+            # self.callClientFunction(accountId, "Notice", ["%s不足,请继续带入" % self.gold_name])
+            #
+            # self.callClientFunction(accountId, "AddBetCallBack", ["0"])
+            # return False
 
-            self.callClientFunction(accountId, "AddBetCallBack", ["0"])
-            return False
         # 1 判断是否看牌
         if _player["hasLookCard"]:
             # 1 看牌底注
@@ -988,11 +994,12 @@ class RoomType1(RoomBase):
         DEBUG_MSG('_player["score"]-----------------------%s ' % str(_player["score"]))
         DEBUG_MSG('_player["totalBet"]-----------------------%s ' % str(_player["totalBet"]))
         DEBUG_MSG(_player)
-        if self.have_gold_limit() and betSum > _player["score"] - _player["totalBet"]:
-            # 带入比赛分
-            self.callClientFunction(accountId, "Notice", ["%s不足,请继续带入" % self.gold_name])
-            self.callClientFunction(accountId, "BetCallBack", ["0"])
-            return False
+        # if self.have_gold_limit() and betSum > _player["score"] - _player["totalBet"]:
+        #     带入比赛分
+            # self.callClientFunction(accountId, "Notice", ["%s不足,请继续带入" % self.gold_name])
+            # self.callClientFunction(accountId, "BetCallBack", ["0"])
+            # return False
+        self.delTimer(_chapter["operateTimerId"])
         self.delTimer(_chapter["operateTimerId"])
         _chapter["operateTimerId"] = -1
         _chapter["totalBet"] += betSum
@@ -1121,18 +1128,6 @@ class RoomType1(RoomBase):
                         n["totalBet"] += self.info["leopardXiQian"]
                         v["totalBet"] -= self.info["leopardXiQian"]
 
-        if self.info["roomType"] == "gameCoin":
-            # 首局结算抽水 扣除房费
-            if self.settlement_count == 0:
-                for k, _p in _playerInGame.items():
-                    if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
-                        DEBUG_MSG('RoomType1 billing_count not enough account_id:%s' % _p['entity'].id)
-                        continue
-                    billing_count = self.info['billingCount']
-                    _p['score'] -= billing_count
-                    DEBUG_MSG('RoomType1 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
-                    self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
-            # 每小局结算大赢家抽水,保留整数  E小局抽水
             # 获取大赢家
             settlement_winners = self.jh_get_settlement_winners()
             for location_index, v in settlement_winners.items():
@@ -1186,20 +1181,21 @@ class RoomType1(RoomBase):
             self.check_gold()
             pass
         else:
-            item = 0
-            for k, v in _playerInGame.items():
-                if v["score"] <= 0:
-                    self.player_leave_info.append(
-                        {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
-                         "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
-                         "winnerBilling": v["winnerBilling"], 'gold': v['score']})
-                    self.set_base_player_game_coin(k)
-                    self.callClientFunction(k, "Notice", ["金币不足"])
-                else:
-                    item += 1
-            if item == 1:
-                self.player_leave_info = []
-                self.total_settlement()
+            pass
+            # item = 0
+            # for k, v in _playerInGame.items():
+            #     if v["score"] <= 0:
+            #         self.player_leave_info.append(
+            #             {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
+            #              "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
+            #              "winnerBilling": v["winnerBilling"], 'gold': v['score']})
+            #         self.set_base_player_game_coin(k)
+            #         self.callClientFunction(k, "Notice", ["金币不足"])
+            #     else:
+            #         item += 1
+            # if item == 1:
+            #     self.player_leave_info = []
+            #     self.total_settlement()
 
         self.callOtherClientsFunction("Settlement", _args)
         self.base.cellToBase({"func": "settlement", "playerData": _toBaseArgs})
@@ -2294,25 +2290,44 @@ class RoomType1(RoomBase):
         DEBUG_MSG(self.settlement_count)
         DEBUG_MSG(self.info["roomType"])
         if self.info["roomType"] == "gameCoin" and self.settlement_count >= 0:
-            billing_count = 0
-            if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
-                billing_count = self.info['billingCount']
-            self.jh_total_settlement_billing(billing_count)
+            # 赢家支付房费
+            pass
 
         # 清理观战的玩家
         _playerOutGameCopy = chapter["playerOutGame"].copy()
         for k, v in _playerOutGameCopy.items():
             self.kick_out(k)
 
+
+        # 房费抽水, 根据局数对总输赢加1
+        for k, v in chapter["playerInGame"].items():
+            room_rate_add = 0
+            if self.info["maxChapterCount"] == 6:
+                room_rate_add = 1
+            elif self.info["maxChapterCount"] == 12:
+                room_rate_add = 2
+            elif self.info["maxChapterCount"] == 24:
+                room_rate_add = 4
+            if v["totalGoldChange"] > 0:
+                v["totalGoldChange"] = v["totalGoldChange"] - room_rate_add
+            else:
+                v["totalGoldChange"] -= room_rate_add
+            self.base.cellToBase({"func": "todayGameRoomRateBilling", "teaHouseId": self.info["teaHouseId"],
+                                      "todayGameRoomRateAdd": room_rate_add,
+                                      "userId": v["entity"].info["userId"],
+                                      "roomType": Const.get_name_by_type("RoomType1") + "大局"})
+            
+            
         # 同步金币到 base
         player_settlement_info = []
         for k, v in chapter["playerInGame"].items():
-            v["score"] = 0
-            if self.info["roomType"] == "gameCoin":
-                # TODO 设置玩家金币数量
-                self.set_base_player_game_coin(k)
-            else:
-                self.set_base_player_gold(k)
+            self.send_win_or_lose_score_to_base(v)
+            # v["score"] = 0
+            # if self.info["roomType"] == "gameCoin":
+            #     # TODO 设置玩家金币数量
+            #     self.set_base_player_game_coin(k)
+            # else:
+            #     self.set_base_player_gold(k)
             player_settlement_info.append(
                 {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
                  "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
@@ -2356,6 +2371,19 @@ class RoomType1(RoomBase):
         _player["entity"].base.cellToBase({"func": "setAccountMutableInfo", "dic": {
             "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
             "gameCoin": _player["entity"].accountMutableInfo["gameCoin"]}})
+    
+    def send_win_or_lose_score_to_base(self,_player):
+        """
+        通知base玩家总输赢
+        :param _player:
+        :return:
+        """
+        DEBUG_MSG('send_win_or_lose_score_to_base')
+        _chapter = self.chapters[self.cn]
+        _player["entity"].base.cellToBase({"func": "sendWinOrLoseScoreToBase", "dic": {
+            "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
+            'type': self.info['roomType'],
+            "totalGoldChange": _player['totalGoldChange']}})
 
     def set_base_player_gold(self, account_id):
         """

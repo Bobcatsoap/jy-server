@@ -1539,6 +1539,25 @@ class RoomType4(RoomBase):
             if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
                 billing_count = self.info['billingCount']
             self.nn_total_settlement_billing(billing_count)
+            
+        
+        # 房费抽水, 根据局数对总输赢加1
+        for k, v in chapter["playerInGame"].items():
+            room_rate_add = 0
+            if self.info["maxChapterCount"] == 8:
+                room_rate_add = 1
+            elif self.info["maxChapterCount"] == 20:
+                room_rate_add = 2
+            elif self.info["maxChapterCount"] == 30:
+                room_rate_add = 4
+            if v["totalGoldChange"] > 0:
+                v["totalGoldChange"] = v["totalGoldChange"] - room_rate_add
+            else:
+                v["totalGoldChange"] -= room_rate_add
+            self.base.cellToBase({"func": "todayGameRoomRateBilling", "teaHouseId": self.info["teaHouseId"],
+                                      "todayGameRoomRateAdd": room_rate_add,
+                                      "userId": v["entity"].info["userId"],
+                                      "roomType": Const.get_name_by_type("RoomType4") + "大局"})
 
         # 同步金币到 base
         player_settlement_info = []

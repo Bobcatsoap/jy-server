@@ -1,4 +1,4 @@
-﻿<root>
+<root>
 	<Properties>
         <!--自己拥有的avatar的数据库id-->
         <avatarDBID>
@@ -66,6 +66,12 @@
             <Default>                       </Default>
             <Persistent>        true        </Persistent>
         </gold>
+        <balance>
+            <Type>              FLOAT       </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </balance>
         <!--玩家vip-->
         <vip>
             <Type>              UINT32      </Type>
@@ -140,6 +146,12 @@
             <Default>                       </Default>
             <Persistent>        true        </Persistent>
         </friends>
+        <downPlayer>
+            <Type>              PY_LIST      </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </downPlayer>
         <!--创建的没有到期的房间-->
         <createRooms>
             <Type>              PY_DICT      </Type>

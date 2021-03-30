@@ -43,8 +43,8 @@ class RoomCardChargeHistory(KBEngine.Entity):
         self.operationName = str(operator_entity.name)
         self.operationPhone = str(operator_entity.phone)
         self.operationProxyType = operator_entity.proxyType
-        self.modifyCount = int(modify_count)
-        self.modifiedRoomCard = int(modified_room_card)
+        self.modifyCount = round(float(modify_count), 1)
+        self.modifiedRoomCard = round(float(modified_room_card), 1)
         self.modifyTime = int(time.time())
         self.writeToDB(callback)
 

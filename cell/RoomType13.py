@@ -28,7 +28,7 @@ _timeShowCard = 3
 play_card_time = 15
 # 离线出牌时间 or 过牌
 # play_card_time_onKill = 1
-WAIT_TIME_LEN_ON_PLAY_OFFLINE = 1
+WAIT_TIME_LEN_ON_PLAY_OFFLINE = 8
 # 小结算时间
 settlement_time = 2
 # 大结算时间
@@ -336,9 +336,9 @@ class RoomType13(RoomBase):
         # 判断房间限制
         # if self.have_gold_limit() and _player["gold"] < self.info["gameLevel"]:
         #     return
-        if self.have_gold_limit() and _player['gold'] <= -100 and bReady:
-            self.callClientFunction(account_id, 'Notice', ['比赛分不足'])
-            return
+        # if self.have_gold_limit() and _player['gold'] <= -100 and bReady:
+        #     self.callClientFunction(account_id, 'Notice', ['比赛分不足'])
+        #     return
         if self.is_gold_session_room() and _player['gold'] < self.info['roomRate'] and bReady:
             return
         # 玩家准备
@@ -966,6 +966,7 @@ class RoomType13(RoomBase):
         DEBUG_MSG("is_last_count_in_player %s - %s" % (bool_type, card_type))
         if bool_type:
             if card_type != RoomType13Calculator.CardType.Lin_FourWithThreeSingle and \
+                    card_type != RoomType13Calculator.CardType.Lin_FourWithTwoDuiZi and \
                     card_type != RoomType13Calculator.CardType.Lin_FourWithTwoSingle and \
                     card_type != RoomType13Calculator.CardType.Lin_MaxBoomForFour and \
                     card_type != RoomType13Calculator.CardType.Lin_MaxBoomWithSingle and \
@@ -1134,11 +1135,17 @@ class RoomType13(RoomBase):
                 self.callClientFunction(account_id, 'Notice', ["对K必出对A"])
                 return
         if chapter["prePlayer"] != account_id:
-            # 检测是否满足A不能连
             if self.straight_not_a and not self.check_straight_not_a(pre_playa_cards, this_play_cards, player_cards):
                 self.send_player_cards(account_id, -1, client_cards, server_cards_type)
                 self.callClientFunction(account_id, 'Notice', ["A不能连"])
                 return
+        if chapter["prePlayer"] != account_id or chapter["prePlayer"] == account_id:
+            # 检测是否带的是2
+            if self.check_with_not_2(pre_playa_cards, this_play_cards, player_cards):
+                self.send_player_cards(account_id, -1, client_cards, server_cards_type)
+                self.callClientFunction(account_id, 'Notice', ["2不能带"])
+                return
+
         DEBUG_MSG("**********************************")
         DEBUG_MSG(client_cards)
         DEBUG_MSG("**********************************=======")
@@ -1166,9 +1173,11 @@ class RoomType13(RoomBase):
         # 待优化--------------------------------------------------------------
         # 查看所带的牌是否是炸弹的一部分
         if (server_cards_type == RoomType13Calculator.CardType.Lin_FourBoomWithSingle or
+        
             server_cards_type == RoomType13Calculator.CardType.Lin_MaxBoomWithSingle or
             server_cards_type == RoomType13Calculator.CardType.Lin_FourWithTwoSingle or
             server_cards_type == RoomType13Calculator.CardType.Lin_FourWithThreeSingle or
+            server_cards_type == RoomType13Calculator.CardType.Lin_FourWithTwoDuiZi or 
             server_cards_type == RoomType13Calculator.CardType.Lin_ThreeWithDouble or
             server_cards_type == RoomType13Calculator.CardType.Lin_ThreeWithTwo or
             server_cards_type == RoomType13Calculator.CardType.Com_ThreeWithSingle or
@@ -1233,9 +1242,12 @@ class RoomType13(RoomBase):
             return
 
         # 如果比之前出牌大，出牌成功；否则失败
+        DEBUG_MSG("如果比之前出牌大，出牌成功；否则失败")
         if self.is_current_card_greater(this_play_cards, chapter["prePlayerPlayCards"]):
+            DEBUG_MSG("[%s]出牌成功 " % account_id)
             self.send_player_cards(account_id, 1, client_cards, server_cards_type)
         else:
+            DEBUG_MSG("[%s]出牌失败 " % account_id)
             self.send_player_cards(account_id, -1, client_cards, server_cards_type)
 
     def play_tips(self, account_id):
@@ -1335,6 +1347,13 @@ class RoomType13(RoomBase):
                 DEBUG_MSG("initiative_bomb_not_score account_id:%s server_cards:%s" % (account_id, server_cards))
             elif len(player_cards) > 0:
                 self.boom_score_for_total(server_cards, cards_type, account_id)
+            elif len(player_cards) <= 0 and (chapter["prePlayer"] != -1 or chapter['prePlayer'] != account_id):
+                if cards_type == RoomType13Calculator.CardType.Lin_FourBoom or \
+                        cards_type == RoomType13Calculator.CardType.Lin_MaxBoomForFour or \
+                        cards_type == RoomType13Calculator.CardType.Lin_MaxBoomWithSingle or \
+                        cards_type == RoomType13Calculator.CardType.Lin_FourBoomWithSingle:
+                    if self.info["boomSettlementType"] != 1:
+                        chapter["playerInGame"][account_id]["boomCount"] += 1
             # 将上个出牌玩家置为当前玩家
             if chapter['prePlayer'] == account_id:
                 chapter['letPlayer'] = -1
@@ -1748,22 +1767,23 @@ class RoomType13(RoomBase):
                     basic_gold_change *= self.info["baseMultiple"]
                     lose_gold *= self.info["baseMultiple"]
 
-                    if lose_player["gold"] < lose_gold * -1:
-                        lose_player["basicScoreChange"] -= lose_player["gold"]
-                        lose_player["basicScore"] -= lose_player["gold"]
-                        lose_player["boomScoresChange"] -= lose_player["gold"]
-                        lose_player["boomScores"] -= lose_player["gold"]
-                        lose_player["goldChange"] -= lose_player["gold"]
-                        lose_player["totalGoldChange"] -= lose_player["gold"]
-                        lose_player["gold"] -= lose_player["gold"]
-                    else:
-                        lose_player["basicScoreChange"] += basic_gold_change
-                        lose_player["basicScore"] += basic_gold_change
-                        lose_player["boomScoresChange"] += lose_gold - basic_gold_change
-                        lose_player["boomScores"] += lose_gold - basic_gold_change
-                        lose_player["goldChange"] += lose_gold
-                        lose_player["totalGoldChange"] += lose_gold
-                        lose_player["gold"] += lose_gold
+                    # if lose_player["gold"] < lose_gold * -1:
+                    #     lose_player["basicScoreChange"] -= lose_player["gold"]
+                    #     lose_player["basicScore"] -= lose_player["gold"]
+                    #     lose_player["boomScoresChange"] -= lose_player["gold"]
+                    #     lose_player["boomScores"] -= lose_player["gold"]
+                    #     lose_player["goldChange"] -= lose_player["gold"]
+                    #     lose_player["totalGoldChange"] -= lose_player["gold"]
+                    #     lose_player["gold"] -= lose_player["gold"]
+                    # else:
+                    lose_player["basicScoreChange"] += basic_gold_change
+                    lose_player["basicScore"] += basic_gold_change
+                    lose_player["boomScoresChange"] += lose_gold - basic_gold_change
+                    lose_player["boomScores"] += lose_gold - basic_gold_change
+                    lose_player["goldChange"] += lose_gold
+                    lose_player["totalGoldChange"] += lose_gold
+                    lose_player["gold"] += lose_gold
+
                     if abs(lose_player["singMax"]) < abs(lose_player["goldChange"]):
                         lose_player["singMax"] = lose_player["goldChange"]
                     dealer["basicScore"] += abs(basic_gold_change)
@@ -1781,19 +1801,20 @@ class RoomType13(RoomBase):
                     if self.bomb_multiple:
                         boom_score *= 2
                     if len(v["cards"]) > 0:
-                        if v["gold"] < boom_score * -1:
-                            v['goldChange'] -= v['gold']
-                            v["totalGoldChange"] -= v['gold']
-                            v['boomScoresChange'] -= v['gold']
-                            v['boomScores'] -= v['gold']
-                            v['gold'] -= v['gold']
-                        else:
-                            v['goldChange'] += boom_score
-                            v["totalGoldChange"] += boom_score
-                            v['boomScoresChange'] += boom_score
-                            v['boomScores'] += boom_score
-                            v['gold'] += boom_score
-                    self.debug_msg('player22222 %s, goldChange: %s boomScore %s  totalGoldChange %s' % (other_v["entity"].info["name"],other_v['goldChange'], boom_score, other_v["totalGoldChange"]))
+                        # if v["gold"] < boom_score * -1:
+                        #     v['goldChange'] -= v['gold']
+                        #     v["totalGoldChange"] -= v['gold']
+                        #     v['boomScoresChange'] -= v['gold']
+                        #     v['boomScores'] -= v['gold']
+                        #     v['gold'] -= v['gold']
+                        # else:
+
+                        # 玩家0分带入，0分带出
+                        v['goldChange'] += boom_score
+                        v["totalGoldChange"] += boom_score
+                        v['boomScoresChange'] += boom_score
+                        v['boomScores'] += boom_score
+                        v['gold'] += boom_score
 
                 if k != chapter["winner"]:
                     basic_gold_change = 0
@@ -1836,27 +1857,30 @@ class RoomType13(RoomBase):
                         lose_player = v
 
                     basic_gold_change *= self.info["baseMultiple"]
-                    if lose_player["gold"] < basic_gold_change * -1:
-                        lose_player["goldChange"] -= lose_player["gold"]
-                        lose_player["totalGoldChange"] -= lose_player["gold"]
-                        lose_player["basicScoreChange"] -= lose_player["gold"]
-                        lose_player["basicScore"] -= lose_player["gold"]
-                        dealer["basicScore"] -= lose_player["gold"]
-                        lose_player["gold"] -= lose_player["gold"]
-                    else:
-                        lose_player["goldChange"] += basic_gold_change
-                        lose_player["totalGoldChange"] += basic_gold_change
-                        lose_player["basicScoreChange"] += basic_gold_change
-                        lose_player["basicScore"] += basic_gold_change
-                        lose_player["gold"] += basic_gold_change
-                        dealer["basicScore"] += abs(basic_gold_change)
+                    # if lose_player["gold"] < basic_gold_change * -1:
+                    #     lose_player["goldChange"] -= lose_player["gold"]
+                    #     lose_player["totalGoldChange"] -= lose_player["gold"]
+                    #     lose_player["basicScoreChange"] -= lose_player["gold"]
+                    #     lose_player["basicScore"] -= lose_player["gold"]
+                    #     lose_player["gold"] -= lose_player["gold"]
+                    #     dealer["basicScore"] -= lose_player["gold"]
+                    # else:
+
+                    # 玩家0分带入，带出
+                    lose_player["goldChange"] += basic_gold_change
+                    lose_player["totalGoldChange"] += basic_gold_change
+                    lose_player["basicScoreChange"] += basic_gold_change
+                    lose_player["basicScore"] += basic_gold_change
+                    lose_player["gold"] += basic_gold_change
+                    dealer["basicScore"] += abs(basic_gold_change)
+
                     if abs(lose_player["singMax"]) < abs(lose_player["goldChange"]):
                         lose_player["singMax"] = lose_player["goldChange"]
 
                     v["lostCount"] += 1
                     v["totalBoomCounts"] += v["boomCount"]
 
-            # 统计输赢玩家点击下局坐下按钮
+            # 统计输赢玩家
             for k2, v2 in chapter['playerInGame'].items():
                 if k2 != chapter['winner']:
                     lost_source_all = v2["goldChange"]
@@ -2003,8 +2027,29 @@ class RoomType13(RoomBase):
                 }
         args = {"settlementInfo": player_settlement_info_s, "isDisband": is_disband}
         self.callOtherClientsFunction("TotalSettlement", args)
+        
+        
+        
+         # 房费抽水, 根据局数对总输赢加1
+        for k, v in chapter["playerInGame"].items():
+            room_rate_add = 0
+            if self.info["maxChapterCount"] == 8:
+                room_rate_add = 1
+            elif self.info["maxChapterCount"] == 16:
+                room_rate_add = 2
+            elif self.info["maxChapterCount"] == 32:
+                room_rate_add = 4
+            if v["totalGoldChange"] > 0:
+                v["totalGoldChange"] = v["totalGoldChange"] - room_rate_add
+            else:
+                v["totalGoldChange"] -= room_rate_add
+            self.base.cellToBase({"func": "todayGameRoomRateBilling", "teaHouseId": self.info["teaHouseId"],
+                                      "todayGameRoomRateAdd": room_rate_add,
+                                      "userId": v["entity"].info["userId"],
+                                      "roomType": Const.get_name_by_type("RoomType13") + "大局"})
 
         for k, v in chapter["playerInGame"].items():
+            self.send_win_or_lose_score_to_base(v)
             # # 同步玩家比赛分给base
             # if self.info["roomType"] == "gameCoin":
             #     self.set_base_player_game_coin(k)
@@ -2124,6 +2169,19 @@ class RoomType13(RoomBase):
                     itm_card.append(value)
         itm_card.append(single)
         return itm_card
+
+    def send_win_or_lose_score_to_base(self,player):
+        """
+        通知base玩家总输赢
+        :param _player:
+        :return:
+        """
+        DEBUG_MSG('send_win_or_lose_score_to_base')
+        _chapter = self.chapters[self.cn]
+        player["entity"].base.cellToBase({"func": "sendWinOrLoseScoreToBase", "dic": {
+            "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
+            'type': self.info['roomType'],
+            "totalGoldChange": player['totalGoldChange']}})
 
     def set_base_player_game_coin(self, accountId):
         """
@@ -2263,6 +2321,11 @@ class RoomType13(RoomBase):
         检测是否满足A不能连
         """
         return RoomType13Calculator.check_straight_not_a(pre_play_cards, this_play_cards, cards, self.info)
+    def check_with_not_2(self, pre_play_cards, this_play_cards, cards):
+        """
+        检测不能带2
+        """
+        return RoomType13Calculator.check_with_not_2(pre_play_cards, this_play_cards, cards, self.info)
 
     # ==================================================================================================================
     #                                                通用方法
@@ -2356,6 +2419,11 @@ class RoomType13(RoomBase):
         # all_cards[0] = [3.1,3.3,3.1,3.4, 5.1,5.2,6.3, 6.1,6.2,6.4, 7.1, 7.4,7.3, 7.2, 14.4,14.3,14.1]
         # all_cards[1] = [3.1,3.3,3.1,3.4, 5.1,5.2,6.3, 6.1,6.2,6.4, 7.1, 7.4,7.3, 7.2, 14.4,14.3,14.1]
         # all_cards[2] = [3.1,3.3,3.1,3.4, 5.1,5.2,6.3, 6.1,6.2,6.4, 7.1, 7.4,7.3, 7.2, 14.4,14.3,14.1]
+        
+        # all_cards[0] = [3.3,3.1,3.4, 5.1,5.2,6.3, 6.1,6.2,6.4, 13.1, 13.4,13.3, 13.2, 14.4,14.3,7.1, 15.3]
+        # all_cards[1] = [3.3,3.1,3.4, 5.1,5.2,6.3, 6.1,6.2,6.4, 13.1, 13.4,13.3, 13.2, 14.4,14.3,14.1, 15.3]
+        # all_cards[2] = [3.3,3.1,3.4, 5.1,5.2,6.3, 6.1,6.2,6.4, 13.1, 13.4,13.3, 13.2, 14.4,14.3,14.1, 15.3]
+        
         # #####################################################################
         # A多的牌为好牌
         def find_good_cards(all_cards):

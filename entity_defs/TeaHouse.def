@@ -203,6 +203,12 @@
             <Default>                       </Default>
             <Persistent>        true        </Persistent>
         </luckyCard>
+        <freezeScore>
+            <Type>              INT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </freezeScore>
         <!--排行榜-->
         <rank>
             <Type>              PY_DICT     </Type>

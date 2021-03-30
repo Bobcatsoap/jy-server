@@ -345,7 +345,8 @@ BOT_OUT_PAI_TIMER = "botOutPaiTimer"
 INNER_BOT_OPT_TIMERS = "innerBotOptTimers"
 
 # 特殊规则倍数
-special_multiple = {1: 3, 2: 6, 3: 3, 4: 3}
+# special_multiple = {1: 3, 2: 6, 3: 3, 4: 3}
+special_multiple = {1: 3, 2: 5}
 
 
 # # 吃和碰之后，出牌超时定时器
@@ -1075,13 +1076,15 @@ class RoomType12(RoomBase):
                 fish_range = []
                 # 胡牌分数
                 if _chapter[IS_ZI_MO_HE]:
-                    hu_score = self.info['baseScore'] * 2
+                    # hu_score = self.info['baseScore'] * 2
+                    hu_score = 2  # 改之前的
                     fish_range = no_hu_players.copy()
                 elif _chapter[IS_QIANG_GANG_HE]:
                     hu_score = self.info['baseScore'] if self.two_people else self.info['baseScore'] * 3
                     fish_range = [self.get_player_by_location(_chapter[FANG_PAO_INDEX])]
                 elif _chapter[IS_DIAN_PAO_HE]:
-                    hu_score = self.info['baseScore'] if self.two_people else self.info['baseScore'] * 3
+                    # hu_score = self.info['baseScore'] if self.two_people else self.info['baseScore'] * 3
+                    hu_score = 3 if self.two_people else 3 
                     fish_range = [self.get_player_by_location(_chapter[FANG_PAO_INDEX])]
 
                 elif _chapter[IS_HUANG_ZHUANG]:
@@ -1103,25 +1106,44 @@ class RoomType12(RoomBase):
                 DEBUG_MSG('hu_player:%s,hu_score:%s' % (hu_player['entity'].info['name'], hu_score))
 
                 # 扣胡牌分
-                fish_score = self.info['fish'] if self.single_fish else self.info['fish'] * 2
+                # fish_score = self.info['fish'] if self.single_fish else self.info['fish'] * 2
+                fish_score = self.info['fish'] if self.single_fish else self.info['fish'] * 1
                 for _player in _chapter[PLAYER_IN_GAME].values():
                     for _v in lose_range:
                         if _player['entity'].id == _v['entity'].id:
-                            _player['goldChange'] -= hu_score
+                            _player['goldChange'] -= hu_score 
                             _player['goldChange'] -= fish_score
                 # 扣鱼子分
                 for _player in _chapter[PLAYER_IN_GAME].values():
                     for _v in hu_players:
                         if _player['entity'].id == _v['entity'].id:
-                            _player['goldChange'] += hu_score
+                            # ------改之前的开始
+                            # _player['goldChange'] += hu_score 
+                            # _player['goldChange'] += fish_score
+                            # ------改之前的结束
+                            
+                            # -------新修改的开始
+                            if _chapter[IS_ZI_MO_HE]:
+                                hu_score = hu_score if self.two_people else hu_score * 3
+                                fish_score = fish_score if self.two_people else fish_score * 3 
+                                
+                            else:
+                                
+                                hu_score = hu_score
+                                fish_score = fish_score
+                                
+                                
+                            _player['goldChange'] += hu_score 
                             _player['goldChange'] += fish_score
+                            # -------新修改的结束
 
             # 扣多少杠分
             gang_di = self.info['baseScore']
             for _gang_p in _chapter[PLAYER_IN_GAME].values():
 
                 # 大明杠分
-                da_ming_gang_score = gang_di if self.two_people else gang_di * 3
+                # da_ming_gang_score = gang_di if self.two_people else gang_di * 3
+                da_ming_gang_score = 3 if self.two_people else 3 
                 # 大明杠扣触发杠的人
                 for i in _gang_p[DA_MING_GANG_S].values():
                     _p = self.get_player_by_location(i)
@@ -1131,7 +1153,8 @@ class RoomType12(RoomBase):
                     _gang_p['mingGangGold'] += da_ming_gang_score
 
                 # 小明杠分
-                xiao_ming_score = gang_di
+                # xiao_ming_score = gang_di
+                xiao_ming_score = 1
                 # 小明杠扣其他人
                 for _ in _gang_p[XIAO_MING_GANG_S].values():
                     # 其他玩家
@@ -1144,7 +1167,8 @@ class RoomType12(RoomBase):
                         _gang_p['mingGangGold'] += xiao_ming_score
 
                 # 暗杠翻倍
-                an_score = gang_di * 2
+                # an_score = gang_di * 2
+                an_score = 2
                 # 所有暗杠
                 for _ in _gang_p[AN_GANG_S]:
                     # 其他玩家
@@ -1165,6 +1189,7 @@ class RoomType12(RoomBase):
             for location_index, v in settlement_winners.items():
                 settlement_winner_account_id = v['entity'].id
                 # 计算大赢家小局抽水
+                
                 settlement_winner_true_gold = self.mj_get_true_gold(settlement_winner_account_id)
                 settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
 
@@ -1174,10 +1199,11 @@ class RoomType12(RoomBase):
                 v["gold"] -= settlement_winner_billing
                 v["gold"] = round(float(v["gold"]), 1)
                 # 同步房费给base
-                self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
-                                      "todayGameCoinAdd": settlement_winner_billing,
-                                      "userId": v["entity"].info["userId"],
-                                      "roomType": Const.get_name_by_type("RoomType12") + "小局"})
+                if settlement_winner_billing > 0:
+                    self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
+                                          "todayGameCoinAdd": settlement_winner_billing,
+                                          "userId": v["entity"].info["userId"],
+                                          "roomType": Const.get_name_by_type("RoomType12") + "小局"})
 
                 # 赋值总金币改变
 
@@ -1210,16 +1236,17 @@ class RoomType12(RoomBase):
             self.callClientFunction(p["entity"].id, "chapterEnd", end_msg)
 
         # 如果是AA支付，扣除钻石
-        if self.info['payType'] == Const.PayType.AA:
-            # 需要扣除钻石的玩家
-            need_consume_player = []
-            # 如果坐下的玩家有没有扣除过AA支付钻石的，结算时扣除
-            for k, v in _chapter[PLAYER_IN_GAME].items():
-                if not v['AARoomCardConsumed']:
-                    need_consume_player.append(v["entity"].info["userId"])
-                    v['AARoomCardConsumed'] = True
-            if len(need_consume_player) != 0:
-                self.base.cellToBase({'func': 'AAPayTypeModifyRoomCard', 'needConsumePlayers': need_consume_player})
+        if self.settlement_count == 0:
+            if self.info['payType'] == Const.PayType.AA:
+                # 需要扣除钻石的玩家
+                need_consume_player = []
+                # 如果坐下的玩家有没有扣除过AA支付钻石的，结算时扣除
+                for k, v in _chapter[PLAYER_IN_GAME].items():
+                    if not v['AARoomCardConsumed']:
+                        need_consume_player.append(v["entity"].info["userId"])
+                        v['AARoomCardConsumed'] = True
+                if len(need_consume_player) != 0:
+                    self.base.cellToBase({'func': 'AAPayTypeModifyRoomCard', 'needConsumePlayers': need_consume_player})
 
         # 统计全局数据
 
@@ -1284,15 +1311,41 @@ class RoomType12(RoomBase):
         players = self.get_all_players_by_seat()
         DEBUG_MSG('[RoomType12 id %i]------------->totalSettlement msg=%s' % (self.id, room_end_msg))
 
+
+         # 房费抽水, 根据局数对总输赢加1
+        for k, v in chapter[PLAYER_IN_GAME].items():
+            room_rate_add = 0
+            if self.info["maxChapterCount"] == 4:
+                room_rate_add = 1
+            elif self.info["maxChapterCount"] == 8:
+                room_rate_add = 1
+            elif self.info["maxChapterCount"] == 16:
+                room_rate_add = 2
+            if v["totalGoldChange"] > 0:
+                v["totalGoldChange"] -= room_rate_add
+            else:
+                v["totalGoldChange"] -= room_rate_add
+            self.base.cellToBase({"func": "todayGameRoomRateBilling", "teaHouseId": self.info["teaHouseId"],
+                                      "todayGameRoomRateAdd": room_rate_add,
+                                      "userId": v["entity"].info["userId"],
+                                      "roomType": Const.get_name_by_type("RoomType12") + "大局"})
+
+
         for p in players:
             self.callClientFunction(p["entity"].id, "totalSettlement", room_end_msg)
         self.base.cellToBase({"func": "totalSettlementEd"})
         # 忽略判断，创建一个房间
         self.base.cellToBase({"func": "autoCreateRoom", "roomInfo": self.info, 'ignoreJudge': True, 'onRoomEnd': True})
         self.save_record_str()
+        
+        
+        
+       
+        
 
         # 同步金币变化到房间外
         for p in chapter[PLAYER_IN_GAME].values():
+            self.send_win_or_lose_score_to_base(p)
             # 同步金币到 base
             # if self.info["roomType"] == "gameCoin":
             #     self.set_base_player_game_coin(p)
@@ -1407,6 +1460,19 @@ class RoomType12(RoomBase):
 
         self.chapter_replay = {'chapterInfo': _replay_data}
         self.base.cellToBase({"func": "writeChapterReplay", "chapterReplay": self.chapter_replay})
+
+    def send_win_or_lose_score_to_base(self,_player):
+        """
+        通知base玩家总输赢
+        :param _player:
+        :return:
+        """
+        DEBUG_MSG('send_win_or_lose_score_to_base')
+        _chapter = self.chapters[self.cn]
+        _player["entity"].base.cellToBase({"func": "sendWinOrLoseScoreToBase", "dic": {
+            "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
+            'type': self.info['roomType'],
+            "totalGoldChange": _player['totalGoldChange']}})
 
     def set_base_player_game_coin(self, _player):
         """

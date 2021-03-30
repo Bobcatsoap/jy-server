@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 import datetime
 import random
 import time
@@ -54,7 +55,7 @@ class AccountMgr(Manger):
         now = datetime.datetime.now()
         cur_minute = now.minute % 10
         init_time = 10 - cur_minute
-        self.online_stat_timer = self.add_timer(init_time*60, 600, 0)
+        self.online_stat_timer = self.add_timer(init_time * 60, 600, 0)
         DEBUG_MSG("addOnlineStatTimer %s" % init_time)
 
     def on_timer(self, _id, arg):
@@ -127,6 +128,23 @@ class AccountMgr(Manger):
 
         KBEngine.createEntityFromDBID("Account", account_db_id, callback)
 
+    def set_account_proxy_type(self, account_db_id, proxy_type, superior_id):
+        """
+        设置玩家代理登记
+        """
+
+        def callback(baseRef, databaseID, wasActive):
+            baseRef.proxyType = proxy_type
+            baseRef.belong_to = superior_id
+            baseRef.writeToDB()
+            if wasActive:
+                # 如果在线，刷新身份状态
+                baseRef.retAccountInfo()
+            else:
+                baseRef.destroy()
+
+        KBEngine.createEntityFromDBID("Account", account_db_id, callback)
+
     def modify_account_proxy_type(self, account_db_id, proxy_type, invite_code=-1):
         """
         修改玩家代理等级
@@ -161,6 +179,7 @@ class AccountMgr(Manger):
         :param account_db_id:
         :return:
         """
+
         def callback(baseRef, databaseID, wasActive):
             if baseRef:
                 # 解绑定邀请码
@@ -175,8 +194,33 @@ class AccountMgr(Manger):
                     baseRef.destroy()
 
         KBEngine.createEntityFromDBID("Account", account_db_id, callback)
+    
+    def rebinding_proxy(self, account_db_id, proxy_db_id):
+        """
+        解绑代理
+        :param account_db_id:
+        :return:
+        """
 
-    def modify_room_card(self, account_db_id, modify_count, on_success=None, on_fail=None, consume_type='createRoom',
+        def callback(baseRef, databaseID, wasActive):
+            if baseRef:
+                # 解绑定邀请码
+                if baseRef.belong_to != 0:
+                    baseRef.belong_to = proxy_db_id
+                    baseRef.writeToDB()
+                    if wasActive:
+                        # 如果在线，刷新身份状态
+                        baseRef.retAccountInfo()
+
+                if not wasActive:
+                    baseRef.destroy()
+
+        KBEngine.createEntityFromDBID("Account", account_db_id, callback)
+        
+    
+
+    def modify_room_card(self, account_db_id, modify_count, teaHouseId=None, on_success=None, on_fail=None,
+                         consume_type='createRoom',
                          record_sql=True):
         """
         修改玩家钻石数量
@@ -196,14 +240,17 @@ class AccountMgr(Manger):
                     entity.roomCard = 0
 
                 # 统计今日钻石数量
-                today_date = datetime.date.today()
-                today_end = int(time.mktime(today_date.timetuple()) + 86399)
+                # today_date = datetime.date.today()
+                # today_end = int(time.mktime(today_date.timetuple()) + 86399)
+                today_end = int(time.time())
                 if record_sql:
-                    DBCommand.modify_room_card_to_db(account_db_id, modify_count, today_end, entity.name, consume_type)
+                    DBCommand.modify_room_card_to_db(account_db_id, modify_count, today_end, entity.name, consume_type,
+                                                     teaHouseId=teaHouseId)
 
                 if not was_active:
                     entity.writeToDB()
                 else:
+                    entity.writeToDB()
                     entity.retRoomCard()
 
         KBEngine.createEntityFromDBID("Account", account_db_id, callback)
@@ -228,14 +275,16 @@ class AccountMgr(Manger):
                     entity.goldIngot = 0
 
                 # 统计今日钻石数量
-                today_date = datetime.date.today()
-                today_end = int(time.mktime(today_date.timetuple()) + 86399)
+                # today_date = datetime.date.today()
+                # today_end = int(time.mktime(today_date.timetuple()) + 86399)
+                today_end = int(time.time())
                 if record_sql:
                     DBCommand.modify_room_card_to_db(account_db_id, modify_count, today_end, entity.name, consume_type)
 
                 if not was_active:
                     entity.writeToDB()
                 else:
+                    entity.writeToDB()
                     entity.retGoldIngot()
 
         KBEngine.createEntityFromDBID("Account", account_db_id, callback)
@@ -329,7 +378,7 @@ class AccountMgr(Manger):
                 to_do = {'teaHouseId': tea_house_id, 'sender': sender,
                          'inviterDBID': sender, 'headImage': sender_head_image, 'name': sender_name,
                          'time': create_time, 'description': '%s 邀请你进入 %s 茶楼' % (sender, tea_house_id)}
-                if len(baseRef.todoList) >=account_config()['todoListCountLimit']:
+                if len(baseRef.todoList) >= account_config()['todoListCountLimit']:
                     return
                 baseRef.todoList.append({'type': Const.ToDoType.tea_house_invite, 'args': to_do, 'flag': flag})
                 baseRef.writeToDB()
@@ -396,7 +445,7 @@ class AccountMgr(Manger):
                 to_do = {'sender': sender, 'time': create_time,
                          'headImage': sender_head_image, 'name': sender_name,
                          'description': content}
-                if len(baseRef.todoList) >=account_config()['todoListCountLimit']:
+                if len(baseRef.todoList) >= account_config()['todoListCountLimit']:
                     return
                 baseRef.todoList.append({'type': Const.ToDoType.notice, 'args': to_do, 'flag': flag})
                 baseRef.writeToDB()
@@ -469,6 +518,135 @@ class AccountMgr(Manger):
                     # 刷新to_do
                     operator_entity.get_to_do_list()
                     return
+
+    def process_binding_proxy(self, up: int, down: int, result):
+        """
+        处理绑定代理
+        """
+        DEBUG_MSG('process_binding_proxy %s:%s:%s' % (up, down, result))
+        def callback(baseRef, databaseID, wasActive):
+            # def write_callback(boolean, entity):
+            # 如果从数据库创建成功并且后台同意绑定代理
+            # 删除数据库记录
+            # if boolean and result:
+            baseRef.belong_to = up
+            baseRef.writeToDB()
+            DEBUG_MSG('baseRef %s:%s:%s' % (baseRef, baseRef.belong_to, baseRef.name))
+            self.add_down_player(up, baseRef.userId, baseRef.name, baseRef.headImageUrl)
+            self.update_binding_proxy_req(up, down, result)
+            # else:
+                # pass
+            if wasActive:
+                if result == 0:
+                    baseRef.call_client_func('Notice', ['绑定代理失败, 绑定被拒绝'])
+                else:
+                    baseRef.call_client_func('Notice', ['绑定代理成功'])
+            else:
+                baseRef.destroy()
+
+            # baseRef.writeToDB(write_callback)
+
+        KBEngine.createEntityFromDBID("Account", int(down), callback)
+
+    def insert_binding_proxy_req(self, up, down, result):
+        """
+        插入绑定代理记录
+        """
+
+        def down_callback(baseRef, databaseID, wasActive):
+            if baseRef:
+                def up_call_back(baseRef2, databaseID2, wasActive2):
+                    up_name = baseRef2.name
+                    down_name = baseRef.name
+                    _time = int(time.time())
+                    command_sql = 'INSERT INTO binding_proxy_record ' \
+                                  '(up,down,up_nick_name,down_nick_name,result,add_time,update_time) ' \
+                                  'VALUES (%s,%s,"%s","%s",%s,%s,%s)' \
+                                  % (up, down, up_name, down_name, result, _time, _time)
+                    KBEngine.executeRawDatabaseCommand(command_sql, None)
+                    baseRef.call_client_func("BindingProxySuccess", ["绑定成功，等待代理审核"])
+
+                KBEngine.createEntityFromDBID("Account", up, up_call_back)
+
+        KBEngine.createEntityFromDBID("Account", down, down_callback)
+
+    def update_binding_proxy_req(self, up, down, result):
+        """
+        更新数据库中的绑定代理申请记录
+        """
+        command_sql = "UPDATE binding_proxy_record SET result=%s WHERE up=%s and down=%s" % (result, up, down)
+        DEBUG_MSG('AccountMgr delete_binding_proxy_req sql:%s' % command_sql)
+        KBEngine.executeRawDatabaseCommand(command_sql, None)
+
+    def send_down_players_info(self, up_player, requester):
+        """
+        发送名下玩家信息
+        """
+        def callback(baseRef, databaseID, wasActive):
+            if baseRef:
+                down_player = baseRef.downPlayer
+                requester_entity = self.get_account(requester)
+                if requester_entity:
+                    requester_entity.call_client_func('GetDownPlayersInfo', down_player)
+                if not wasActive:
+                    baseRef.destroy()
+
+        KBEngine.createEntityFromDBID('Account', up_player, callback)
+
+    # def get_down_player(self, account_db_id):
+    #     """
+    #     获取下级玩家
+    #     """
+    #
+    #     def callback(baseRef, databaseID, wasActive):
+    #         if baseRef:
+    #             down_player = copy.deepcopy(baseRef.downPlayer)
+    #             if not wasActive:
+    #                 baseRef.destroy()
+    #             return down_player
+    #         return []
+    #
+    #     KBEngine.createEntityFromDBID('Account', account_db_id, callback)
+
+    def have_up_player(self, account_db_id):
+        """
+        是否有上级
+        """
+
+        def callback(baseRef, databaseID, wasActive):
+            if baseRef:
+                have = baseRef.belong_to != 0
+                if not wasActive:
+                    baseRef.destroy()
+                return have
+            return False
+
+        KBEngine.createEntityFromDBID('Account', account_db_id, callback)
+
+    def get_up_player(self, account_db_id, callback):
+        """
+        获取上级玩家
+        """
+
+        def callback(baseRef, databaseID, wasActive):
+            if baseRef:
+                up = baseRef.belong_to
+                if not wasActive:
+                    baseRef.destroy()
+                return up
+
+        KBEngine.createEntityFromDBID('Account', account_db_id, callback)
+
+    def add_down_player(self, up_db_id, down_id, down_name, down_head_image):
+        """
+        给上级添加下级信息
+        """
+
+        def callback(baseRef, databaseID, wasActive):
+            baseRef.downPlayer.append({'name': down_name, 'accountDBID': down_id,
+                                       'headImage': down_head_image})
+
+        KBEngine.createEntityFromDBID('Account', up_db_id, callback)
 
 
 def check_out_invitation_code(callback=None):

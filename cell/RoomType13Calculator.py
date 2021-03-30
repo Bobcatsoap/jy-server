@@ -98,6 +98,8 @@ class CardType(Enum):
     Lin_FourWithTwoSingle = 17
     # 四带三
     Lin_FourWithThreeSingle = 18
+    # 四带两对
+    Lin_FourWithTwoDuiZi = 19
     # 三张不带（此牌型只在最后一手牌判断使用）
     Spc_OnlyThree = 20
     # 飞机不带（此牌型只在最后一手牌判断使用）
@@ -168,6 +170,7 @@ def check_2_must_bomb(pre_play_cards, this_play_cards, cards, room_info):
     cards_number = convert_cards_to_value(cards)
     # 获取本次出牌类型
     this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
+   
     # 如果上个玩家出牌包含2，并且本玩家手牌里有炸弹
     if 15 in pre_play_cards_number and find_boom(cards_number, room_info):
         # 如果是任意一种炸弹，满足
@@ -179,6 +182,14 @@ def check_2_must_bomb(pre_play_cards, this_play_cards, cards, room_info):
         else:
             return False
     else:
+        # ----------------TODO新增
+        # 如果上个玩家出牌包含2，并且本玩家手牌里有三个A炸弹
+        if 15 in pre_play_cards_number and find_max_boom_for_four(cards_number, room_info):
+            if this_play_cards_type == CardType.Lin_MaxBoomForFour:
+                return True
+            else:
+                return False
+        # ----------------TODO新增
         return True
 
 
@@ -260,6 +271,34 @@ def check_double_k_must_1(pre_play_cards, this_play_cards, cards, room_info):
     cards_number = convert_cards_to_value(cards)
     # 获取本次出牌类型
     this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
+    
+    
+    
+    
+    #-------------------------------------TODO新增
+    # 如果上个玩家出牌是对K，并且手里有三个A，判断本次是否是炸弹
+    if pre_play_cards_type == CardType.Com_Double and pre_play_cards_number[0] == 13 and cards_number.count(14) == 3:
+        return True
+        
+    #---------------------------------------TODO新增
+    
+    #---------------------------------------TODO新增我写的
+    
+    if pre_play_cards_type == CardType.Com_Double and pre_play_cards_number[0] == 13 and cards_number.count(14) == 2 and find_boom(cards_number, room_info):
+        # 如果是任意一种炸弹，满足
+        if this_play_cards_type == CardType.Lin_FourBoom:
+            return True
+        else:
+            return False
+    
+    #---------------------------------------TODO新增我写的
+    
+    
+    
+    
+    
+    
+    
     # 如果上个玩家出牌是对K，并且手里有两个A，判断本次是否是两个A
     if pre_play_cards_type == CardType.Com_Double and pre_play_cards_number[0] == 13 and cards_number.count(14) == 2:
         if this_play_cards_type == CardType.Com_Double and this_play_cards_number[0] == 14:
@@ -295,6 +334,19 @@ def check_straight_not_a(pre_play_cards, this_play_cards, cards, room_info):
         return False
     return True
 
+def check_with_not_2(pre_play_cards, this_play_cards, cards, room_info):
+    """ 检测不能带2 """
+    # 获取本次出牌数字
+    this_play_cards_number = convert_cards_to_value(this_play_cards)
+    # 获取本次出牌类型
+    this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
+    if this_play_cards_type == CardType.Com_ThreeWithSingle and 15 in this_play_cards_number:
+        return True
+    if this_play_cards_type == CardType.Lin_FourWithTwoSingle and 15 in this_play_cards_number:
+        return True
+    if this_play_cards_type == CardType.Lin_FourWithThreeSingle and 15 in this_play_cards_number:
+        return True
+    return False
 
 # 获取card2中与card1牌型一样的牌或者大的牌型(找到任意合适的牌就返回，待优化)
 def find_greater_cards(card1, _card2, room_info):
@@ -627,6 +679,16 @@ def find_boom(card2, room_info):
                 card_filter.add(k)
     return itm_cards
 
+# ----------------TODO新增
+def find_max_boom_for_four(card2, room_info):
+    """
+    查找手中三个A炸弹
+    """
+    if card2.count(14) == 3:
+        return [14, 14, 14]
+    else:
+        return []
+# ----------------TODO新增
 
 def find_single(pre_card_val, card2, room_info):
     """
@@ -966,7 +1028,9 @@ def _compare_cards(cards1, cards2, card_type):
         if get_cards_value(cards1, 2) > get_cards_value(cards2, 2):
             return True
         return False
-    elif card_type == CardType.Lin_FourWithThreeSingle or card_type == CardType.Lin_FourWithTwoSingle:
+    elif card_type == CardType.Lin_FourWithThreeSingle or card_type == CardType.Lin_FourWithTwoSingle or card_type == CardType.Lin_FourWithTwoDuiZi:
+        # DEBUG_MSG("四带一四带二四带三")
+    # elif card_type == CardType.Lin_FourWithThreeSingle or card_type == CardType.Lin_FourWithTwoSingle:
         # 四带二和四带三
         if get_cards_value(cards1, 4) > get_cards_value(cards2, 4):
             return True
@@ -1022,6 +1086,7 @@ def compare_cards(_cards1, _cards2, room_info):
     cards1 = convert_cards_to_value(_cards1)
     cards2 = convert_cards_to_value(_cards2)
     DEBUG_MSG("compare_cards cards1:%s %s cards2:%s %s " % (cards1, cards1_type, cards2, cards2_type))
+    #  cards1:[3, 8, 8, 8] CardType.Com_ThreeWithSingle cards2:[3, 6, 6, 6] CardType.Com_ThreeWithSingle 
 
     # 任何一组牌为无效组合就返回空
     if cards1_type == CardType.Com_Invalid or cards2_type == CardType.Com_Invalid:
@@ -1178,6 +1243,8 @@ def get_cards_type(correct_cards, card_type):
         # 四带三
         elif is_four_with_three(cards) and card_type["fourAndThree"]:
             return CardType.Lin_FourWithThreeSingle  # 四带三
+        elif is_four_with_two_double(cards) and True:  # card_type["fourAndD/oubleDuiZi"]:
+            return CardType.Lin_FourWithTwoDuiZi  # 四带两对
         else:
             return CardType.Com_Invalid  # 无效牌
 
@@ -1343,6 +1410,15 @@ def is_four_with_three(cards):
     for k in cards:
         if cards.count(k) == 4 and len(cards) == 7:
             return True
+    return False
+
+
+# 是否四带两对子
+def is_four_with_two_double(cards):
+    for k in cards:
+        if cards.count(k) == 4 and len(cards) == 8:
+            if len(set(cards)) == 3:
+                return True
     return False
 
 

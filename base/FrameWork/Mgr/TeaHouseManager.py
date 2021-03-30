@@ -6,6 +6,8 @@ import time
 import KBEngine
 import DBCommand
 import Const
+
+import Utils
 from FrameWork.Mgr import Manger
 from KBEDebug import DEBUG_MSG, ERROR_MSG
 import Functor
@@ -42,14 +44,13 @@ def get_db(cb=None):
 
 class TeaHouseManager(Manger):
     teaHouse_dic = {}
-    need_permission = 0
+    need_permission = 1
     mainTimerId = -1
     tomorrowStartTimer = -1
     room1_robot_count = 0
     room4_robot_count = 0
     room12_robot_count = 0
     room13_robot_count = 0
-
 
     def __init__(self):
         Manger.__init__(self)
@@ -74,52 +75,92 @@ class TeaHouseManager(Manger):
         get_db(func)
         self.check_out_create_tea_house_permission_from_db()
 
-    def create(self, creator_db_id, creator_head_image, tea_house_head_image_url, name, tea_house_type, creator_name,
-               creator_proxyType, gold, on_success, on_fail):
+    def application_create_tea_house(self, creator_db_id, creator_head_image, tea_house_head_image, tea_house_name,
+                                     tea_house_type, creator_name,
+                                     creator_proxy_type, gold, on_success, on_fail):
         """
-        创建
-        :param creator_db_id:
-        :param creator_head_image:
-        :param tea_house_head_image_url:
-        :param name:
-        :param tea_house_type:
-        :param creator_name:
-        :param creator_proxyType:
-        :param on_success:
-        :param on_fail:
+        申请创建茶楼
+        :param creator_db_id:楼主数据库id
+        :param creator_head_image:楼主头像地址
+        :param tea_house_head_image:茶楼头像地址
+        :param tea_house_name:茶楼名
+        :param tea_house_type:茶楼类型
+        :param creator_name:楼主名称
+        :param creator_proxy_type:楼主代理等级
+        :param gold:楼主带入金币
+        :param on_success:成功回调
+        :param on_fail:失败回调
         :return:
         """
-        # TODO 创建冠名赛
+        self.check_create_tea_house_record(creator_db_id, creator_head_image, tea_house_head_image, tea_house_name,
+                                           tea_house_type, creator_name)
+
+    def check_create_tea_house_record(self, creator_db_id, creator_head_image,
+                                      tea_house_head_image,
+                                      tea_house_name, tea_house_type, creator_name):
+        """
+        检查是否可以创建茶楼
+        """
         # for k, v in self.teaHouse_dic.items():
         #     if v.creatorDBID == creator_db_id:
         #         on_fail("每个ID只能创建一个冠名赛")
         #         return
-
-        # 如果创建冠名赛需要权限
-        # todo:test,remove 'and tea_house_type == 0'
+        # 申请创建者
+        creator = get_account_entity_with_db_id(creator_db_id)
+        # 如果创建冠名赛需要权限，检测是否是代理
         if self.need_permission == 1 and tea_house_type == 0:
-            if creator_proxyType != 10 and creator_proxyType != 20 and creator_proxyType != 30 and creator_proxyType != 15:
-                on_fail("您没有权限，请联系代理")
-                return
+            if creator.proxyType == 0:
+                creator.call_client_func("Notice", ['您不是代理，无法创建茶楼'])
+                return False
 
-        tea_house = KBEngine.createEntityLocally("TeaHouse", {'rank': {}})
-        while True:
-            # tea_house_id = random.randint(100000, 999999)
-            tea_house_id = random.randint(500000, 999999)
-            if tea_house_id % 111111 == 0:
-                continue
-            # 是否存在该随机ID
-            exist = False
-            for k, v in self.teaHouse_dic.items():
-                if v.teaHouseId == tea_house_id:
-                    exist = True
+        # 检测是否有已存在的申请
+        def callback(result, rows, insertid, error):
+            if result:
+                creator.call_client_func("Notice", ['您申请过创建茶楼，请等待审核'])
+                return False
+
+            while True:
+                tea_house_id = random.randint(500000, 999999)
+                if tea_house_id % 111111 == 0:
+                    continue
+                # 是否存在该随机ID
+                exist = False
+                for k, v in self.teaHouse_dic.items():
+                    if v.teaHouseId == tea_house_id:
+                        exist = True
+                        break
+                if not exist:
                     break
-            if not exist:
-                break
-        DEBUG_MSG("tea_house rooms:%s, teahouse dbid:%s" % (tea_house.rooms, tea_house.databaseID))
-        tea_house.create(creator_db_id, tea_house_id, creator_head_image, tea_house_head_image_url, name,
-                         tea_house_type, gold,
-                         creator_name, on_success, on_fail)
+
+            self.insert_create_tea_house_record(creator_db_id, creator_head_image,
+                                                tea_house_head_image,
+                                                tea_house_name, tea_house_type, creator_name,
+                                                tea_house_id)
+            creator.call_client_func("Notice", ['创建成功，请等待审核'])
+
+        command_sql = 'SELECT * FROM create_tea_house_record where creator_db_id=%s and result=-1' % creator_db_id
+        KBEngine.executeRawDatabaseCommand(command_sql, callback)
+
+    def insert_create_tea_house_record(self, creator_db_id, creator_head_image, tea_house_head_image,
+                                       tea_house_name, tea_house_type, creator_name, tea_house_id):
+        """
+        插入创建茶楼记录，等待后台审核通过
+        """
+        result = -1
+        add_time = int(time.time())
+        update_time = int(time.time())
+        command_sql = 'INSERT INTO create_tea_house_record ' \
+                      '(creator_head_image,tea_house_head_image,tea_house_name,' \
+                      'creator_name,creator_db_id,tea_house_type,tea_house_id,' \
+                      'result,add_time,update_time) ' \
+                      'VALUES ("%s","%s","%s","%s",%s,%s,%s,%s,%s,%s)' % (creator_head_image,
+                                                                          tea_house_head_image, tea_house_name,
+                                                                          creator_name,
+                                                                          creator_db_id, tea_house_type,
+                                                                          tea_house_id,
+                                                                          result, add_time, update_time)
+
+        KBEngine.executeRawDatabaseCommand(command_sql, None)
 
     def destroy_tea_house_with_id(self, tea_house_id, on_success=None, on_fail=None):
         """
@@ -327,6 +368,97 @@ class TeaHouseManager(Manger):
         tea_house_entity = self.get_tea_house_with_id(tea_house_id)
         if tea_house_entity:
             return tea_house_entity.search_tea_house_single_member_info(searcher, key_word)
+
+    def get_members_black_info_with_page(self, tea_house_id, account_db_id, page_index):
+        """
+        获取指定冠名赛指定页码的成员拉黑信息
+        :param page_index: 页码，从0开始
+        :param tea_house_id:冠名赛id
+        :param account_db_id:用户数据库id
+        :return:
+        """
+        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
+        account_entity = get_account_entity_with_db_id(account_db_id)
+        if account_entity and tea_house_entity:
+            if account_db_id in tea_house_entity.memberInfo.keys():
+                v = tea_house_entity.memberInfo[account_db_id]
+                DEBUG_MSG("获取指定冠名赛指定页码的成员拉黑信息: %s" % v.level)
+                if int(v.level) == 100:
+                    return tea_house_entity.get_members_black_info_with_page(page_index, request_db_id=account_db_id)
+                elif int(v.level) == 10:
+                    return tea_house_entity.get_members_black_info_with_page(page_index, request_db_id=account_db_id)
+                else:
+                    return tea_house_entity.get_members_black_info_with_page2(page_index, request_db_id=account_db_id)
+                    
+    
+    def get_members_black_info_with_page3(self, tea_house_id, account_db_id):
+        """
+        获取指定冠名赛指定页码的成员拉黑信息
+        :param page_index: 页码，从0开始
+        :param tea_house_id:冠名赛id
+        :param account_db_id:用户数据库id
+        :return:
+        """
+        DEBUG_MSG("get_members_black_info_with_page3---------------------------")
+        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
+        DEBUG_MSG(tea_house_entity)
+        account_entity = get_account_entity_with_db_id(account_db_id)
+        DEBUG_MSG(account_entity)
+        DEBUG_MSG(account_db_id)
+        DEBUG_MSG(tea_house_entity.memberInfo.keys())
+        if tea_house_entity:
+            if account_db_id in tea_house_entity.memberInfo.keys():
+                DEBUG_MSG("get_members_black_info_with_page3 account_db_id in tea_house_entity.memberInfo.keys():")
+                return tea_house_entity.get_members_black_info_with_page3(request_db_id=account_db_id)
+
+    def set_tea_house_member_black_score(self, tea_house_id, account_db_id, score):
+        """
+        设置茶楼玩家拉黑分数
+        """
+        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
+        if tea_house_entity:
+            result = tea_house_entity.set_member_black_score(account_db_id, score)
+            return result
+        return False
+
+    def member_score_sum(self, tea_house_id, account_db_id, total_gold_change):
+        """
+        统计茶楼玩家今日、昨日输赢
+        """
+        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
+        if tea_house_entity:
+            tea_house_entity.member_score_sum(account_db_id, total_gold_change)
+
+    def set_tea_house_black_score(self, tea_house_id, score):
+        """
+        设置茶楼拉黑分数
+        """
+        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
+        if tea_house_entity:
+            result = tea_house_entity.set_tea_house_black_score(score)
+            return result
+        return False
+    
+    def set_tea_house_name(self, tea_house_id, name, notice):
+        """
+        设置茶楼名字
+        """
+        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
+        if tea_house_entity:
+            result = tea_house_entity.set_tea_house_name(name, notice)
+            return result
+        return False
+    
+    def set_member_unseal(self, tea_house_id, account_db_id):
+        """ 解封 """
+        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
+        if tea_house_entity:
+            player = tea_house_entity.get_tea_house_player(account_db_id)
+            if player and player.black_info_sum and tea_house_entity.today_end in player.black_info_sum:
+                player.black_info_sum[tea_house_entity.today_end] = 0
+                return True
+        return False
+        
 
     def get_members_with_page(self, tea_house_id, account_db_id, page_index):
         """
@@ -630,7 +762,8 @@ class TeaHouseManager(Manger):
                     room_robot_count1 = self.get_room_robot_count("RoomType1")
                     room_robot_count12 = self.get_room_robot_count("RoomType12")
                     room_robot_count13 = self.get_room_robot_count("RoomType13")
-                    _dataitem = {"RoomType4": room_robot_count4, "RoomType1": room_robot_count1, "RoomType12": room_robot_count12, "RoomType13": room_robot_count13}
+                    _dataitem = {"RoomType4": room_robot_count4, "RoomType1": room_robot_count1,
+                                 "RoomType12": room_robot_count12, "RoomType13": room_robot_count13}
                     DEBUG_MSG(_dataitem)
                 end_time = time.time()
                 DEBUG_MSG("耗时----%s秒" % str(end_time - start_time))
@@ -641,7 +774,7 @@ class TeaHouseManager(Manger):
                     room_robot_count = room_robot_count_list[1]
                 if score_level >= 1 and score_level < 2:
                     room_robot_count = room_robot_count_list[2]
-                if score_level >=2 and score_level < 3:
+                if score_level >= 2 and score_level < 3:
                     room_robot_count = room_robot_count_list[3]
                 if score_level >= 3 and score_level < 5:
                     room_robot_count = room_robot_count_list[4]
@@ -670,7 +803,7 @@ class TeaHouseManager(Manger):
                 _total_page = tea_house_entity.get_rooms_total_page(room_type, anonymity, started_disappear)
                 # 此类型的总房间数
                 _total_room_count = len(
-                    tea_house_entity.get_rooms_with_room_type(room_type, anonymity, started_disappear,score_level))
+                    tea_house_entity.get_rooms_with_room_type(room_type, anonymity, started_disappear, score_level))
                 _data = {"rooms": _rooms, "totalPage": _total_page, "roomCount": _total_room_count}
                 _data['room_robot_count'] = room_robot_count
                 DEBUG_MSG('----datas')
@@ -687,7 +820,8 @@ class TeaHouseManager(Manger):
     def get_room_robot_count(self, roomtype):
         room_robot_count = 0
         import pymysql
-        conn = pymysql.connect('localhost', 'kbe', 'pwd123456', 'kbe')
+        conn = pymysql.connect('localhost', 'kbe', 'pwd12345603', 'kbe')
+        # conn = pymysql.connect('localhost', 'root', '123456', 'game')
         cursor = conn.cursor()
 
         sql = "select * from room_robot where room_type='%s'" % str(roomtype)
@@ -712,7 +846,6 @@ class TeaHouseManager(Manger):
             return [quotient - 1] * -remainder + [quotient] * (n + remainder)
         return [quotient] * n
 
-
     def get_tea_house_player_team_game_coin(self, tea_house_id, account_dbid):
         DEBUG_MSG("get_tea_house_player_team_game_coin teaHouseId:%s,account_dbid:%s" % (tea_house_id, account_dbid))
         tea_house_entity = self.get_tea_house_with_id(tea_house_id)
@@ -727,6 +860,82 @@ class TeaHouseManager(Manger):
             return tea_house_entity.get_player_game_coin(account_dbid)
         else:
             return {}
+
+    def process_create_tea_house(self, tea_house_id, agree):
+        """
+        根据网页后台发过来的结果创建茶楼
+        """
+        if not agree:
+            self.update_create_tea_house_record(tea_house_id, 0)
+            return
+        command_sql = 'SELECT * FROM create_tea_house_record WHERE tea_house_id=%s and result=-1' % tea_house_id
+
+        def create_success(tea_house_entity):
+            """
+            创建成功如果楼主在线，通知楼主
+            """
+            if tea_house_entity:
+                self.update_create_tea_house_record(tea_house_entity.teaHouseId, 1)
+                creator_entity = get_account_entity_with_db_id(tea_house_entity.creatorDBID)
+                if creator_entity:
+                    args = {"id": tea_house_entity.teaHouseId, "name": tea_house_entity.name,
+                            "headImage": tea_house_entity.headImage,
+                            "contactWay": tea_house_entity.contactWay}
+                    creator_entity.call_client_func("createTeaHouseSuccess", args)
+                    creator_entity.get_joined_tea_house_list()
+                    # 修改房卡
+                    modify_count = Const.GameConfigJson.config_json['Hall']['teaHouseCreateDiamondConsume']
+                    account_manager().modify_room_card(creator_entity.userId, -modify_count,
+                                                       consume_type='createTeaHouse')
+
+        def create_fail(tea_house_entity, fail_content):
+            """
+            创建失败如果楼主在线，通知楼主
+            """
+            if tea_house_entity:
+                creator_entity = get_account_entity_with_db_id(tea_house_entity.creatorDBID)
+                if creator_entity:
+                    args = {"content": fail_content}
+                    creator_entity.call_client_func("createTeaHouseFail", args)
+
+        def db_success(result, rows, insertid, error):
+            """
+            从数据库查找茶楼数据
+            """
+            if result:
+                DEBUG_MSG('teaHouseManager process_create_tea_house %s' % result)
+                info = result[0]
+                creator_db_id = Utils.bytes_to_int(info[1])
+                tea_house_id_db = Utils.bytes_to_int(info[2])
+                creator_head_image = Utils.bytes_to_str(info[3])
+                tea_house_head_image = Utils.bytes_to_str(info[4])
+                name = Utils.bytes_to_str(info[5])
+                tea_house_type = Utils.bytes_to_int(info[6])
+                gold = 0
+                creator_name = Utils.bytes_to_str(info[7])
+                tea_house = KBEngine.createEntityLocally("TeaHouse", {'rank': {}})
+                tea_house.create(creator_db_id, tea_house_id_db, creator_head_image,
+                                 tea_house_head_image, name,
+                                 tea_house_type, gold,
+                                 creator_name, create_success, create_fail)
+
+        KBEngine.executeRawDatabaseCommand(command_sql, db_success)
+
+    def update_create_tea_house_record(self, tea_house_id, result):
+        """
+        更新数据库中的茶楼创建审核记录
+        """
+        command_sql = 'UPDATE create_tea_house_record SET result=%s ' \
+                      'WHERE tea_house_id=%s and result=-1' % (result, tea_house_id)
+        KBEngine.executeRawDatabaseCommand(command_sql, None)
+
+    def get_tea_house_proxy_info(self, tea_house_id, requester):
+        """
+        获取茶楼代理信息
+        """
+        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
+        if tea_house_entity:
+            tea_house_entity.get_tea_house_proxy_info(requester)
 
     @property
     def today_start(self):

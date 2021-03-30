@@ -102,8 +102,8 @@ def req_wx_asset_token(_code):
     微信登录配置
     """
     # 发送请求
-    _app_id = "wxfb4a9b8046f5a297"
-    _secret = "b608b87d3835c5c555042e662c49c132"
+    _app_id = "wxfd6bd90741d306dd"
+    _secret = "b22e2fc5a8720d0730ffb34670ca71dc"
     _url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code" % (
         _app_id, _secret, _code)
     context = ssl._create_unverified_context()

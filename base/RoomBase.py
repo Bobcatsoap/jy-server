@@ -319,12 +319,21 @@ class RoomBase(KBEngine.Entity):
         # 今日比赛分收成
         elif _func_name == "todayGameBilling":
             tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(pyDic["teaHouseId"])
-            DEBUG_MSG('todayGameBilling------------------')
-            DEBUG_MSG(pyDic)
+            # DEBUG_MSG('todayGameBilling------------------')
+            # DEBUG_MSG(pyDic)
             if tea_house_entity:
                 # pyDic["todayGameCoinAdd"] 抽成的数量
                 if float(pyDic["todayGameCoinAdd"]) > 0.0:
                     tea_house_entity.add_today_game_coin_billing(pyDic["userId"], pyDic["todayGameCoinAdd"], pyDic['roomType'])
+        # 今日房费分收成
+        elif _func_name == "todayGameRoomRateBilling":
+            tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(pyDic["teaHouseId"])
+            DEBUG_MSG('todayGameRoomRateBilling------------------')
+            DEBUG_MSG(pyDic)
+            if tea_house_entity:
+                # pyDic["todayGameCoinAdd"] 抽成的数量
+                if float(pyDic["todayGameRoomRateAdd"]) > 0:
+                    tea_house_entity.add_today_game_room_rate_billing(pyDic["userId"], pyDic["todayGameRoomRateAdd"], pyDic['roomType'])
         elif _func_name == "todayBillStatic":
             tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(pyDic["teaHouseId"])
             if tea_house_entity:
@@ -524,7 +533,7 @@ class RoomBase(KBEngine.Entity):
         :return:
         """
         DEBUG_MSG('创建房间消耗房卡,房间信息%s' % self.info)
-        self.account_mgr.modify_room_card(player_db_id, modify_count, consume_type=self.info['type'])
+        self.account_mgr.modify_room_card(player_db_id, modify_count, consume_type=self.info['type'], teaHouseId=self.info['teaHouseId'])
 
     def modify_player_goldIngot(self, player_db_id, modify_count):
         """

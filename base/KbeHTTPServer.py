@@ -64,8 +64,147 @@ def start():
     server.route('/ChangePartnerSwitch', change_partner_switch)
     server.route('/AllowChangeGameCoinSwitch', allow_change_game_coin_switch)
     server.route('/UnbindProxy', unbind_proxy)
+    server.route('/RebindingProxy', rebinding_proxy)
     server.route('/GetTeaHousePlayerTeamGameCoin', get_tea_house_player_team_game_coin)
     server.route('/GetTeaHousePlayerGameCoin', get_tea_house_player_game_coin)
+    server.route('/ProcessBindingProxy', process_binding_proxy)
+    server.route('/ProcessCreateTeaHouse', process_create_tea_house)
+    # 获取所有冠名赛
+    server.route('/GetAllTeaHouse', get_all_tea_house)
+    # 获取冠名赛成员
+    server.route('/GetTeaHousePlayers', get_tea_house_players)
+    # 设置茶楼拉黑分数
+    server.route('/SetTeaHouseBlackScore', set_tea_house_black_score)
+    # 设置茶楼成员拉黑分数
+    server.route('/SetTeaHouseMemberBlackScore', set_tea_house_member_black_score)
+    # 设置玩家代理类型
+    server.route("/SetPlayerProxyType", set_player_proxy_type)
+    # 查看玩家详情
+    server.route("/GetPlayerInfo", get_player_info)
+    # 修改玩家余额
+    server.route("/UpdatePlayerBalance", update_player_balance)
+    
+
+def update_player_balance(req, resp):
+    INFO_MSG('[interface KBEHttpServer] update_player_balance req.params=%s' % req.params)
+    user_id = int(req.params.get('user_id', None))
+    count = int(req.params.get('count', None))
+    entity = KBEngine.globalData["AccountMgr"].mgr.get_account(user_id)
+    if entity:
+        entity.balance -= int(count)
+        entity.writeToDB()
+    else:
+        def callback(baseRef, dataBaseID, wasActive):
+            if  baseRef:
+                baseRef.balance -= int(count)
+                baseRef.writeToDB()
+        
+        KBEngine.createEntityFromDBID("Account", int(userId), callback)
+    
+    resp.body = 'success'.encode()
+    resp.end()
+    
+
+def get_player_info(req, resp):
+    INFO_MSG('[interface KBEHttpServer] get_player_info req.params=%s' % req.params)
+    user_id = int(req.params.get('user_id', None))
+    account = KBEngine.globalData["AccountMgr"].mgr.get_account(user_id)
+    dic = dict()
+    if account:
+        dic['Online'] = 1
+        dic['roomCard'] = account.roomCard
+        dic['frozen'] = account.frozen
+    else:
+        dic['Online'] = 0
+        dic['roomCard'] = 0
+        dic['frozen'] = 0
+    INFO_MSG(dic)
+    str = json.dumps(dic)
+    resp.body = str.encode()
+    resp.end()
+
+def set_player_proxy_type(req, resp):
+    INFO_MSG('[interface KBEHttpServer] modify_proxy_type resp.params=%s' % req.params)
+    account_db_id = int(req.params.get('accountDBID', None))
+    proxy_type = int(req.params.get('proxyType', None))
+    superior_id = int(req.params.get('superior_id', None))
+    KBEngine.globalData["AccountMgr"].mgr.set_account_proxy_type(account_db_id, proxy_type,superior_id)
+    resp.body = "success".encode()
+    resp.end()
+
+
+def set_tea_house_member_black_score(req, resp):
+    INFO_MSG('[interface KBEHttpServer] set_tea_house_member_black_score resp.params=%s' % req.params)
+    tea_house_database_id = int(req.params.get('tea_house_database_id', None))
+    account_database_id = int(req.params.get('account_database_id', None))
+    tea_house_mgr = KBEngine.globalData["TeaHouseManager"].mgr
+    if tea_house_database_id in tea_house_mgr.teaHouse_dic.keys():
+        tea_house_entity = tea_house_mgr.teaHouse_dic[tea_house_database_id]
+        player = tea_house_entity.get_tea_house_player(account_database_id)
+        INFO_MSG('[interface KBEHttpServer] set_tea_house_member_black_score player=', player)
+        INFO_MSG('[interface KBEHttpServer] set_tea_house_member_black_score player=', player.black_info_sum)
+        INFO_MSG('[interface KBEHttpServer] set_tea_house_member_black_score tea_house_entity.today_end=', tea_house_entity.today_end)
+        if player and player.black_info_sum and tea_house_entity.today_end in player.black_info_sum:
+            player.black_info_sum[tea_house_entity.today_end] = 0
+        resp.body = 'success'.encode()
+    resp.body = 'fail'.encode()
+    resp.end()
+
+
+def set_tea_house_black_score(req, resp):
+    tea_house_database_id = int(req.params.get('tea_house_database_id', None))
+    score = int(req.params.get('score', None))
+    tea_house_mgr = KBEngine.globalData["TeaHouseManager"].mgr
+    if tea_house_database_id in tea_house_mgr.teaHouse_dic.keys():
+        tea_house_entity = tea_house_mgr.teaHouse_dic[tea_house_database_id]
+        tea_house_entity.set_tea_house_black_score(score)
+        resp.body = 'success'.encode()
+    resp.body = 'fail'.encode()
+    resp.end()
+
+
+def get_tea_house_players(req, resp):
+    INFO_MSG('[interface KBEHttpServer] get_tea_house_players req.params=%s' % req.params)
+    tea_house_database_id = int(req.params.get('tea_house_database_id', None))
+    tea_house_mgr = KBEngine.globalData["TeaHouseManager"].mgr
+    member_list = []
+    if tea_house_database_id in tea_house_mgr.teaHouse_dic.keys():
+        tea_house_entity = tea_house_mgr.teaHouse_dic[tea_house_database_id]
+        member_list = tea_house_entity.get_member_info()
+    dic = dict()
+    dic["member_list"] = member_list
+    INFO_MSG(dic)
+    str = json.dumps(dic)
+    resp.body = str.encode()
+    resp.end()
+
+
+def get_all_tea_house(req, resp):
+    status = int(req.params.get('status', 0))
+    account_db_id = int(req.params.get('account_db_id', None))
+    INFO_MSG('[interface KBEHttpServer] get_all_tea_house req.params=%s' % req.params)
+    tea_house_mgr = KBEngine.globalData["TeaHouseManager"].mgr
+    tea_house_list = []
+    for k, v in tea_house_mgr.teaHouse_dic.items():
+        item = dict()
+        item['name'] = v.name
+        item['id'] = v.databaseID
+        item['teaHouseId'] = v.teaHouseId
+        item['creatorDBID'] = v.creatorDBID
+        item['createTime'] = v.createTime
+        item['freezeScore'] = v.freezeScore
+        item['member_count'] = len(v.memberInfo)
+        if status != 1:  # 代理
+            if account_db_id == v.creatorDBID:
+                tea_house_list.append(item)
+        else:
+            tea_house_list.append(item)
+    dic = dict()
+    dic["tea_house_list"] = tea_house_list
+    INFO_MSG(dic)
+    str = json.dumps(dic)
+    resp.body = str.encode()
+    resp.end()
 
 
 def change_Placard(req, resp):
@@ -482,18 +621,22 @@ def modify_room_card(req, resp):
     operator_id = int(req.params.get('operatorDBID', None))
     if operator_id != -99:
         def on_create_operator_cb(operator_ref, dataBaseID, operator_active):
+            INFO_MSG('[interface KBEHttpServer] modify_room_card [operator_ref]', operator_ref)
             if operator_ref is not None:
 
                 def on_create_entity_cb(baseRef, dataBaseID, wasActive):
+                    INFO_MSG('[interface KBEHttpServer] modify_room_card [baseRef]', baseRef)
                     if baseRef is not None:
                         if number > operator_ref.roomCard:
                             return
-                        operator_ref.roomCard -= int(number)
-                        baseRef.roomCard += int(number)
+                        operator_ref.roomCard -= round(float(number), 1)
+                        INFO_MSG('[interface KBEHttpServer] modify_room_card [operator_ref.roomCard]', operator_ref.roomCard)
+                        INFO_MSG('[interface KBEHttpServer] modify_room_card [baseRef.roomCard]', baseRef.roomCard)
+                        baseRef.roomCard += round(float(number), 1)
                         if baseRef.roomCard < 0:
-                            baseRef.roomCard = 0
+                            baseRef.roomCard = round(float(0), 1)
                         if operator_ref.roomCard < 0:
-                            operator_ref.roomCard = 0
+                            operator_ref.roomCard = round(float(0), 1)
 
                         baseRef.writeToDB()
                         operator_ref.writeToDB()
@@ -727,6 +870,21 @@ def unbind_proxy(req, resp):
     KBEngine.globalData["AccountMgr"].mgr.unbind_proxy(account_db_id)
     resp.body = "success".encode()
     resp.end()
+    
+def rebinding_proxy(req, resp):
+    """
+    重新绑定玩家代理
+    :param req:
+    :param resp:
+    :return:
+    """
+    INFO_MSG('[interface KBEHttpServer] unbind_proxy resp.params=%s' % req.params)
+    account_db_id = int(req.params.get('userid', None))
+    proxy_id = int(req.params.get('proxy_id', None))
+    KBEngine.globalData["AccountMgr"].mgr.rebinding_proxy(account_db_id, proxy_id)
+    resp.body = "success".encode()
+    resp.end()
+    
 
 
 def withdraw_cash(req, resp):
@@ -890,6 +1048,29 @@ def get_tea_house_player_game_coin(req, resp):
         int_list.append(int(i))
     l = KBEngine.globalData["TeaHouseManager"].mgr.get_tea_house_player_game_coin(tea_house_id, int_list)
     resp.body = json.dumps(l).encode()
+    resp.end()
+
+
+def process_binding_proxy(req, resp):
+    """
+    处理绑定代理接口
+    """
+    result = int(req.params.get('result', 0))
+    down = int(req.params.get('down', 0))
+    up = int(req.params.get('up', 0))
+    KBEngine.globalData["AccountMgr"].mgr.process_binding_proxy(up, down, result)
+    resp.body = 'success'.encode()
+    resp.end()
+
+
+def process_create_tea_house(req, resp):
+    """
+    处理创建茶楼接口
+    """
+    result = int(req.params.get('result', 0))
+    tea_house_id = int(req.params.get('teaHouseId', 0))
+    KBEngine.globalData["TeaHouseManager"].mgr.process_create_tea_house(tea_house_id, result)
+    resp.body = 'success'.encode()
     resp.end()
 
 

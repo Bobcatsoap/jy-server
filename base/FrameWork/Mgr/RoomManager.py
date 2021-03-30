@@ -409,6 +409,8 @@ class RoomManager(Manger):
             _room.info['loseAll'] = _config['loseAll'] if 'loseAll' in _config else False
             # 四带二 bool
             _room.info["fourAndDouble"] = _config["fourAndDouble"]
+            # 四带二对 bool
+            # _room.info["fourAndDoubleDuiZi"] = True
             # 四带三 bool
             _room.info["fourAndThree"] = _config["fourAndThree"]
             # 炸弹结算状态
@@ -710,7 +712,7 @@ class RoomManager(Manger):
                 _room.info['hideOtherGameCoin'] = False
                 _room.info["canNotDisbandOnPlay"] = False
             # 比赛场只有房主支付
-            _config['payType'] = Const.PayType.RoomCreator
+            # _config['payType'] = Const.PayType.RoomCreator
             # 房主支付
             _room.info['payType'] = _config['payType']
             # 冠名赛 Id
@@ -1405,6 +1407,11 @@ class RoomManager(Manger):
 
         if 'teaHouseId' in _room.info.keys() and _room.info['teaHouseId'] != -1:
             tea_house_entity = tea_house_manager().get_tea_house_with_id(teaHouseId)
+            if tea_house_entity:
+                if tea_house_entity.member_frozen(_account.databaseID):
+                    _account.call_client_func("Notice", ["您已到达拉黑分"])
+                    return
+
             # 如果进入的是母桌，创建一个和母桌相同的房间进入
             if tea_house_entity and tea_house_entity.is_base_room(_roomId):
                 # 创建母桌相同房间并进入
@@ -1801,7 +1808,7 @@ class RoomManager(Manger):
                         # 创建时扣除房主钻石
                         KBEngine.globalData["AccountMgr"].mgr.modify_room_card(_creator, -_room.info['roomCardConsume'],
                                                                                consume_type=_room.info['type'],
-                                                                               record_sql=_room.record_sql)
+                                                                               record_sql=_room.record_sql,teaHouseId=_room.info["teaHouseId"])
 
         KBEngine.createEntityFromDBID("Account", _creator, callback)
 
