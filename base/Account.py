@@ -1053,52 +1053,7 @@ class Account(KBEngine.Proxy):
         elif _func_name == "JoinTeaHouseReq":
             self.join_tea_house_request(_args)
         elif _func_name == "JoinTeaHouseByInvitationCode":
-            # 通过邀请码进入冠名赛
-            # 申请成功，通知客户端
-            def application_success():
-                # 如果不需要审核，直接同意，处理掉, 返回
-                if tea_house_entity.isReview == 0:
-                    # 通知客户端
-                    def write_db_success(entity):
-                        joiner_entity = self.account_mgr.get_account(self.databaseID)
-                        if joiner_entity:
-                            joiner_entity.call_client_func("JoinTeaHouseSuccess",
-                                                           {"teaHouseId": tea_house_entity.teaHouseId})
-                            joiner_entity.get_joined_tea_house_list()
-
-                    # 申请失败，通知客户端
-                    def write_db_fail():
-                        pass
-
-                    tea_house_entity.join(self.databaseID, on_success=write_db_success, on_fail=write_db_fail)
-                    return
-                # 通知创建者
-                creator = tea_house_entity.creatorDBID
-                creator_entity = self.account_mgr.get_account(creator)
-                if creator_entity:
-                    # 创建者在线
-                    creator_entity.call_client_func("NewApplication", {"list": tea_house_entity.applicationList})
-
-            tea_house_entity = self.tea_house_mgr.get_tea_house_by_invitation_code(_args["invitationCode"])
-            # 如果冠名赛存在，提示客户端等待同意
-            if tea_house_entity:
-                # 如果已经加入，直接返回
-                if self.databaseID in tea_house_entity.memberInfo.keys():
-                    self.call_client_func("JoinTeaHouseResp", ["你已加入此冠名赛"])
-                    return
-                self.call_client_func("JoinTeaHouseResp", ["申请已提交,请等待老板同意"])
-                # 加入冠名赛申请列表
-                inviter_db_id = int(_args["invitationCode"])
-                for k, v in tea_house_entity.memberInfo.items():
-                    if v.invitation_code == inviter_db_id:
-                        inviter_db_id = v.db_id
-                tea_house_entity.application_join(self.databaseID, self.name, self.headImageUrl, inviter_db_id,
-                                                  self.gold,
-                                                  on_success=application_success)
-            else:
-                self.call_client_func("JoinTeaHouseResp", ["找不到此冠名赛"])
-                return
-
+            self.join_tea_house_by_invitation_code(_args)
         elif _func_name == "TeaHousePartnerInfoReq":
             # 楼主请求合伙人信息
             self.send_partner_tea_house_partner_info_to_client(_args["teaHouseId"], self.databaseID)
@@ -4926,3 +4881,54 @@ class Account(KBEngine.Proxy):
                 self.call_client_func("BackToChallengeRoomConfirm", {})
                 return True
         return False
+
+    def join_tea_house_by_invitation_code(self,args):
+        """
+        通过邀请码进入冠名赛
+        @param args:
+        @return:
+        """
+        # 申请成功，通知客户端
+        def application_success():
+            # 如果不需要审核，直接同意，处理掉, 返回
+            if tea_house_entity.isReview == 0:
+                # 通知客户端
+                def write_db_success(entity):
+                    joiner_entity = self.account_mgr.get_account(self.databaseID)
+                    if joiner_entity:
+                        joiner_entity.call_client_func("JoinTeaHouseSuccess",
+                                                       {"teaHouseId": tea_house_entity.teaHouseId})
+                        joiner_entity.get_joined_tea_house_list()
+
+                # 申请失败，通知客户端
+                def write_db_fail():
+                    pass
+
+                tea_house_entity.join(self.databaseID, on_success=write_db_success, on_fail=write_db_fail)
+                return
+            # 通知创建者
+            creator = tea_house_entity.creatorDBID
+            creator_entity = self.account_mgr.get_account(creator)
+            if creator_entity:
+                # 创建者在线
+                creator_entity.call_client_func("NewApplication", {"list": tea_house_entity.applicationList})
+
+        tea_house_entity = self.tea_house_mgr.get_tea_house_by_invitation_code(args["invitationCode"])
+        # 如果冠名赛存在，提示客户端等待同意
+        if tea_house_entity:
+            # 如果已经加入，直接返回
+            if self.databaseID in tea_house_entity.memberInfo.keys():
+                self.call_client_func("JoinTeaHouseResp", ["你已加入此冠名赛"])
+                return
+            self.call_client_func("JoinTeaHouseResp", ["申请已提交,请等待老板同意"])
+            # 加入冠名赛申请列表
+            inviter_db_id = int(args["invitationCode"])
+            for k, v in tea_house_entity.memberInfo.items():
+                if v.invitation_code == inviter_db_id:
+                    inviter_db_id = v.db_id
+            tea_house_entity.application_join(self.databaseID, self.name, self.headImageUrl, inviter_db_id,
+                                              self.gold,
+                                              on_success=application_success)
+        else:
+            self.call_client_func("JoinTeaHouseResp", ["找不到此冠名赛"])
+            return
