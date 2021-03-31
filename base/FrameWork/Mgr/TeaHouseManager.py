@@ -411,13 +411,13 @@ class TeaHouseManager(Manger):
                 DEBUG_MSG("get_members_black_info_with_page3 account_db_id in tea_house_entity.memberInfo.keys():")
                 return tea_house_entity.get_members_black_info_with_page3(request_db_id=account_db_id)
 
-    def set_tea_house_member_black_score(self, tea_house_id, account_db_id, score):
+    def set_tea_house_member_block_score(self, tea_house_id, account_db_id, score):
         """
         设置茶楼玩家拉黑分数
         """
         tea_house_entity = self.get_tea_house_with_id(tea_house_id)
         if tea_house_entity:
-            result = tea_house_entity.set_member_black_score(account_db_id, score)
+            result = tea_house_entity.set_member_block_score(account_db_id, score)
             return result
         return False
 
@@ -449,14 +449,16 @@ class TeaHouseManager(Manger):
             return result
         return False
     
-    def set_member_unseal(self, tea_house_id, account_db_id):
-        """ 解封 """
+    def unblock_tea_house_player(self, tea_house_id, account_db_id):
+        """
+        解封达到拉黑分数的玩家
+        :param tea_house_id:
+        :param account_db_id:
+        :return:
+        """
         tea_house_entity = self.get_tea_house_with_id(tea_house_id)
         if tea_house_entity:
-            player = tea_house_entity.get_tea_house_player(account_db_id)
-            if player and player.black_info_sum and tea_house_entity.today_end in player.black_info_sum:
-                player.black_info_sum[tea_house_entity.today_end] = 0
-                return True
+            return tea_house_entity.unblock_tea_house_player(account_db_id)
         return False
         
 

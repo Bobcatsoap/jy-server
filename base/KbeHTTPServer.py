@@ -76,7 +76,7 @@ def start():
     # 设置茶楼拉黑分数
     server.route('/SetTeaHouseBlackScore', set_tea_house_black_score)
     # 设置茶楼成员拉黑分数
-    server.route('/SetTeaHouseMemberBlackScore', set_tea_house_member_black_score)
+    server.route('/SetTeaHouseMemberBlackScore', set_tea_house_member_block_score)
     # 设置玩家代理类型
     server.route("/SetPlayerProxyType", set_player_proxy_type)
     # 查看玩家详情
@@ -133,19 +133,20 @@ def set_player_proxy_type(req, resp):
     resp.end()
 
 
-def set_tea_house_member_black_score(req, resp):
+def set_tea_house_member_block_score(req, resp):
+    """
+    解封达到拉黑分数的玩家
+    :param req:
+    :param resp:
+    :return:
+    """
     INFO_MSG('[interface KBEHttpServer] set_tea_house_member_black_score resp.params=%s' % req.params)
     tea_house_database_id = int(req.params.get('tea_house_database_id', None))
     account_database_id = int(req.params.get('account_database_id', None))
     tea_house_mgr = KBEngine.globalData["TeaHouseManager"].mgr
-    if tea_house_database_id in tea_house_mgr.teaHouse_dic.keys():
-        tea_house_entity = tea_house_mgr.teaHouse_dic[tea_house_database_id]
-        player = tea_house_entity.get_tea_house_player(account_database_id)
-        INFO_MSG('[interface KBEHttpServer] set_tea_house_member_black_score player=', player)
-        INFO_MSG('[interface KBEHttpServer] set_tea_house_member_black_score player=', player.black_info_sum)
-        INFO_MSG('[interface KBEHttpServer] set_tea_house_member_black_score tea_house_entity.today_end=', tea_house_entity.today_end)
-        if player and player.black_info_sum and tea_house_entity.today_end in player.black_info_sum:
-            player.black_info_sum[tea_house_entity.today_end] = 0
+    tea_house_entity = tea_house_mgr.get_tea_house_with_id(tea_house_database_id)
+    if tea_house_entity:
+        tea_house_entity.unblock_tea_house_player(account_database_id)
         resp.body = 'success'.encode()
     resp.body = 'fail'.encode()
     resp.end()

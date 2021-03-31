@@ -1508,12 +1508,12 @@ class Account(KBEngine.Proxy):
             self.set_tea_house_black_score(_args['teaHouseId'], _args['score'])
         elif _func_name == "SetTeaHouseName":  # 设置亲友圈名称
             self.set_tea_house_name(_args['teaHouseId'], _args['name'], _args['notice'])
-        elif _func_name == "setMemberUnseal":  # 解封
-            self.set_member_unseal(_args['teaHouseId'], _args['account_id'])
+        elif _func_name == "UnBlockTeaHousePlayer":
+            self.unblock_tea_house_player(_args['teaHouseId'], _args['account_id'])
         elif _func_name == 'SetTeaHouseProxyBlackScore':
-            self.set_tea_house_member_black_score(_args['teaHouseId'], _args['proxyId'], _args['score'])
+            self.set_tea_house_member_block_score(_args['teaHouseId'], _args['proxyId'], _args['score'])
         elif _func_name == 'SetTeaHouseMemberBlackScore':
-            self.set_tea_house_member_black_score(_args['teaHouseId'], _args['memberId'], _args['score'])
+            self.set_tea_house_member_block_score(_args['teaHouseId'], _args['memberId'], _args['score'])
         elif _func_name == 'SearchMember':
             self.search_member(_args['teaHouseId'], _args['keyWord'])
         elif _func_name == 'GetCanAddSameTablePlayers':
@@ -1665,7 +1665,7 @@ class Account(KBEngine.Proxy):
             DEBUG_MSG(_args)
             DEBUG_MSG(_args)
             DEBUG_MSG(_args)
-            
+
             # -------新增添服务器获取时间戳start
             import time
             import datetime
@@ -1685,9 +1685,8 @@ class Account(KBEngine.Proxy):
             _args['date'] = today_end_time
             # -------新增添服务器获取时间戳end
             DEBUG_MSG(_args)
-            
-            
-            #---------------第二次添加逻辑
+
+            # ---------------第二次添加逻辑
             # import time
             # import datetime
             # # 范围时间
@@ -1705,8 +1704,7 @@ class Account(KBEngine.Proxy):
             #     _args['date'] = today_end_time
             # #----------------end
             # DEBUG_MSG(_args)
-            
-            
+
             tea_house = self.tea_house_mgr.get_tea_house_with_id(_args["teaHouseId"])
             rank = tea_house.get_tea_house_rank(_args['date'], _args['playerDBId'], _args['currentPage'])
             self.call_client_func('GetTeahouseRank', rank)
@@ -2503,7 +2501,7 @@ class Account(KBEngine.Proxy):
             self.call_client_func('Notice', ['设置拉黑分数成功'])
         else:
             self.call_client_func('Notice', ['设置拉黑分数失败'])
-            
+
     def set_tea_house_name(self, tea_house_id, name, notice):
         """
         设置茶楼名称
@@ -2513,23 +2511,25 @@ class Account(KBEngine.Proxy):
             self.call_client_func('Notice', ['设置亲友圈名字成功'])
         else:
             self.call_client_func('Notice', ['设置亲友圈名字失败'])
-    
-    def set_member_unseal(self, tea_house_id, account_db_id):
+
+    def unblock_tea_house_player(self, tea_house_id, account_db_id):
         """
-        解封
+        解封达到拉黑分数的玩家
+        :param tea_house_id:
+        :param account_db_id:
+        :return:
         """
-        result = self.tea_house_mgr.set_member_unseal(tea_house_id, account_db_id)
+        result = self.tea_house_mgr.unblock_tea_house_player(tea_house_id, account_db_id)
         if result:
             self.call_client_func('Notice', ['解封成功'])
         else:
             self.call_client_func('Notice', ['解封失败'])
-        
 
-    def set_tea_house_member_black_score(self, tea_house_id, account_db_id, score):
+    def set_tea_house_member_block_score(self, tea_house_id, account_db_id, score):
         """
         设置茶楼成员拉黑分数
         """
-        result = self.tea_house_mgr.set_tea_house_member_black_score(tea_house_id, account_db_id, score)
+        result = self.tea_house_mgr.set_tea_house_member_block_score(tea_house_id, account_db_id, score)
         if result:
             self.call_client_func('Notice', ['设置成员拉黑分数成功'])
         else:
@@ -2550,7 +2550,7 @@ class Account(KBEngine.Proxy):
                 'totalPages': int(total_pages),
                 'memberCount': member_count,
                 'onlineCount': online_count})
-                
+
     def get_down_player(self, tea_house_id, account_db_id):
         """ 查询下级 """
         member_info = self.tea_house_mgr.get_members_black_info_with_page3(tea_house_id, account_db_id)
@@ -3736,6 +3736,7 @@ class Account(KBEngine.Proxy):
         # sql = "select * from tbl_account WHERE id=%s" % playerId
         # tea_house_entity.set_game_coin(self.databaseID, self.gold + give_gold)
         # KBEngine.executeRawDatabaseCommand(sql, _db_callback_count)
+
     def update_empty_location(self, _args):
         """
         修改桌子顺序
@@ -3750,7 +3751,6 @@ class Account(KBEngine.Proxy):
             return
         tea_house_entity.set_empty_location(index)
         self.call_client_func("updateEmptyLocationSuccess", ["修改成功"])
-        
 
     def give_gold_record(self, _args):
         """
@@ -4882,12 +4882,13 @@ class Account(KBEngine.Proxy):
                 return True
         return False
 
-    def join_tea_house_by_invitation_code(self,args):
+    def join_tea_house_by_invitation_code(self, args):
         """
         通过邀请码进入冠名赛
         @param args:
         @return:
         """
+
         # 申请成功，通知客户端
         def application_success():
             # 如果不需要审核，直接同意，处理掉, 返回

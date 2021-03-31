@@ -143,15 +143,16 @@ class TeaHouse(KBEngine.Entity):
         """
         if account_db_id in self.freezePlayers:
             return True
+
+    def member_up_to_block_score(self, account_db_id):
+        """
+        玩家是否满足拉黑分数
+        :param account_db_id:
+        :return:
+        """
         member = self.get_member(account_db_id)
         if member:
-            if self.today_end in member.black_info_sum:
-                member_today_sum = member.black_info_sum[self.today_end]
-            # 没有今天的数据，为0
-            else:
-                member_today_sum = 0
-            if member_today_sum <= 0 and member_today_sum <= member.freeze_score:
-                return True
+            return member.block_score < self.freezeScore
         return False
 
     @property
@@ -1333,10 +1334,7 @@ class TeaHouse(KBEngine.Entity):
             account_entity = get_account_entity_with_db_id(k)
             up_entity = get_account_entity_with_db_id(v.belong_to)
             online_state = bool(account_entity and account_entity.client)
-            freezeScore = int(self.get_member_black_info_sum(k))
-            DEBUG_MSG("获取玩家freezeScore", freezeScore)
-            if freezeScore > 0:
-                freezeScore = 0
+            block_score = int(self.get_member_block_score(k))
             members_info = {"level": v.level, "name": v.name, "gameCoin": round(v.game_coin, 1),
                             "accountDBId": k, "state": online_state,
                             "belongTo": v.belong_to,
@@ -1345,7 +1343,7 @@ class TeaHouse(KBEngine.Entity):
                             "headImage": v.head_image,
                             'origin_game_coin': v.origin_game_coin,
                             'luckyCard': v.lucky_card,
-                            'freezeScore': freezeScore,
+                            'freezeScore': block_score,
                             'freeze': self.is_freeze_player(k),
                             'todaySum': self.get_member_today_sum(k),
                             'yesterdaySum': self.get_member_yesterday_sum(k),
@@ -2224,17 +2222,12 @@ class TeaHouse(KBEngine.Entity):
             return player.two_day_sum[self.yesterday_end]
         return 0
 
-    def get_member_black_info_sum(self, account_db_id):
+    def get_member_block_score(self, account_db_id):
         """
         获取玩家拉黑分值
         """
         player = self.get_tea_house_player(account_db_id)
-        if player and player.black_info_sum and self.today_end in player.black_info_sum:
-            DEBUG_MSG("获取玩家拉黑分值 self.today_end", self.today_end)
-            DEBUG_MSG("获取玩家拉黑分值", player.black_info_sum)
-            return player.black_info_sum[self.today_end]
-
-        return 0
+        return player.block_score
 
     def get_member_today_sum(self, account_db_id):
         """
@@ -2245,52 +2238,46 @@ class TeaHouse(KBEngine.Entity):
             return player.two_day_sum[self.today_end]
         return 0
 
-    def set_member_black_score(self, account_db_id, freeze_score):
+    def set_member_block_score(self, account_db_id, block_score):
         """
         设置成员拉黑分数
         """
         member = self.get_member(account_db_id)
         if member:
-            member.freeze_score = freeze_score
+            member.block_score = block_score
             return True
         return False
 
+    def unblock_tea_house_player(self, account_db_id):
+        """
+        解封达到拉黑分数的玩家
+        :param account_db_id:
+        :return:
+        """
+        player = self.get_tea_house_player(account_db_id)
+        player.block_score = 0
+        return True
+
     def member_score_sum(self, account_db_id, total_gold_change):
         """
-        统计成员昨日分，今日分
+        统计成员输赢
         """
-        # 如果有今日统计
-        today_end = self.today_end
-        DEBUG_MSG("统计成员分today_end %s " % today_end)
+        DEBUG_MSG('member_score_sum account_db_id:%s total_gold_change:%s' % (account_db_id, total_gold_change))
         member = self.get_member(account_db_id)
-        DEBUG_MSG("统计成员分account_db_id %s" % account_db_id)
-        DEBUG_MSG("统计成员分member", member)
+        # 计入当日输赢
         if member:
-            DEBUG_MSG("统计成员今日分前", member.two_day_sum)
+            today_end = self.today_end
             if today_end in member.two_day_sum:
                 member.two_day_sum[today_end] += total_gold_change
-                try:
-                    member.black_info_sum[today_end] += total_gold_change
-                except:
-                    member.black_info_sum[today_end] = total_gold_change
             else:
                 member.two_day_sum[today_end] = total_gold_change
-                member.black_info_sum[today_end] = total_gold_change
-            DEBUG_MSG("统计成员今日分后", member.two_day_sum)
 
-            # DEBUG_MSG("统计成员拉黑分前",   member.black_info_sum)
-            # if today_end in member.black_info_sum:
-            # member.black_info_sum[today_end] += total_gold_change
-            # else:
-            # member.black_info_sum[today_end] = total_gold_change
-            # DEBUG_MSG("统计成员拉黑分后",   member.black_info_sum)
+        # 计入拉黑分数
+        member.block_score += total_gold_change
 
-        # log
-        for k, v in member.two_day_sum.items():
-            DEBUG_MSG('member_score_sum teaHouseId:%s account_db_id:%s sum:%s time:%s' % (self.teaHouseId,
-                                                                                          k,
-                                                                                          v,
-                                                                                          k))
+        DEBUG_MSG('member_score_sum account_db_id:%s block_score:%s two_day_sum:%s' % (account_db_id,
+                                                                                       member.block_score,
+                                                                                       json.dumps(member.two_day_sum)))
 
         # 如果超过三天，去除时间戳最小的数据
         if len(member.two_day_sum) >= 3:
@@ -2302,7 +2289,6 @@ class TeaHouse(KBEngine.Entity):
             # 去除时间戳最小的那一天
             if min_time in member.two_day_sum:
                 member.two_day_sum.pop(min_time)
-                member.black_info_sum.pop(min_time)
 
     def set_tea_house_black_score(self, freeze_score):
         """
@@ -2338,7 +2324,7 @@ class TeaHouse(KBEngine.Entity):
             online_state = bool(account_entity and account_entity.client)
             if online_state:
                 online_count += 1
-            freezeScore = int(self.get_member_black_info_sum(k))
+            freezeScore = int(self.get_member_block_score(k))
             DEBUG_MSG("获取玩家freezeScore", freezeScore)
             if freezeScore > 0:
                 freezeScore = 0
@@ -2410,7 +2396,7 @@ class TeaHouse(KBEngine.Entity):
             if online_state:
                 online_count += 1
 
-            freezeScore = int(self.get_member_black_info_sum(k))
+            freezeScore = int(self.get_member_block_score(k))
             if freezeScore < 0:
                 freezeScore = 0
             if v.belong_to == request_db_id or k == request_db_id:
@@ -2481,7 +2467,7 @@ class TeaHouse(KBEngine.Entity):
             if online_state:
                 online_count += 1
 
-            freezeScore = int(self.get_member_black_info_sum(k))
+            freezeScore = int(self.get_member_block_score(k))
             if freezeScore < 0:
                 freezeScore = 0
             if v.belong_to == request_db_id and v.proxy_type == 0:
@@ -3894,7 +3880,7 @@ class TeaHouse(KBEngine.Entity):
         """
         member = self.get_member(account_db_id)
         if member:
-            today_sum = self.get_member_black_info_sum(account_db_id)
+            today_sum = self.get_member_block_score(account_db_id)
             # 不满足茶楼拉黑分数
             if today_sum < self.freezeScore:
                 return True
@@ -4019,6 +4005,8 @@ class TeaHousePlayer:
     exclude_players = []
     # 冻结分数
     freeze_score = -500
+    # 自上次解封之后的输赢
+    block_score = 0
     # 拉黑分输赢
     black_info_sum = {}
     # 近两天输赢
