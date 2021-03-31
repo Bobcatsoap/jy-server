@@ -113,6 +113,7 @@ class TeaHouse(KBEngine.Entity):
         self.win_avg_score = 0
         self.lose_avg_score = 0
 
+        self.freezePlayers = {}
         self.freezeScore = -500
         self.isReview = 1
 
@@ -985,7 +986,7 @@ class TeaHouse(KBEngine.Entity):
         if account_entity:  # 用户在线
             account_entity.balance += add * proportion
             DEBUG_MSG("get_up_up_up_player:--->用户[%s]在线---> account_entity.balance:[%s]" % (
-            accountDBID, account_entity.balance))
+                accountDBID, account_entity.balance))
             DEBUG_MSG(
                 "当前玩家:[%s] 余额:[%s] 上级:[%s]" % (account_entity.name, account_entity.balance, account_entity.belong_to))
             account_entity.writeToDB()

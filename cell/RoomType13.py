@@ -787,7 +787,7 @@ class RoomType13(RoomBase):
         # if len(_playerInGame) != self.info["maxPlayersCount"]:
         #     DEBUG_MSG('player count is error: % i' % len(_playerInGame))
         #     return
-        self.send_shou_cards_to_player()
+        self.send_hand_cards_to_player()
         # 播放发牌动画计时器
         _chapter["dealCardAnimationTimerId"] = self.addTimer(_timeDealCardToPlayer, 0, 0)
         _chapter["deadline"] = time.time() + _timeDealCardToPlayer
@@ -2409,9 +2409,9 @@ class RoomType13(RoomBase):
     # todo：临时解决方案结束
 
     # 发牌
-    def send_shou_cards_to_player(self):
+    def send_hand_cards_to_player(self):
         """
-        TODO E发牌
+        发牌
         """
         all_cards = self.init_deal_cards()
 
