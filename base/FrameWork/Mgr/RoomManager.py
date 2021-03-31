@@ -416,7 +416,9 @@ class RoomManager(Manger):
             # 炸弹结算状态
             _room.info["boomSettlementType"] = _config["boomSettlementType"]
             # 炸弹加分
-            _room.info["boomScoreSize"] = _config["boomScoreSize"]
+            # _room.info["boomScoreSize"] = _config["boomScoreSize"]
+            # 炸弹分为底分的十倍
+            _room.info["boomScoreSize"] = _config["baseScore"] * 10
             # 炸弹不可拆
             _room.info["bombCannotSeparate"] = _config["bombCannotSeparate"]
             # 出牌时间
@@ -1049,8 +1051,8 @@ class RoomManager(Manger):
         tea_house_entity = tea_house_manager().get_tea_house_with_id(tea_house_id)
         if tea_house_entity:
             # 如果没开启比赛币开关，比赛币默认足够
-          #  if not tea_house_entity.gameCoinSwitch:
-          #      return True
+            #  if not tea_house_entity.gameCoinSwitch:
+            #      return True
             player = tea_house_entity.get_tea_house_player(account.userId)
             DEBUG_MSG(player)
             DEBUG_MSG(room.info)
@@ -1061,7 +1063,7 @@ class RoomManager(Manger):
             if room.info["type"] != "RoomType1" and room.info["type"] != "RoomType23":
                 if room.info['pot'] == True:
                     if player.game_coin < room.info["potScore"]:
-                        return  False
+                        return False
                 return player.game_coin >= room.info['gameLevel']
         return True
 
@@ -1808,7 +1810,8 @@ class RoomManager(Manger):
                         # 创建时扣除房主钻石
                         KBEngine.globalData["AccountMgr"].mgr.modify_room_card(_creator, -_room.info['roomCardConsume'],
                                                                                consume_type=_room.info['type'],
-                                                                               record_sql=_room.record_sql,teaHouseId=_room.info["teaHouseId"])
+                                                                               record_sql=_room.record_sql,
+                                                                               teaHouseId=_room.info["teaHouseId"])
 
         KBEngine.createEntityFromDBID("Account", _creator, callback)
 
@@ -1969,10 +1972,7 @@ class RoomManager(Manger):
 
         pass
 
-
-
-
-    def RecurInning(self,_account,roomID,roomtpye):
+    def RecurInning(self, _account, roomID, roomtpye):
         DEBUG_MSG('[roomID %s]------>@@@@@@@@@@@@@@@@@@@@@@@@ ' % roomID)
         DEBUG_MSG('[roomtpye %s]------>@@@@@@@@@@@@@@@@@@@ ' % roomtpye)
 
@@ -1986,13 +1986,14 @@ class RoomManager(Manger):
                 itemData = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
                     room.info["totalSettlementBilling"]) + str(room.info["settlementBilling"]) + str(
                     room.info["billingCount"]) + str(room.info["endScore"]) \
-                          + str(room.info["betBase"]) + str(room.info["maxGrabBanker"]) + str(
+                           + str(room.info["betBase"]) + str(room.info["maxGrabBanker"]) + str(
                     room.info["maxChapterCount"]) + str(room.info["prohibitedCuoPai"]) \
-                          + str(room.info["darkGrabBanker"]) + str(room.info["hasPushToGuild"]) + str(
+                           + str(room.info["darkGrabBanker"]) + str(room.info["hasPushToGuild"]) + str(
                     room.info["gameStartType"]) + str(room.info["tuiZhu"]) \
-                          + str(room.info["maiMa"]) + str(room.info["tuiZhuLimit"]) + str(room.info["betDouble"]) + str(
+                           + str(room.info["maiMa"]) + str(room.info["tuiZhuLimit"]) + str(
+                    room.info["betDouble"]) + str(
                     room.info["grabBankerLevel"]) + \
-                          str(room.info["teaHouseId"]) + str(room.info["pot"]) + str(room.info["scorpion"]) + str(
+                           str(room.info["teaHouseId"]) + str(room.info["pot"]) + str(room.info["scorpion"]) + str(
                     room.info["potScore"])
             if roomID == room.info["roomId"] and roomtpye == "RoomType1":
                 itemData = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
@@ -2005,7 +2006,8 @@ class RoomManager(Manger):
                            + str(room.info["addBetRule"]) + str(room.info["straightBigSameColor"]) + str(
                     room.info["twoThreeFiveBigLeopard"]) + str(
                     room.info["attStraightBigJqk"]) + \
-                           str(room.info["teaHouseId"]) + str(room.info["compareCardDouble"]) + str(room.info["sequentialLookCard"]) + str(
+                           str(room.info["teaHouseId"]) + str(room.info["compareCardDouble"]) + str(
+                    room.info["sequentialLookCard"]) + str(
                     room.info["gameStartType"]) + str(room.info["straightXiQian"]) + str(room.info["leopardXiQian"])
             if roomID == room.info["roomId"] and roomtpye == "RoomType13":
                 itemData = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
@@ -2018,9 +2020,11 @@ class RoomManager(Manger):
                            + str(room.info["totalScore"]) + str(room.info["baseScore"]) + str(
                     room.info["pot"]) + str(
                     room.info["potScore"]) + \
-                           str(room.info["teaHouseId"]) + str(room.info["threeAndOne"]) + str(room.info["threeAndDouble"]) + str(
+                           str(room.info["teaHouseId"]) + str(room.info["threeAndOne"]) + str(
+                    room.info["threeAndDouble"]) + str(
                     room.info["singleMax"]) + str(room.info["bombMultiple"]) + str(room.info["boomSettlementType"]) + \
-                           str(room.info["boomScoreSize"]) + str(room.info["haveCardMustCome"]) + str(room.info["singleKMustA"]) + str(
+                           str(room.info["boomScoreSize"]) + str(room.info["haveCardMustCome"]) + str(
+                    room.info["singleKMustA"]) + str(
                     room.info["doubleKMustA"]) + str(room.info["straightNotA"]) + str(room.info["fourAndDouble"])
             if roomID == room.info["roomId"] and roomtpye == "RoomType12":
                 itemData = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
@@ -2033,70 +2037,80 @@ class RoomManager(Manger):
                            + str(room.info["onlySelfAfterPass"]) + str(room.info["passHuAndPeng"]) + str(
                     room.info["pot"]) + str(
                     room.info["potScore"]) + \
-                           str(room.info["teaHouseId"]) + str(room.info["mustHu"]) + str(room.info["maxChapterCount"]) + str(
+                           str(room.info["teaHouseId"]) + str(room.info["mustHu"]) + str(
+                    room.info["maxChapterCount"]) + str(
                     room.info["timeDown"])
         for room in _rooms.values():
             if room.info["type"] == roomtpye and roomtpye == "RoomType4":
-                 itemstr =str(room.info["maxPlayersCount"]) +str(room.info["maxNum"]) +str(room.info["totalSettlementBilling"]) +str(room.info["settlementBilling"]) + str(room.info["billingCount"]) + str(room.info["endScore"]) \
-                          + str(room.info["betBase"]) +str(room.info["maxGrabBanker"]) + str(room.info["maxChapterCount"]) + str(room.info["prohibitedCuoPai"]) \
-                          + str(room.info["darkGrabBanker"]) +str(room.info["hasPushToGuild"]) + str(room.info["gameStartType"]) + str(room.info["tuiZhu"]) \
-                          + str(room.info["maiMa"]) +str(room.info["tuiZhuLimit"]) + str(room.info["betDouble"]) + str(room.info["grabBankerLevel"]) + \
-                          str(room.info["teaHouseId"]) +str(room.info["pot"]) + str(room.info["scorpion"]) + str(room.info["potScore"])
-                 if itemstr == itemData and room.info["started"] == False:
-                     itemRoomData = room.info["roomId"]
-                     _account.call_client_func("RecurInningRes", {"roomId": int(itemRoomData)})
+                itemstr = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
+                    room.info["totalSettlementBilling"]) + str(room.info["settlementBilling"]) + str(
+                    room.info["billingCount"]) + str(room.info["endScore"]) \
+                          + str(room.info["betBase"]) + str(room.info["maxGrabBanker"]) + str(
+                    room.info["maxChapterCount"]) + str(room.info["prohibitedCuoPai"]) \
+                          + str(room.info["darkGrabBanker"]) + str(room.info["hasPushToGuild"]) + str(
+                    room.info["gameStartType"]) + str(room.info["tuiZhu"]) \
+                          + str(room.info["maiMa"]) + str(room.info["tuiZhuLimit"]) + str(room.info["betDouble"]) + str(
+                    room.info["grabBankerLevel"]) + \
+                          str(room.info["teaHouseId"]) + str(room.info["pot"]) + str(room.info["scorpion"]) + str(
+                    room.info["potScore"])
+                if itemstr == itemData and room.info["started"] == False:
+                    itemRoomData = room.info["roomId"]
+                    _account.call_client_func("RecurInningRes", {"roomId": int(itemRoomData)})
             if room.info["type"] == roomtpye and roomtpye == "RoomType1":
-                 itemstr = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
-                         room.info["totalSettlementBilling"]) + str(room.info["settlementBilling"]) + str(
-                         room.info["billingCount"]) + str(room.info["endScore"]) \
-                                + str(room.info["betBase"]) + str(room.info["hasAnthorizeBuying"]) + str(
-                         room.info["maxRound"]) + str(room.info["compareCardRound"]) \
-                                + str(room.info["lookCardRound"]) + str(room.info["roomTime"]) + str(
-                         room.info["hasPushToGuild"]) + str(room.info["hasPreventCheat"]) \
-                                + str(room.info["addBetRule"]) + str(room.info["straightBigSameColor"]) + str(
-                         room.info["twoThreeFiveBigLeopard"]) + str(
-                         room.info["attStraightBigJqk"]) + \
-                                str(room.info["teaHouseId"]) + str(room.info["compareCardDouble"]) + str(
-                         room.info["sequentialLookCard"]) + str(
-                         room.info["gameStartType"]) + str(room.info["straightXiQian"]) + str(
-                         room.info["leopardXiQian"])
-                 if itemstr == itemData and room.info["started"] == False:
-                     itemRoomData = room.info["roomId"]
-                     _account.call_client_func("RecurInningRes", {"roomId": int(itemRoomData)})
+                itemstr = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
+                    room.info["totalSettlementBilling"]) + str(room.info["settlementBilling"]) + str(
+                    room.info["billingCount"]) + str(room.info["endScore"]) \
+                          + str(room.info["betBase"]) + str(room.info["hasAnthorizeBuying"]) + str(
+                    room.info["maxRound"]) + str(room.info["compareCardRound"]) \
+                          + str(room.info["lookCardRound"]) + str(room.info["roomTime"]) + str(
+                    room.info["hasPushToGuild"]) + str(room.info["hasPreventCheat"]) \
+                          + str(room.info["addBetRule"]) + str(room.info["straightBigSameColor"]) + str(
+                    room.info["twoThreeFiveBigLeopard"]) + str(
+                    room.info["attStraightBigJqk"]) + \
+                          str(room.info["teaHouseId"]) + str(room.info["compareCardDouble"]) + str(
+                    room.info["sequentialLookCard"]) + str(
+                    room.info["gameStartType"]) + str(room.info["straightXiQian"]) + str(
+                    room.info["leopardXiQian"])
+                if itemstr == itemData and room.info["started"] == False:
+                    itemRoomData = room.info["roomId"]
+                    _account.call_client_func("RecurInningRes", {"roomId": int(itemRoomData)})
             if room.info["type"] == roomtpye and roomtpye == "RoomType13":
-                 itemstr = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
-                        room.info["totalSettlementBilling"]) + str(room.info["settlementBilling"]) + str(
-                        room.info["billingCount"]) + str(room.info["endScore"]) \
-                               + str(room.info["special"]) + str(room.info["outCradType"]) + str(
-                        room.info["maxChapterCount"]) + str(room.info["boomType"]) \
-                               + str(room.info["baseMultiple"]) + str(room.info["roomTime"]) + str(
-                        room.info["boomScore"]) + str(room.info["doubleCount"]) \
-                               + str(room.info["totalScore"]) + str(room.info["baseScore"]) + str(
-                        room.info["pot"]) + str(
-                        room.info["potScore"]) + \
-                               str(room.info["teaHouseId"]) + str(room.info["threeAndOne"]) + str(room.info["threeAndDouble"]) + str(
-                        room.info["singleMax"]) + str(room.info["bombMultiple"]) + str(room.info["boomSettlementType"]) + \
-                               str(room.info["boomScoreSize"]) + str(room.info["haveCardMustCome"]) + str(room.info["singleKMustA"]) + str(
-                        room.info["doubleKMustA"]) + str(room.info["straightNotA"]) + str(room.info["fourAndDouble"])
-                 if itemstr == itemData and room.info["started"] == False:
-                     itemRoomData = room.info["roomId"]
-                     _account.call_client_func("RecurInningRes", {"roomId": int(itemRoomData)})
+                itemstr = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
+                    room.info["totalSettlementBilling"]) + str(room.info["settlementBilling"]) + str(
+                    room.info["billingCount"]) + str(room.info["endScore"]) \
+                          + str(room.info["special"]) + str(room.info["outCradType"]) + str(
+                    room.info["maxChapterCount"]) + str(room.info["boomType"]) \
+                          + str(room.info["baseMultiple"]) + str(room.info["roomTime"]) + str(
+                    room.info["boomScore"]) + str(room.info["doubleCount"]) \
+                          + str(room.info["totalScore"]) + str(room.info["baseScore"]) + str(
+                    room.info["pot"]) + str(
+                    room.info["potScore"]) + \
+                          str(room.info["teaHouseId"]) + str(room.info["threeAndOne"]) + str(
+                    room.info["threeAndDouble"]) + str(
+                    room.info["singleMax"]) + str(room.info["bombMultiple"]) + str(room.info["boomSettlementType"]) + \
+                          str(room.info["boomScoreSize"]) + str(room.info["haveCardMustCome"]) + str(
+                    room.info["singleKMustA"]) + str(
+                    room.info["doubleKMustA"]) + str(room.info["straightNotA"]) + str(room.info["fourAndDouble"])
+                if itemstr == itemData and room.info["started"] == False:
+                    itemRoomData = room.info["roomId"]
+                    _account.call_client_func("RecurInningRes", {"roomId": int(itemRoomData)})
             if room.info["type"] == roomtpye and roomtpye == "RoomType12":
-                 itemstr = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
-                        room.info["totalSettlementBilling"]) + str(room.info["settlementBilling"]) + str(
-                        room.info["billingCount"]) + str(room.info["endScore"]) \
-                               + str(room.info["huType"]) + str(room.info["singleColor"]) + str(
-                        room.info["baseScore"]) + str(room.info["fish"]) \
-                               + str(room.info["fishMother"]) + str(room.info["haveWind"]) + str(
-                        room.info["magicRed"]) + str(room.info["j258"]) \
-                               + str(room.info["onlySelfAfterPass"]) + str(room.info["passHuAndPeng"]) + str(
-                        room.info["pot"]) + str(
-                        room.info["potScore"]) + \
-                               str(room.info["teaHouseId"]) + str(room.info["mustHu"]) + str(room.info["maxChapterCount"]) + str(
-                        room.info["timeDown"])
-                 if itemstr == itemData and room.info["started"] == False:
-                     itemRoomData = room.info["roomId"]
-                     _account.call_client_func("RecurInningRes", {"roomId": int(itemRoomData)})
+                itemstr = str(room.info["maxPlayersCount"]) + str(room.info["maxNum"]) + str(
+                    room.info["totalSettlementBilling"]) + str(room.info["settlementBilling"]) + str(
+                    room.info["billingCount"]) + str(room.info["endScore"]) \
+                          + str(room.info["huType"]) + str(room.info["singleColor"]) + str(
+                    room.info["baseScore"]) + str(room.info["fish"]) \
+                          + str(room.info["fishMother"]) + str(room.info["haveWind"]) + str(
+                    room.info["magicRed"]) + str(room.info["j258"]) \
+                          + str(room.info["onlySelfAfterPass"]) + str(room.info["passHuAndPeng"]) + str(
+                    room.info["pot"]) + str(
+                    room.info["potScore"]) + \
+                          str(room.info["teaHouseId"]) + str(room.info["mustHu"]) + str(
+                    room.info["maxChapterCount"]) + str(
+                    room.info["timeDown"])
+                if itemstr == itemData and room.info["started"] == False:
+                    itemRoomData = room.info["roomId"]
+                    _account.call_client_func("RecurInningRes", {"roomId": int(itemRoomData)})
 
     def room12_conflict(self, info):
         """
