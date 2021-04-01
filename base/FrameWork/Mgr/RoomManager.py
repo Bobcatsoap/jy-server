@@ -418,7 +418,7 @@ class RoomManager(Manger):
             # 炸弹加分
             # _room.info["boomScoreSize"] = _config["boomScoreSize"]
             # 炸弹分为底分的十倍
-            _room.info["boomScoreSize"] = _config["baseScore"] * 10
+            _room.info["boomScoreSize"] = int(_config["baseScore"] * 10)
             # 炸弹不可拆
             _room.info["bombCannotSeparate"] = _config["bombCannotSeparate"]
             # 出牌时间

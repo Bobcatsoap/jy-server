@@ -143,6 +143,7 @@ class TeaHouse(KBEngine.Entity):
         """
         if account_db_id in self.freezePlayers:
             return True
+        return False
 
     def member_up_to_block_score(self, account_db_id):
         """
