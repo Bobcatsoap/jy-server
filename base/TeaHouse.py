@@ -256,6 +256,26 @@ class TeaHouse(KBEngine.Entity):
         self.sync_tea_house_player_proxy_type(creator_db_id)
         self.writeToDB(callback)
 
+    def sync_tea_house_player_up(self, account_db_id):
+        """
+        同步茶楼玩家上级
+        """
+        tea_house_player = self.get_member(account_db_id)
+        if not tea_house_player:
+            return
+
+        def callback(baseRef, databaseID, wasActive):
+            if baseRef:
+                # 如果加入者的上级在茶楼里，则设置为上级
+                up = self.get_member(baseRef.belong_to)
+                if up:
+                    tea_house_player.belong_to = up.db_id
+
+            if not wasActive:
+                baseRef.destroy()
+
+        KBEngine.createEntityFromDBID('Account', account_db_id, callback)
+
     def sync_tea_house_player_proxy_type(self, account_db_id):
         """
         同步茶楼玩家代理等级
@@ -1268,6 +1288,8 @@ class TeaHouse(KBEngine.Entity):
         KBEngine.createEntityFromDBID("Account", self.creatorDBID, on_success_callback)
         # 同步加入者的代理等级
         self.sync_tea_house_player_proxy_type(joiner_db_id)
+        # 同步加入者的上级
+        self.sync_tea_house_player_up(joiner_db_id)
         on_success(self)
 
     def get_single_member_info(self, account_db_id):
@@ -3917,7 +3939,8 @@ class TeaHouse(KBEngine.Entity):
         :return:
         """
         up_player = []
-        self.find_up_recursive(account_db_id, up_player)
+        member = self.get_member(account_db_id)
+        self.find_up_recursive(member, up_player)
         for up in up_player:
             # 如果代理设置了拉黑标准并且一条线低于拉黑标准
             if up.proxy_block_score_standard < 0:
