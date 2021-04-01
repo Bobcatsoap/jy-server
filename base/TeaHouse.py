@@ -103,8 +103,8 @@ class TeaHouse(KBEngine.Entity):
     full_disappear = False
     # 冻结成员
     freezePlayers = {}
-    # 冻结分数
-    freezeScore = -500
+    # 拉黑分标准
+    block_score_standard = -500
 
     def __init__(self):
         KBEngine.Entity.__init__(self)
@@ -114,7 +114,7 @@ class TeaHouse(KBEngine.Entity):
         self.lose_avg_score = 0
 
         self.freezePlayers = {}
-        self.freezeScore = -500
+        self.block_score_standard = -500
         self.isReview = 1
 
         # 随机对低于平均输分的玩家发好牌
@@ -152,7 +152,7 @@ class TeaHouse(KBEngine.Entity):
         """
         member = self.get_member(account_db_id)
         if member:
-            return member.block_score < self.freezeScore
+            return member.block_score < self.block_score_standard
         return False
 
     @property
@@ -2248,6 +2248,16 @@ class TeaHouse(KBEngine.Entity):
             return True
         return False
 
+    def set_proxy_block_score(self, account_db_id, block_score_standard):
+        """
+        设置代理拉黑分标准
+        """
+        member = self.get_member(account_db_id)
+        if member and member.proxy_type>0:
+            member.proxy_block_score_standard = block_score_standard
+            return True
+        return False
+
     def unblock_tea_house_player(self, account_db_id):
         """
         解封达到拉黑分数的玩家
@@ -2256,6 +2266,23 @@ class TeaHouse(KBEngine.Entity):
         """
         player = self.get_tea_house_player(account_db_id)
         player.block_score = 0
+        return True
+
+    def unblock_proxy(self, account_db_id):
+        """
+        解封代理一条线
+        :param account_db_id:
+        :return:
+        """
+        up_member = self.get_member(account_db_id)
+        if not up_member:
+            return False
+        down_members = self.get_all_down_member(account_db_id)
+        for k in down_members:
+            down = self.get_member(k)
+            if down:
+                down.block_score = 0
+        up_member.block_score = 0
         return True
 
     def member_score_sum(self, account_db_id, total_gold_change):
@@ -2290,11 +2317,11 @@ class TeaHouse(KBEngine.Entity):
             if min_time in member.two_day_sum:
                 member.two_day_sum.pop(min_time)
 
-    def set_tea_house_black_score(self, freeze_score):
+    def set_tea_house_black_score(self, block_score):
         """
         设置茶楼拉黑分数
         """
-        self.freezeScore = freeze_score
+        self.block_score_standard = block_score
         self.update_tea_house_info_to_client()
         return True
 
@@ -2336,7 +2363,6 @@ class TeaHouse(KBEngine.Entity):
                                  "headImage": v.head_image,
                                  'luckyCard': v.lucky_card,
                                  'freeze': self.is_freeze_player(k),
-                                 # 'freezeScore': v.freeze_score,
                                  'freezeScore': freezeScore,
                                  'todaySum': self.get_member_today_sum(k),
                                  'yesterdaySum': self.get_member_yesterday_sum(k)
@@ -2408,7 +2434,6 @@ class TeaHouse(KBEngine.Entity):
                                      "headImage": v.head_image,
                                      'luckyCard': v.lucky_card,
                                      'freeze': self.is_freeze_player(k),
-                                     # 'freezeScore': v.freeze_score,
                                      'freezeScore': freezeScore,
                                      'todaySum': self.get_member_today_sum(k),
                                      'yesterdaySum': self.get_member_yesterday_sum(k)
@@ -2476,7 +2501,6 @@ class TeaHouse(KBEngine.Entity):
                                      "state": online_state,
                                      "accountDBId": k,
                                      "headImage": v.head_image,
-                                     # 'freezeScore': v.freeze_score,
                                      'freezeScore': int(freezeScore),
                                      'todaySum': int(self.get_member_today_sum(k)),
                                      'yesterdaySum': int(self.get_member_yesterday_sum(k))
@@ -2976,7 +3000,7 @@ class TeaHouse(KBEngine.Entity):
         :return:
         """
         DEBUG_MSG("update_tea_house_info_to_client name： %s" % self.name)
-        DEBUG_MSG("update_tea_house_info_to_client freezeScore ： %s" % self.freezeScore)
+        DEBUG_MSG("update_tea_house_info_to_client freezeScore ： %s" % self.block_score_standard)
         tea_house_info = {"headImage": self.headImage, "name": self.name,
                           "teaHouseId": self.teaHouseId,
                           "creator": self.creatorDBID,
@@ -2997,7 +3021,7 @@ class TeaHouse(KBEngine.Entity):
                           'luckyCard': self.luckyCard,
                           'emptyLocation': self.empty_location,
                           'fullDisappear': self.full_disappear,
-                          'freezeScore': self.freezeScore
+                          'freezeScore': self.block_score_standard
                           }
         # 指定发送
         if single_send_account in self.memberInfo.keys():
@@ -3874,20 +3898,100 @@ class TeaHouse(KBEngine.Entity):
             return self.memberInfo[account_db_id]
         return None
 
-    def member_frozen(self, account_db_id):
+    def member_blocked(self, account_db_id):
         """
-        玩家是否不满足拉黑分数
+        玩家是否满足拉黑分数
+        """
+        check_tea_house = self.tea_house_blocked(account_db_id)
+        check_proxy = self.proxy_blocked(account_db_id)
+        if check_proxy or check_tea_house:
+            return True
+        return False
+
+    def tea_house_blocked(self, account_db_id):
+        """
+        玩家是否满足茶楼拉黑分数
+        :param account_db_id:
+        :return:
         """
         member = self.get_member(account_db_id)
         if member:
-            today_sum = self.get_member_block_score(account_db_id)
-            # 不满足茶楼拉黑分数
-            if today_sum < self.freezeScore:
-                return True
-            # 不满足玩家拉黑分数
-            if today_sum < member.freeze_score:
-                return True
+            return member.block_score < self.block_score_standard
         return False
+
+    def find_up_recursive(self, origin_player, up_players: []):
+        """
+        查找所有上级，到楼主为止
+        :param origin_player: 起始玩家
+        :param up_players: 上级列表
+        :return:
+        """
+        # 找到上级玩家
+        up = self.get_tea_house_player(origin_player.belong_to)
+        if not up:
+            return
+
+        # 如果有非楼主玩家的上级是自己直接返回，防止死循环
+        if up.db_id == up.belong_to and up.level != TeaHousePlayerLevel.Creator:
+            return
+
+        up_players.append(up)
+
+        # 上级玩家加入队列
+        # 加入到楼主为止
+        if up.db_id == self.creatorDBID:
+            return
+
+        self.find_up_recursive(up, up_players)
+
+    def proxy_blocked(self, account_db_id):
+        """
+        玩家上级代理一条线是否满足代理拉黑分数
+        :param account_db_id:
+        :return:
+        """
+        up_player = []
+        self.find_up_recursive(account_db_id, up_player)
+        for up in up_player:
+            # 如果代理设置了拉黑标准并且一条线低于拉黑标准
+            if up.proxy_block_score_standard < 0:
+                proxy_block_sum = self.proxy_and_members_block_score(up.db_id)
+                if proxy_block_sum < up.proxy_block_score_standard:
+                    DEBUG_MSG('proxy_blocked account_db_id:%s block_sum:%s' % (account_db_id, proxy_block_sum))
+                    return True
+        return False
+
+    def proxy_and_members_block_score(self, account_db_id):
+        """
+        获取代理及所有名下成员的拉黑分
+        :return:
+        """
+        block_sum = 0
+        proxy = self.get_member(account_db_id)
+        if not proxy:
+            return 0
+        down_members = self.get_all_down_member(account_db_id)
+        for k in down_members:
+            m = self.get_member(k)
+            block_sum += m.block_score
+        block_sum += proxy.block_score
+        return block_sum
+
+    def get_all_down_member(self, account_db_id):
+        """
+        获取某个代理的所有下级成员
+        :return:
+        """
+        down_members = []
+        for k, v in self.memberInfo.items():
+            if k == account_db_id:
+                continue
+            if self.is_down_player(account_db_id, k):
+                down_members.append(k)
+
+        DEBUG_MSG('get_all_down_member account_db_id:%s down_player:%s' % (account_db_id, down_members))
+
+        return down_members
 
     def get_tea_house_proxy_info(self, requester):
         """
@@ -4003,12 +4107,10 @@ class TeaHousePlayer:
     winner = 0
     # 不能同桌
     exclude_players = []
-    # 冻结分数
-    freeze_score = -500
     # 自上次解封之后的输赢
     block_score = 0
-    # 拉黑分输赢
-    black_info_sum = {}
+    # 代理拉黑分标准
+    proxy_block_score_standard = 0
     # 近两天输赢
     two_day_sum = {}
     # 总输赢
@@ -4039,8 +4141,6 @@ class TeaHousePlayer:
         self.win_score_threshold = 0
         self.luck_score_control = False
         self.exclude_players = []
-        self.freeze_score = -500
-        self.black_info_sum = {}
         self.two_day_sum = {}
         self.all_sum = 0
         self.proxy_type = 0

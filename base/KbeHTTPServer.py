@@ -193,7 +193,7 @@ def get_all_tea_house(req, resp):
         item['teaHouseId'] = v.teaHouseId
         item['creatorDBID'] = v.creatorDBID
         item['createTime'] = v.createTime
-        item['freezeScore'] = v.freezeScore
+        item['freezeScore'] = v.block_score_standard
         item['member_count'] = len(v.memberInfo)
         if status != 1:  # 代理
             if account_db_id == v.creatorDBID:

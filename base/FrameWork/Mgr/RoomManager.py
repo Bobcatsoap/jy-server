@@ -1410,7 +1410,7 @@ class RoomManager(Manger):
         if 'teaHouseId' in _room.info.keys() and _room.info['teaHouseId'] != -1:
             tea_house_entity = tea_house_manager().get_tea_house_with_id(teaHouseId)
             if tea_house_entity:
-                if tea_house_entity.member_frozen(_account.databaseID):
+                if tea_house_entity.member_blocked(_account.databaseID):
                     _account.call_client_func("Notice", ["您已到达拉黑分"])
                     return
 

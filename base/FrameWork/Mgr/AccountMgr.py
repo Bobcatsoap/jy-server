@@ -130,9 +130,12 @@ class AccountMgr(Manger):
 
     def set_account_proxy_type(self, account_db_id, proxy_type, superior_id):
         """
-        设置玩家代理登记
+        设置玩家代理等级
+        :param account_db_id:
+        :param proxy_type:
+        :param superior_id:
+        :return:
         """
-
         def callback(baseRef, databaseID, wasActive):
             baseRef.proxyType = proxy_type
             baseRef.belong_to = superior_id

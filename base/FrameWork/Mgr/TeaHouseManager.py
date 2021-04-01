@@ -421,6 +421,16 @@ class TeaHouseManager(Manger):
             return result
         return False
 
+    def set_tea_house_proxy_block_score(self, tea_house_id, account_db_id, score):
+        """
+        设置茶楼代理拉黑分数
+        """
+        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
+        if tea_house_entity:
+            result = tea_house_entity.set_proxy_block_score(account_db_id, score)
+            return result
+        return False
+
     def member_score_sum(self, tea_house_id, account_db_id, total_gold_change):
         """
         统计茶楼玩家今日、昨日输赢

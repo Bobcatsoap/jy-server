@@ -1511,7 +1511,7 @@ class Account(KBEngine.Proxy):
         elif _func_name == "UnBlockTeaHousePlayer":
             self.unblock_tea_house_player(_args['teaHouseId'], _args['account_id'])
         elif _func_name == 'SetTeaHouseProxyBlackScore':
-            self.set_tea_house_member_block_score(_args['teaHouseId'], _args['proxyId'], _args['score'])
+            self.set_tea_house_proxy_block_score(_args['teaHouseId'], _args['proxyId'], _args['score'])
         elif _func_name == 'SetTeaHouseMemberBlackScore':
             self.set_tea_house_member_block_score(_args['teaHouseId'], _args['memberId'], _args['score'])
         elif _func_name == 'SearchMember':
@@ -2534,6 +2534,20 @@ class Account(KBEngine.Proxy):
             self.call_client_func('Notice', ['设置成员拉黑分数成功'])
         else:
             self.call_client_func('Notice', ['设置成员拉黑分数失败'])
+
+    def set_tea_house_proxy_block_score(self, tea_house_id, account_db_id, score):
+        """
+        设置代理拉黑分
+        :param tea_house_id:
+        :param account_db_id:
+        :param score:
+        :return:
+        """
+        result = self.tea_house_mgr.set_tea_house_proxy_block_score(tea_house_id, account_db_id, score)
+        if result:
+            self.call_client_func('Notice', ['设置代理拉黑分数成功'])
+        else:
+            self.call_client_func('Notice', ['设置代理拉黑分数失败'])
 
     def get_member_black_info_with_page_index(self, tea_house_id, account_db_id, page_index):
         """
