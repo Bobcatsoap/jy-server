@@ -399,7 +399,7 @@ class TeaHouseManager(Manger):
         """
         tea_house_entity = self.get_tea_house_with_id(tea_house_id)
         if tea_house_entity:
-            return tea_house_entity.get_down_members(request_db_id=account_db_id)
+            return tea_house_entity.get_down_members(account_db_id)
         return []
 
     def set_tea_house_member_block_score(self, tea_house_id, account_db_id, score):
