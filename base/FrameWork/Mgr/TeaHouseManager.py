@@ -389,27 +389,18 @@ class TeaHouseManager(Manger):
                     return tea_house_entity.get_members_black_info_with_page(page_index, request_db_id=account_db_id)
                 else:
                     return tea_house_entity.get_members_black_info_with_page2(page_index, request_db_id=account_db_id)
-                    
-    
-    def get_members_black_info_with_page3(self, tea_house_id, account_db_id):
+
+    def get_down_members(self, tea_house_id, account_db_id):
         """
         获取指定冠名赛指定页码的成员拉黑信息
-        :param page_index: 页码，从0开始
         :param tea_house_id:冠名赛id
         :param account_db_id:用户数据库id
         :return:
         """
-        DEBUG_MSG("get_members_black_info_with_page3---------------------------")
         tea_house_entity = self.get_tea_house_with_id(tea_house_id)
-        DEBUG_MSG(tea_house_entity)
-        account_entity = get_account_entity_with_db_id(account_db_id)
-        DEBUG_MSG(account_entity)
-        DEBUG_MSG(account_db_id)
-        DEBUG_MSG(tea_house_entity.memberInfo.keys())
         if tea_house_entity:
-            if account_db_id in tea_house_entity.memberInfo.keys():
-                DEBUG_MSG("get_members_black_info_with_page3 account_db_id in tea_house_entity.memberInfo.keys():")
-                return tea_house_entity.get_members_black_info_with_page3(request_db_id=account_db_id)
+            return tea_house_entity.get_down_members(request_db_id=account_db_id)
+        return []
 
     def set_tea_house_member_block_score(self, tea_house_id, account_db_id, score):
         """
@@ -448,7 +439,7 @@ class TeaHouseManager(Manger):
             result = tea_house_entity.set_tea_house_black_score(score)
             return result
         return False
-    
+
     def set_tea_house_name(self, tea_house_id, name, notice):
         """
         设置茶楼名字
@@ -458,7 +449,7 @@ class TeaHouseManager(Manger):
             result = tea_house_entity.set_tea_house_name(name, notice)
             return result
         return False
-    
+
     def unblock_tea_house_player(self, tea_house_id, account_db_id):
         """
         解封达到拉黑分数的玩家
@@ -470,7 +461,6 @@ class TeaHouseManager(Manger):
         if tea_house_entity:
             return tea_house_entity.unblock_tea_house_player(account_db_id)
         return False
-        
 
     def get_members_with_page(self, tea_house_id, account_db_id, page_index):
         """

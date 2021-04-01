@@ -1503,7 +1503,7 @@ class Account(KBEngine.Proxy):
         elif _func_name == 'GetMemberBlackInfoWithPageIndex':
             self.get_member_black_info_with_page_index(_args['teaHouseId'], _args['accountDBID'], _args['pageIndex'])
         elif _func_name == 'GetDownPlayer':
-            self.get_down_player(_args['teaHouseId'], _args['accountDBID'])
+            self.get_down_members(_args['teaHouseId'], _args['accountDBID'])
         elif _func_name == 'SetTeaHouseBlackScore':
             self.set_tea_house_black_score(_args['teaHouseId'], _args['score'])
         elif _func_name == "SetTeaHouseName":  # 设置亲友圈名称
@@ -2565,13 +2565,16 @@ class Account(KBEngine.Proxy):
                 'memberCount': member_count,
                 'onlineCount': online_count})
 
-    def get_down_player(self, tea_house_id, account_db_id):
-        """ 查询下级 """
-        member_info = self.tea_house_mgr.get_members_black_info_with_page3(tea_house_id, account_db_id)
-        if len(member_info) > 0:
-            self.call_client_func("GetDownPlayer", member_info)
-        else:
-            self.call_client_func("GetDownPlayer", [])
+    def get_down_members(self, tea_house_id, account_db_id):
+        """
+        查询代理下级
+        :param tea_house_id:
+        :param account_db_id:
+        :return:
+        """
+        member_info = self.tea_house_mgr.get_down_members(tea_house_id, account_db_id)
+        self.call_client_func("GetDownPlayer", member_info)
+
 
     def get_members_with_page_index(self, tea_house_id, account_db_id, page_index):
         """
