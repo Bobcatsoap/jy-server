@@ -2256,6 +2256,7 @@ class TeaHouse(KBEngine.Entity):
         member = self.get_member(account_db_id)
         if member and member.proxy_type > 0:
             member.proxy_block_score_standard = block_score_standard
+            self.get_tea_house_proxy_info(account_db_id)
             return True
         return False
 
@@ -3960,7 +3961,9 @@ class TeaHouse(KBEngine.Entity):
 
     def get_tea_house_proxy_info(self, requester):
         """
-        获取茶楼所有代理信息
+        获取茶楼代理信息
+        :param requester:
+        :return:
         """
         all_proxy_info = []
         # 防止重复
@@ -3969,26 +3972,19 @@ class TeaHouse(KBEngine.Entity):
         for k, v in self.memberInfo.items():
             DEBUG_MSG("name: %s  proxy_type:%s " % (v.name, v.proxy_type))
             if v.proxy_type > 0 and k not in checked_proxy_id:
-                # 代理信息
-                freeze_score = 0
-                todaySum = 0
-                yesterdaySum = 0
-                DEBUG_MSG("self.memberInfo.items()---------------------")
-                DEBUG_MSG(self.memberInfo.items())
+                today_sum = 0
+                yesterday_sum = 0
                 for key, value in self.memberInfo.items():
                     DEBUG_MSG("value.belong_to[%s]  k[%s]" % (value.belong_to, k))
                     if value.belong_to == k and value.proxy_type == 0:
-                        yesterdaySum += self.get_member_yesterday_sum(key)
-                        todaySum += self.get_member_today_sum(key)
-                        DEBUG_MSG("key[%s]  todaySum[%s]" % (key, self.get_member_today_sum(key)))
-                        freeze_score += self.find_total_sum(key)
-                DEBUG_MSG("todaySum:[%s]" % todaySum)
+                        yesterday_sum += self.get_member_yesterday_sum(key)
+                        today_sum += self.get_member_today_sum(key)
                 proxy_info = {'name': v.name,
                               'accountDBID': v.db_id,
                               'headImage': v.head_image,
-                              'freezeScore': int(freeze_score),
-                              "todaySum": int(todaySum),
-                              "yesterdaySum": int(yesterdaySum)}
+                              'blockScoreStandard': v.proxy_block_score_standard,
+                              "todaySum": int(today_sum),
+                              "yesterdaySum": int(yesterday_sum)}
 
                 all_proxy_info.append(proxy_info)
                 checked_proxy_id.append(v.db_id)
