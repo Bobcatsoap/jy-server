@@ -2373,7 +2373,7 @@ class TeaHouse(KBEngine.Entity):
         for k, v in self.memberInfo.items():
             if k == request_db_id:
                 continue
-            if self.get_member(k).belong_to != request_db_id:
+            if self.get_member(k).belong_to != request_db_id and request_db_id != self.creatorDBID:
                 continue
             # 如果玩家实体有客户端，视为在线
             account_entity = get_account_entity_with_db_id(k)
@@ -2381,6 +2381,7 @@ class TeaHouse(KBEngine.Entity):
             online_state = bool(account_entity and account_entity.client)
             if online_state:
                 online_count += 1
+            DEBUG_MSG('get_members_black_info_with_page block_score:%s' % v.block_score)
             members_info.append({"level": int(v.level), "name": v.name, "gameCoin": v.game_coin,
                                  "accountDBId": k, "state": online_state,
                                  "belongTo": v.belong_to,
