@@ -2449,12 +2449,9 @@ class TeaHouse(KBEngine.Entity):
                 online_count += 1
 
             members_info.append({"name": v.name,
-                                 # "level": int(v.level),
-                                 # "state": online_state,
-                                 # "accountDBId": k,
                                  "headImage": v.head_image,
-                                 'todaySum': round(self.get_member_today_sum(k), 2),
-                                 'yesterdaySum': round(self.get_member_yesterday_sum(k), 2)
+                                 'todaySum': self.get_member_today_sum(k),
+                                 'yesterdaySum': self.get_member_yesterday_sum(k)
                                  })
 
         return members_info
@@ -3870,7 +3867,9 @@ class TeaHouse(KBEngine.Entity):
         """
         up_player = []
         member = self.get_member(account_db_id)
+        DEBUG_MSG('proxy_blocked account_db_id:%s belong_to:%s' % (account_db_id, member.belong_to))
         self.find_up_recursive(member, up_player)
+        DEBUG_MSG('proxy_blocked up_player:%s' % up_player)
         for up in up_player:
             # 如果代理设置了拉黑标准并且一条线低于拉黑标准
             if up.proxy_block_score_standard < 0:
@@ -3905,7 +3904,7 @@ class TeaHouse(KBEngine.Entity):
         for k, v in self.memberInfo.items():
             if k == account_db_id:
                 continue
-            if self.is_down_player(account_db_id, k):
+            if self.is_down_player(k,account_db_id):
                 down_members.append(k)
 
         DEBUG_MSG('get_all_down_member account_db_id:%s down_player:%s' % (account_db_id, down_members))
@@ -4059,6 +4058,7 @@ class TeaHousePlayer:
         self.all_sum = 0
         self.block_score = 0
         self.proxy_type = 0
+        self.proxy_block_score_standard = 0
 
     def del_game_coin(self):
         self.game_coin = 0
