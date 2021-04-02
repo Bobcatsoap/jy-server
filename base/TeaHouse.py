@@ -2275,6 +2275,8 @@ class TeaHouse(KBEngine.Entity):
         """
         设置代理拉黑分标准
         """
+        if account_db_id==self.creatorDBID:
+            return False
         member = self.get_member(account_db_id)
         if member and member.proxy_type > 0:
             member.proxy_block_score_standard = block_score_standard

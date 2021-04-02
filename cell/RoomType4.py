@@ -1181,9 +1181,9 @@ class RoomType4(RoomBase):
             DEBUG_MSG('[Room id %i]------>grab_banker, accountId %s, but player is already grab_banker' %
                       (self.id, account_id))
             return
-        if result > 0 and _playerInGame[account_id]['score'] < self.info['grabBankerLevel']:
-            self.callClientFunction(account_id, 'Notice', ['比赛分不足'])
-            return
+        # if result > 0 and _playerInGame[account_id]['score'] < self.info['grabBankerLevel']:
+        #     self.callClientFunction(account_id, 'Notice', ['比赛分不足'])
+        #     return
         _playerInGame[account_id]["grabBanker"] = result
         _args = {"accountId": account_id, "result": result}
         self.callOtherClientsFunction("GrapBanker", _args)
@@ -1367,7 +1367,6 @@ class RoomType4(RoomBase):
 
             self.debug_msg("losers account_id : %s,lose gold %s" % (k, _loseGold))
 
-
         # 如果是锅子模式，钱加在锅里
         if self.pot:
             _chapter['potStake'] += _lose_total_golds
@@ -1514,7 +1513,6 @@ class RoomType4(RoomBase):
         #         self.write_chapter_info_to_db()
         #         return
 
-
         _chapter["settlementTimerId"] = self.addTimer(_timeSettlement + len(_chapter["playerInGame"]) * 0.3, 0, 0)
         if self.info["payType"] == Const.PayType.AA:
             _pay_for_aa_player_db_id = []
@@ -1571,6 +1569,7 @@ class RoomType4(RoomBase):
                 {"accountId": v['entity'].id, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
                  "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
                  "winnerBilling": v["winnerBilling"], 'gold': self.get_true_gold(v['entity'].id)})
+            self.send_win_or_lose_score_to_base(k)
             # if self.info["roomType"] == "gameCoin":
             #     self.set_base_player_game_coin(k)
             # else:
@@ -2446,6 +2445,20 @@ class RoomType4(RoomBase):
         chapter = self.chapters[self.cn]
         player = chapter['playerInGame'][entity_id]
         return player['score'] > 0
+
+    def send_win_or_lose_score_to_base(self, account_id):
+        """
+        通知base玩家总输赢
+        :param _player:
+        :return:
+        """
+        DEBUG_MSG('send_win_or_lose_score_to_base')
+        _chapter = self.chapters[self.cn]
+        _player = _chapter['playerInGame'][account_id]
+        _player["entity"].base.cellToBase({"func": "sendWinOrLoseScoreToBase", "dic": {
+            "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
+            'type': self.info['roomType'],
+            "totalGoldChange": _player['totalGoldChange']}})
 
     def share_to_wx(self, account_entity_id):
         """
