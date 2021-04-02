@@ -2390,8 +2390,8 @@ class TeaHouse(KBEngine.Entity):
                                  'luckyCard': v.lucky_card,
                                  'blocked': self.member_blocked(k),
                                  'blockScore': v.block_score,
-                                 'todaySum': self.get_member_today_sum(k),
-                                 'yesterdaySum': self.get_member_yesterday_sum(k)
+                                 'todaySum': round(self.get_member_today_sum(k), 2),
+                                 'yesterdaySum': round(self.get_member_yesterday_sum(k), 2)
                                  })
 
         # 排序优先级,权限>在线状态,权限大的在前，在线状态为True的在前
@@ -2452,8 +2452,8 @@ class TeaHouse(KBEngine.Entity):
                                  # "state": online_state,
                                  # "accountDBId": k,
                                  "headImage": v.head_image,
-                                 'todaySum': self.get_member_today_sum(k),
-                                 'yesterdaySum': self.get_member_yesterday_sum(k)
+                                 'todaySum': round(self.get_member_today_sum(k), 2),
+                                 'yesterdaySum': round(self.get_member_yesterday_sum(k), 2)
                                  })
 
         return members_info
@@ -3935,8 +3935,8 @@ class TeaHouse(KBEngine.Entity):
                               'accountDBID': v.db_id,
                               'headImage': v.head_image,
                               'blockScoreStandard': v.proxy_block_score_standard,
-                              "todaySum": today_sum,
-                              "yesterdaySum": yesterday_sum}
+                              "todaySum": round(today_sum, 2),
+                              "yesterdaySum": round(yesterday_sum, 2)}
 
                 all_proxy_info.append(proxy_info)
                 checked_proxy_id.append(v.db_id)
