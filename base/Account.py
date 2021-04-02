@@ -1508,7 +1508,7 @@ class Account(KBEngine.Proxy):
             self.set_tea_house_black_score(_args['teaHouseId'], _args['score'])
         elif _func_name == "SetTeaHouseName":  # 设置亲友圈名称
             self.set_tea_house_name(_args['teaHouseId'], _args['name'], _args['notice'])
-        elif _func_name == "UnBlockTeaHousePlayer":
+        elif _func_name == "setMemberUnseal":
             self.unblock_tea_house_player(_args['teaHouseId'], _args['account_id'])
         elif _func_name == 'SetTeaHouseProxyBlackScore':
             self.set_tea_house_proxy_block_score(_args['teaHouseId'], _args['proxyId'], _args['score'])

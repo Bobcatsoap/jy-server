@@ -2450,8 +2450,8 @@ class TeaHouse(KBEngine.Entity):
 
             members_info.append({"name": v.name,
                                  "headImage": v.head_image,
-                                 'todaySum': self.get_member_today_sum(k),
-                                 'yesterdaySum': self.get_member_yesterday_sum(k)
+                                 'todaySum': int(self.get_member_today_sum(k)),
+                                 'yesterdaySum': int(self.get_member_yesterday_sum(k))
                                  })
 
         return members_info
