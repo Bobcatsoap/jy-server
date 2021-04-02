@@ -1357,7 +1357,7 @@ class TeaHouse(KBEngine.Entity):
             account_entity = get_account_entity_with_db_id(k)
             up_entity = get_account_entity_with_db_id(v.belong_to)
             online_state = bool(account_entity and account_entity.client)
-            block_score = int(self.get_member_block_score(k))
+            block_score = self.get_member_block_score(k)
             members_info = {"level": v.level, "name": v.name, "gameCoin": round(v.game_coin, 1),
                             "accountDBId": k, "state": online_state,
                             "belongTo": v.belong_to,
@@ -2371,9 +2371,9 @@ class TeaHouse(KBEngine.Entity):
         members_info = []
         online_count = 0
         for k, v in self.memberInfo.items():
-            if k==request_db_id:
+            if k == request_db_id:
                 continue
-            if not self.is_down_player(k,request_db_id):
+            if self.get_member(k).belong_to != request_db_id:
                 continue
             # 如果玩家实体有客户端，视为在线
             account_entity = get_account_entity_with_db_id(k)
@@ -2452,8 +2452,8 @@ class TeaHouse(KBEngine.Entity):
                                  # "state": online_state,
                                  # "accountDBId": k,
                                  "headImage": v.head_image,
-                                 'todaySum': int(self.get_member_today_sum(k)),
-                                 'yesterdaySum': int(self.get_member_yesterday_sum(k))
+                                 'todaySum': self.get_member_today_sum(k),
+                                 'yesterdaySum': self.get_member_yesterday_sum(k)
                                  })
 
         return members_info
@@ -3935,8 +3935,8 @@ class TeaHouse(KBEngine.Entity):
                               'accountDBID': v.db_id,
                               'headImage': v.head_image,
                               'blockScoreStandard': v.proxy_block_score_standard,
-                              "todaySum": int(today_sum),
-                              "yesterdaySum": int(yesterday_sum)}
+                              "todaySum": today_sum,
+                              "yesterdaySum": yesterday_sum}
 
                 all_proxy_info.append(proxy_info)
                 checked_proxy_id.append(v.db_id)
@@ -4056,6 +4056,7 @@ class TeaHousePlayer:
         self.exclude_players = []
         self.two_day_sum = {}
         self.all_sum = 0
+        self.block_score = 0
         self.proxy_type = 0
 
     def del_game_coin(self):
