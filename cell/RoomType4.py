@@ -248,11 +248,11 @@ class RoomType4(RoomBase):
                    "hasMaiMa": 0
                    }
         if self.info["roomType"] == "card":
-            _player["score"] = accountEntity.accountMutableInfo["gold"]
+            _player["score"] = 0
         elif self.info['roomType'] == 'normalGameCoin':
-            _player["score"] = accountEntity.accountMutableInfo["gold"]
+            _player["score"] = 0
         elif self.info["roomType"] == "gameCoin":
-            _player["score"] = accountEntity.accountMutableInfo["gameCoin"]
+            _player["score"] = 0
             # 如果是锅子模式, 等于门槛
             # if self.pot:
             #     _player["score"] = self.info['gameLevel']
@@ -1568,10 +1568,10 @@ class RoomType4(RoomBase):
                 {"accountId": v['entity'].id, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
                  "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
                  "winnerBilling": v["winnerBilling"], 'gold': self.get_true_gold(v['entity'].id)})
-            if self.info["roomType"] == "gameCoin":
-                self.set_base_player_game_coin(k)
-            else:
-                self.set_base_player_gold(k)
+            # if self.info["roomType"] == "gameCoin":
+            #     self.set_base_player_game_coin(k)
+            # else:
+            #     self.set_base_player_gold(k)
         if len(self.player_leave_info) > 0:
             player_settlement_info = player_settlement_info + self.player_leave_info
         args = {"settlementInfo": player_settlement_info}

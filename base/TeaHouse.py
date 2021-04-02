@@ -3999,7 +3999,7 @@ class TeaHouse(KBEngine.Entity):
                 yesterday_sum = 0
                 for key, value in self.memberInfo.items():
                     DEBUG_MSG("value.belong_to[%s]  k[%s]" % (value.belong_to, k))
-                    if value.belong_to == k and value.proxy_type == 0:
+                    if (value.belong_to == k and value.proxy_type == 0) or key == k:
                         yesterday_sum += self.get_member_yesterday_sum(key)
                         today_sum += self.get_member_today_sum(key)
                 proxy_info = {'name': v.name,
