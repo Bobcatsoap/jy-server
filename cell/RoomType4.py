@@ -286,8 +286,8 @@ class RoomType4(RoomBase):
             DEBUG_MSG("onEnter-------> account %s on Enter room, but _player already exits" % accountEntityId)
             return
         _chapter["playerOutGame"][accountEntityId] = _player
-        #self.ret_current_round(accountEntityId)
-       # self.ret_current_chapter_state(accountEntityId)
+        # self.ret_current_round(accountEntityId)
+        # self.ret_current_chapter_state(accountEntityId)
         self.retRoomBaseInfo(accountEntityId)
         # 如果比赛一开始，观战状态，发送玩家信息
         # if _chapter["currentState"] != 0:
@@ -552,13 +552,12 @@ class RoomType4(RoomBase):
                 self.changeChapterState(3)
             else:
                 _chapter["bankerTimerId"] = self.addTimer(self.info['timeDown'], 0, 0)
-                # _chapter["botTimerId"] = self.addTimer(1, 0.5, 0)
                 _chapter["deadline"] = time.time() + self.info['timeDown']
 
-                for k, v in _chapter['playerInGame'].items():
-                    # 如果金币不到最小下注倍数*底分，不抢庄
-                    if not self.can_join_game(k):
-                        self.grab_banker(k, -1)
+                # for k, v in _chapter['playerInGame'].items():
+                #     # 如果金币不到最小下注倍数*底分，不抢庄
+                #     if not self.can_join_game(k):
+                #         self.grab_banker(k, -1)
         elif state == 3:
             # 押注
             _args = {"state": state, "Timer": self.info['timeDown']}
@@ -566,10 +565,10 @@ class RoomType4(RoomBase):
             _chapter["stakeTimerId"] = self.addTimer(self.info['timeDown'], 0, 0)
             _chapter["deadline"] = time.time() + self.info['timeDown']
 
-            for k, v in _chapter['playerInGame'].items():
-                # 自动给没钱的人下零倍
-                if not self.can_join_game(k):
-                    self.set_stake(k, 0)
+            # for k, v in _chapter['playerInGame'].items():
+            #     # 自动给没钱的人下零倍
+            #     if not self.can_join_game(k):
+            #         self.set_stake(k, 0)
         elif state == 4:
             # 配牌
             _args = {"state": state, "Timer": self.info['timeDown']}
@@ -617,13 +616,14 @@ class RoomType4(RoomBase):
             _playerInGameNotEntity[int(k)] = _player
         for k, v in _chapter["playerOutGame"].items():
             try:
-                _player = {"cards": v["cards"], "gold":  v["score"],
+                _player = {"cards": v["cards"], "gold": v["score"],
                            "locationIndex": int(v["locationIndex"]),
                            "name": v["entity"].info["name"], "grabBanker": v["grabBanker"],
                            'totalGoldChange': v['totalGoldChange'],
                            "hasMatchCard": v["hasMatchCard"], "ready": v["ready"], "userId": v["entity"].info["userId"],
                            # 发送下注倍数
-                           "calculateMode": v["calculateMode"], "stake": round(float(v["stake"] / self.info['betBase']), 1),
+                           "calculateMode": v["calculateMode"],
+                           "stake": round(float(v["stake"] / self.info['betBase']), 1),
                            "ip": v["entity"].info["ip"],
                            "onLine": not v['entity'].client_death,
                            "headImageUrl": v["entity"].info["headImageUrl"], "addOn": v["entity"].info["addOn"]}
@@ -633,7 +633,7 @@ class RoomType4(RoomBase):
             else:
                 pass
         _args = {"playerInGame": _playerInGameNotEntity, "playerOutGame": _playerOutGameNotEntity}
-       # DEBUG_MSG('[Room id %i]------>retPlayerInRoomInfos %s' % (self.id, _args))
+        # DEBUG_MSG('[Room id %i]------>retPlayerInRoomInfos %s' % (self.id, _args))
         if account_id == -1:
             self.callOtherClientsFunction("RetPlayerInRoomInfos", _args)
         else:
@@ -750,7 +750,7 @@ class RoomType4(RoomBase):
         DEBUG_MSG('[获取站起玩家位置id]------>standUp accountId %s' % location_index)
         DEBUG_MSG('[前端传的玩家位置id]------>standUp accountId %s' % itemIndex)
         _chapter["playerInGame"].pop(account_id)
-        DEBUG_MSG( _chapter["playerInGame"])
+        DEBUG_MSG(_chapter["playerInGame"])
         _args = {"account_id": account_id, "location_index": itemIndex}
         self.emptyLocationIndex.append(itemIndex)
         _chapter["playerOutGame"][account_id]["location_index"] = -1
@@ -1062,7 +1062,8 @@ class RoomType4(RoomBase):
         self.keep_banker_count = 0
         self.send_banker_result(first_account_id)
         # 更新分数信息
-       # self.ret_player_in_room_infos()
+
+    # self.ret_player_in_room_infos()
 
     def random_grab_banker(self):
         """
@@ -1226,7 +1227,6 @@ class RoomType4(RoomBase):
                 self.write_chapter_info_to_db()
                 return
 
-
     def have_player_do_not_meet_end_score(self):
         """
         是否有玩家不满足离场分
@@ -1237,8 +1237,6 @@ class RoomType4(RoomBase):
             if true_gold <= self.info['endScore']:
                 return True
         return False
-
-
 
     def calculate_card(self, accountId1, accountId2):
         """
@@ -1344,14 +1342,14 @@ class RoomType4(RoomBase):
                 _winners[k] = v
 
         # 设置连输记录
-        for player in _losers.values():
-            self.set_losing_streak_history(player, True)
-        for player in _winners.values():
-            self.set_losing_streak_history(player, False)
-        if len(_losers) == 0:
-            self.set_losing_streak_history(_playerInGame[_banker], True)
-        if len(_winners) == 0:
-            self.set_losing_streak_history(_playerInGame[_banker], False)
+        # for player in _losers.values():
+        #     self.set_losing_streak_history(player, True)
+        # for player in _winners.values():
+        #     self.set_losing_streak_history(player, False)
+        # if len(_losers) == 0:
+        #     self.set_losing_streak_history(_playerInGame[_banker], True)
+        # if len(_winners) == 0:
+        #     self.set_losing_streak_history(_playerInGame[_banker], False)
 
         # 闲家总输的金币
         _lose_total_golds = 0
@@ -1361,11 +1359,14 @@ class RoomType4(RoomBase):
         # 统计闲家输的钱
         for k, v in _losers.items():
             _loseGold = v["stake"] * self._cardTypeMultiple[_playerInGame[_banker]["cardType"]] * banker_grab_banker
-            if _loseGold > v["score"]:
-                _loseGold = v["score"]
+            # if _loseGold > v["score"]:
+            #     _loseGold = v["score"]
             v["goldChange"] -= _loseGold
             v["score"] += v["goldChange"]
             _lose_total_golds += _loseGold
+
+            self.debug_msg("losers account_id : %s,lose gold %s" % (k, _loseGold))
+
 
         # 如果是锅子模式，钱加在锅里
         if self.pot:
@@ -1383,7 +1384,7 @@ class RoomType4(RoomBase):
             v["score"] += v["goldChange"]
             _win_total_golds += _winGold
 
-            DEBUG_MSG("[RoomType4 id %s]-------> player id : %s,win gold %s" % (self.id, k, _winGold))
+            self.debug_msg("winners account_id : %s,win gold %s" % (k, _winGold))
 
         # 锅子模式，庄家输钱上限为锅底
         if self.info['pot']:
@@ -1392,37 +1393,37 @@ class RoomType4(RoomBase):
         else:
             banker_lose_limit = _playerInGame[_banker]['score']
 
-        # 庄家输钱不能超过锅底
-        if _win_total_golds > banker_lose_limit:
-            # 多余要退给庄家的钱
-            total_refund_banker = _win_total_golds - banker_lose_limit
-            # 剩余退款
-            remaining_refund_banker = total_refund_banker
-            proportion_list = []
-
-            for k, v in _winners.items():
-                proportion = v['goldChange'] / _win_total_golds
-                p = [k, proportion]
-                proportion_list.append(p)
-            # 按比例从大到小排序
-            proportion_list = sorted(proportion_list, key=lambda _pro: _pro[1], reverse=True)
-            DEBUG_MSG('settlement proportions:%s' % proportion_list)
-            for i in range(len(proportion_list) - 1):
-                entity_id = proportion_list[i][0]
-                pro = proportion_list[i][1]
-                # 这个人的退款=这个人的赢钱比例*总退款
-                _refund = round(float((pro * total_refund_banker)), 1)
-                _playerInGame[entity_id]['score'] -= _refund
-                _playerInGame[entity_id]['goldChange'] -= _refund
-                remaining_refund_banker -= _refund
-            # 找到最后一个玩家，
-            last_entity_id = proportion_list[-1][0]
-            last_player = _playerInGame[last_entity_id]
-            # 最后一个玩家返还的钱等于剩下的钱
-            last_player['score'] -= remaining_refund_banker
-            last_player['goldChange'] -= remaining_refund_banker
-            # 庄家输的钱
-            _win_total_golds -= total_refund_banker
+        # 庄家输钱不能超过锅底或者身上的钱
+        # if _win_total_golds > banker_lose_limit:
+        #     # 多余要退给庄家的钱
+        #     total_refund_banker = _win_total_golds - banker_lose_limit
+        #     # 剩余退款
+        #     remaining_refund_banker = total_refund_banker
+        #     proportion_list = []
+        #
+        #     for k, v in _winners.items():
+        #         proportion = v['goldChange'] / _win_total_golds
+        #         p = [k, proportion]
+        #         proportion_list.append(p)
+        #     # 按比例从大到小排序
+        #     proportion_list = sorted(proportion_list, key=lambda _pro: _pro[1], reverse=True)
+        #     DEBUG_MSG('settlement proportions:%s' % proportion_list)
+        #     for i in range(len(proportion_list) - 1):
+        #         entity_id = proportion_list[i][0]
+        #         pro = proportion_list[i][1]
+        #         # 这个人的退款=这个人的赢钱比例*总退款
+        #         _refund = round(float((pro * total_refund_banker)), 1)
+        #         _playerInGame[entity_id]['score'] -= _refund
+        #         _playerInGame[entity_id]['goldChange'] -= _refund
+        #         remaining_refund_banker -= _refund
+        #     # 找到最后一个玩家，
+        #     last_entity_id = proportion_list[-1][0]
+        #     last_player = _playerInGame[last_entity_id]
+        #     # 最后一个玩家返还的钱等于剩下的钱
+        #     last_player['score'] -= remaining_refund_banker
+        #     last_player['goldChange'] -= remaining_refund_banker
+        #     # 庄家输的钱
+        #     _win_total_golds -= total_refund_banker
 
         # 如果是锅子模式,钱从锅里扣
         if self.pot:
@@ -1432,36 +1433,37 @@ class RoomType4(RoomBase):
 
         _playerInGame[_banker]["goldChange"] -= _win_total_golds
 
-        if self.info["roomType"] == "gameCoin":
-            # 首局结算抽水
-            if self.settlement_count == 0:
-                for k, _p in _playerInGame.items():
-                    if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
-                        DEBUG_MSG('RoomType4 billing_count not enough account_id:%s' % _p['entity'].id)
-                        continue
-                    billing_count = self.info['billingCount']
-                    _p['score'] -= billing_count
-                    DEBUG_MSG('RoomType4 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
-                    #将房费加给楼主
-                    self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
-            # 每小局结算大赢家抽水，保留整数  E小局抽水
-            # 获取大赢家
-            settlement_winners = self.nn_get_settlement_winners()
-            for k, v in settlement_winners.items():
-                # k:account_id v:winner字典
-                settlement_winner_account_id = v['entity'].id
-                # 计算大赢家小局抽水
-                settlement_winner_true_gold = self.nn_get_true_gold(settlement_winner_account_id)
-                settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
-
-                v["goldChange"] -= settlement_winner_billing
-                v["goldChange"] = round(float(v["goldChange"]), 1)
-                v['score'] -= settlement_winner_billing
-                v['score'] = round(float(v["score"]), 1)
-                # 同步房费给base
-                self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
-                                      "todayGameCoinAdd": settlement_winner_billing,
-                                      "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType4") + "小局"})
+        # 抽水
+        # if self.info["roomType"] == "gameCoin":
+        #     # 首局结算抽水
+        #     if self.settlement_count == 0:
+        #         for k, _p in _playerInGame.items():
+        #             if self.get_true_gold(_p['entity'].id) < self.info['billingCount']:
+        #                 DEBUG_MSG('RoomType4 billing_count not enough account_id:%s' % _p['entity'].id)
+        #                 continue
+        #             billing_count = self.info['billingCount']
+        #             _p['score'] -= billing_count
+        #             DEBUG_MSG('RoomType4 billing_count account_id:%s,count:%s' % (_p['entity'].id, billing_count))
+        #             #将房费加给楼主
+        #             self.base.cellToBase({"func": "extractRoomCostToCreator", "billingCount": billing_count})
+        #     # 每小局结算大赢家抽水，保留整数  E小局抽水
+        #     # 获取大赢家
+        #     settlement_winners = self.nn_get_settlement_winners()
+        #     for k, v in settlement_winners.items():
+        #         # k:account_id v:winner字典
+        #         settlement_winner_account_id = v['entity'].id
+        #         # 计算大赢家小局抽水
+        #         settlement_winner_true_gold = self.nn_get_true_gold(settlement_winner_account_id)
+        #         settlement_winner_billing = settlement_winner_true_gold * self.info['settlementBilling']
+        #
+        #         v["goldChange"] -= settlement_winner_billing
+        #         v["goldChange"] = round(float(v["goldChange"]), 1)
+        #         v['score'] -= settlement_winner_billing
+        #         v['score'] = round(float(v["score"]), 1)
+        #         # 同步房费给base
+        #         self.base.cellToBase({"func": "todayGameBilling", "teaHouseId": self.info["teaHouseId"],
+        #                               "todayGameCoinAdd": settlement_winner_billing,
+        #                               "userId": v["entity"].info["userId"], "roomType": Const.get_name_by_type("RoomType4") + "小局"})
 
         # 给base的信息
         _toBaseArgs = dict()
@@ -1488,28 +1490,31 @@ class RoomType4(RoomBase):
             self.base.cellToBase({'func': 'addTodayRoom'})
         self.writeToDB()
 
-        # 金币场结算后检测玩家的金币数是否为零
-        if self.info["roomType"] == "gold":
-            self.check_gold()
-            pass
-        else:
-            item =0
-            for k, v in _playerInGame.items():
-                if v["score"] <= self.info['endScore'] or v["score"] <= 0:
-                    self.player_leave_info.append({"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
-                 "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
-                 "winnerBilling": v["winnerBilling"], 'gold': v['score']})
-                    self.set_base_player_game_coin(k)
-                    self.callClientFunction(k, "Notice", ["金币不足"])
-                else:
-                    item += 1
-            if item == 1:
-                self.player_leave_info = []
-                if self.info["pot"]:
-                    _chapter['playerInGame'][_chapter["banker"]]['score'] += _chapter['potStake']
-                self.total_settlement()
-                self.write_chapter_info_to_db()
-                return
+        # 检测是否需要站起
+        # if self.info["roomType"] == "gold":
+        #     self.check_gold()
+        #     pass
+        # else:
+        #     item = 0
+        #     for k, v in _playerInGame.items():
+        #         if v["score"] <= self.info['endScore'] or v["score"] <= 0:
+        #             self.player_leave_info.append(
+        #                 {"accountId": k, "totalGoldChange": v["totalGoldChange"], "name": v["entity"].info["name"],
+        #                  "overBilling": v["overBilling"], "otherBilling": v["otherBilling"],
+        #                  "winnerBilling": v["winnerBilling"], 'gold': v['score']})
+        #             self.set_base_player_game_coin(k)
+        #             self.callClientFunction(k, "Notice", ["金币不足"])
+        #         else:
+        #             item += 1
+        #     if item == 1:
+        #         self.player_leave_info = []
+        #         if self.info["pot"]:
+        #             _chapter['playerInGame'][_chapter["banker"]]['score'] += _chapter['potStake']
+        #         self.total_settlement()
+        #         self.write_chapter_info_to_db()
+        #         return
+
+
         _chapter["settlementTimerId"] = self.addTimer(_timeSettlement + len(_chapter["playerInGame"]) * 0.3, 0, 0)
         if self.info["payType"] == Const.PayType.AA:
             _pay_for_aa_player_db_id = []
@@ -1539,8 +1544,7 @@ class RoomType4(RoomBase):
             if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
                 billing_count = self.info['billingCount']
             self.nn_total_settlement_billing(billing_count)
-            
-        
+
         # 房费抽水, 根据局数对总输赢加1
         for k, v in chapter["playerInGame"].items():
             room_rate_add = 0
@@ -1555,9 +1559,9 @@ class RoomType4(RoomBase):
             else:
                 v["totalGoldChange"] -= room_rate_add
             self.base.cellToBase({"func": "todayGameRoomRateBilling", "teaHouseId": self.info["teaHouseId"],
-                                      "todayGameRoomRateAdd": room_rate_add,
-                                      "userId": v["entity"].info["userId"],
-                                      "roomType": Const.get_name_by_type("RoomType4") + "大局"})
+                                  "todayGameRoomRateAdd": room_rate_add,
+                                  "userId": v["entity"].info["userId"],
+                                  "roomType": Const.get_name_by_type("RoomType4") + "大局"})
 
         # 同步金币到 base
         player_settlement_info = []
@@ -1643,8 +1647,8 @@ class RoomType4(RoomBase):
                            "totalGoldChange": v["totalGoldChange"], "userId": v["entity"].info["userId"],
                            "winnerBilling": v["winnerBilling"], "overBilling": v["overBilling"],
                            "otherBilling": v["otherBilling"], "headImageUrl": v["entity"].info["headImageUrl"],
-                           "gold":   v["score"] - v["totalGoldChange"],
-                           "totalGold":v["score"]
+                           "gold": v["score"] - v["totalGoldChange"],
+                           "totalGold": v["score"]
                            }
             _playerInfo.append(_playerData)
             record_players.append(v["entity"].info["userId"])
@@ -1670,15 +1674,11 @@ class RoomType4(RoomBase):
         DEBUG_MSG('[Room id %i]------>chapterRestart ' % self.id)
         chapter = self.chapters[self.cn]
         chapter["currentState"] = 0
-        DEBUG_MSG(chapter["playerInGame"])
-        DEBUG_MSG("11111111111111111111111111111111111111")
-        for k in list(chapter["playerInGame"].keys()):
-            if chapter["playerInGame"][k]["score"] <= self.info["endScore"]:
-                itemID = self.get_account_id_with_location_index(chapter["playerInGame"][k]["locationIndex"])
-                self.stand_up(itemID,chapter["playerInGame"][k]["locationIndex"])
+        # for k in list(chapter["playerInGame"].keys()):
+        #     if chapter["playerInGame"][k]["score"] <= self.info["endScore"]:
+        #         itemID = self.get_account_id_with_location_index(chapter["playerInGame"][k]["locationIndex"])
+        #         self.stand_up(itemID, chapter["playerInGame"][k]["locationIndex"])
         _chapter = self.chapters[self.cn]
-        DEBUG_MSG(_chapter["playerInGame"])
-        DEBUG_MSG("11111111111111111111111111111111111111")
         _playerInGame = _chapter["playerInGame"]
         _playerInRoom = _chapter["playerInRoom"]
         _playerOutGame = _chapter["playerOutGame"]
@@ -1707,13 +1707,11 @@ class RoomType4(RoomBase):
             #         _newChapter["tuiZhuPlayers"][k] = {"goldChange": v["goldChange"]}
             v["grabBanker"] = 0
             if self.info["pot"]:
-                DEBUG_MSG("potpotpotpotpot")
                 if int(k) == int(_newChapter["banker"]):
-                    DEBUG_MSG("===================================================")
                     v["grabBanker"] = 1
 
             # if v["score"] <= self.info['endScore']:
-                # v["accountId"]
+            # v["accountId"]
             v["cards"] = []
             v["hasMatchCard"] = False
             v["stake"] = -1
@@ -1725,12 +1723,9 @@ class RoomType4(RoomBase):
             v["maiMa"] = []
             v["hasMaiMa"] = 0
 
-
         self.changeChapterState(0)
         # 如果是锅子，用上局的庄家
         # 继承锅底
-
-
 
         # self.set_current_round(self.cn + 1)
         # self.chapter_ready()
@@ -1892,7 +1887,7 @@ class RoomType4(RoomBase):
                               "hasMatchCard": v["hasMatchCard"],
                               "locationIndex": v["locationIndex"],
                               # 发送下注倍数
-                              "stake":  round(float(v["stake"] / self.info['betBase']), 1),
+                              "stake": round(float(v["stake"] / self.info['betBase']), 1),
                               "gold": self.get_true_gold(v['entity'].id),
                               "grabBanker": v["grabBanker"],
                               "cards": v["cards"],
@@ -2042,11 +2037,13 @@ class RoomType4(RoomBase):
             for k, v in _playerInGame.items():
                 if v["stake"] == -1 and k != _chapter["banker"]:
                     # 钱不够下零倍
-                    if not self.can_join_game(k):
-                        self.set_stake(k, 0)
+                    # if not self.can_join_game(k):
+                    #     self.set_stake(k, 0)
                     # 钱够下最小倍数
-                    else:
-                        self.set_stake(k, self.info['multiple'][0])
+                    # else:
+                    #     self.set_stake(k, self.info['multiple'][0])
+
+                    self.set_stake(k, self.info['multiple'][0])
         elif timerHandle == _chapter["matchTimerId"]:
             # 配牌计时器
             _chapter["matchTimerId"] = -1
