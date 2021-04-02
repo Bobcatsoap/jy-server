@@ -1371,11 +1371,12 @@ class RoomManager(Manger):
                     return
             # 如果房间人未满
             else:
-                game_coin_enough = self.game_coin_enough_check(_room, _account)
-                if not game_coin_enough:
-                    if _account.hasClient:
-                        _account.call_client_func("Notice", ["金币不足"])
-                    return
+                # game_coin_enough = self.game_coin_enough_check(_room, _account)
+                # if not game_coin_enough:
+                #     if _account.hasClient:
+                #         _account.call_client_func("Notice", ["金币不足"])
+                #     return
+                pass
 
         # 如果是AA支付先判断加入游戏者钻石是否足够
         if _room.info['payType'] == Const.PayType.AA:

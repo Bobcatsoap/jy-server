@@ -1538,12 +1538,11 @@ class RoomType4(RoomBase):
         self.total_settlement_ed = True
         chapter = self.chapters[self.cn]
 
-        # todo:大局抽水
-        if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
-            billing_count = 0
-            if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
-                billing_count = self.info['billingCount']
-            self.nn_total_settlement_billing(billing_count)
+        # if self.info["roomType"] == "gameCoin" and self.settlement_count > 0:
+        #     billing_count = 0
+        #     if self.info['payType'] == Const.PayType.Winer:  # 房费支付方式, 大赢家支付
+        #         billing_count = self.info['billingCount']
+        #     self.nn_total_settlement_billing(billing_count)
 
         # 房费抽水, 根据局数对总输赢加1
         for k, v in chapter["playerInGame"].items():
