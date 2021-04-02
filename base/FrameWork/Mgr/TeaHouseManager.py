@@ -380,15 +380,7 @@ class TeaHouseManager(Manger):
         tea_house_entity = self.get_tea_house_with_id(tea_house_id)
         account_entity = get_account_entity_with_db_id(account_db_id)
         if account_entity and tea_house_entity:
-            if account_db_id in tea_house_entity.memberInfo.keys():
-                v = tea_house_entity.memberInfo[account_db_id]
-                DEBUG_MSG("获取指定冠名赛指定页码的成员拉黑信息: %s" % v.level)
-                if int(v.level) == 100:
-                    return tea_house_entity.get_members_black_info_with_page(page_index, request_db_id=account_db_id)
-                elif int(v.level) == 10:
-                    return tea_house_entity.get_members_black_info_with_page(page_index, request_db_id=account_db_id)
-                else:
-                    return tea_house_entity.get_members_black_info_with_page2(page_index, request_db_id=account_db_id)
+            return tea_house_entity.get_members_black_info_with_page(page_index, request_db_id=account_db_id)
 
     def get_down_members(self, tea_house_id, account_db_id):
         """

@@ -2275,7 +2275,7 @@ class TeaHouse(KBEngine.Entity):
         """
         设置代理拉黑分标准
         """
-        if account_db_id==self.creatorDBID:
+        if account_db_id == self.creatorDBID:
             return False
         member = self.get_member(account_db_id)
         if member and member.proxy_type > 0:
@@ -2371,16 +2371,16 @@ class TeaHouse(KBEngine.Entity):
         members_info = []
         online_count = 0
         for k, v in self.memberInfo.items():
+            if k==request_db_id:
+                continue
+            if not self.is_down_player(k,request_db_id):
+                continue
             # 如果玩家实体有客户端，视为在线
             account_entity = get_account_entity_with_db_id(k)
             up_entity = get_account_entity_with_db_id(v.belong_to)
             online_state = bool(account_entity and account_entity.client)
             if online_state:
                 online_count += 1
-            freezeScore = int(self.get_member_block_score(k))
-            DEBUG_MSG("获取玩家freezeScore", freezeScore)
-            if freezeScore > 0:
-                freezeScore = 0
             members_info.append({"level": int(v.level), "name": v.name, "gameCoin": v.game_coin,
                                  "accountDBId": k, "state": online_state,
                                  "belongTo": v.belong_to,
@@ -2388,109 +2388,36 @@ class TeaHouse(KBEngine.Entity):
                                  "chapterCounts": v.chapter_count,
                                  "headImage": v.head_image,
                                  'luckyCard': v.lucky_card,
-                                 'freeze': self.is_freeze_player(k),
-                                 'freezeScore': freezeScore,
+                                 'blocked': self.member_blocked(k),
+                                 'blockScore': v.block_score,
                                  'todaySum': self.get_member_today_sum(k),
                                  'yesterdaySum': self.get_member_yesterday_sum(k)
-                                 # 'winner':v.winner,
-                                 # 'luckCardConsume':v.luckyCardConsume,
                                  })
 
         # 排序优先级,权限>在线状态,权限大的在前，在线状态为True的在前
         members_info.sort(key=lambda x: (-x['level'], -x['state']))
         # INFO_MSG('[base TeaHouse] request_db_id request_db_id %s' % str(request_db_id))
         # 如果是客户端请求
-        if request_db_id != -1:
-            request_entity = get_account_entity_with_db_id(request_db_id)
-            if request_entity:
-                if request_db_id in self.memberInfo.keys():
-                    request_level = self.memberInfo[request_db_id].level
-                    # 普通成员只能看到自己和群主
-                    if request_level == TeaHousePlayerLevel.Normal:
-                        members_info = [x for x in members_info if
-                                        x['level'] == TeaHousePlayerLevel.Creator or
-                                        x['accountDBId'] == request_db_id]
-                    # 合伙人、队长、组长能看到自己、群主和名下成员
-                    elif request_level >= TeaHousePlayerLevel.SmallTeamLeader:
-                        # 获取指定 id 下的所有成员 id，越级判断，A-->B-->C 则，A 也是 C 的下级
-                        down_members_id = self.get_all_members_belong_to_account(request_db_id)
-
-                        members_info = [x for x in members_info if
-                                        x['level'] == TeaHousePlayerLevel.Creator or
-                                        x['accountDBId'] == request_db_id or
-                                        x['accountDBId'] in down_members_id
-                                        ]
-        # 计算总页数
-        total_pages = math.ceil(len(members_info) / Const.member_list_page_item)
-
-        # 按页码切片
-        page_start = page_index * Const.member_list_page_item
-        page_end = page_start + Const.member_list_page_item
-        members_info = members_info[page_start:page_end]
-
-        return members_info, total_pages, len(self.memberInfo), online_count
-
-    def get_members_black_info_with_page2(self, page_index, request_db_id=-1):
-        """
-        获取指定页码成员黑名单信息
-        :param request_db_id: 请求者数据库id
-        :param page_index: 页码，从0开始
-        :return:
-        """
-
-        members_info = []
-        online_count = 0
-        for k, v in self.memberInfo.items():
-            # 如果玩家实体有客户端，视为在线
-            account_entity = get_account_entity_with_db_id(k)
-            up_entity = get_account_entity_with_db_id(v.belong_to)
-            online_state = bool(account_entity and account_entity.client)
-            if online_state:
-                online_count += 1
-
-            freezeScore = int(self.get_member_block_score(k))
-            if freezeScore < 0:
-                freezeScore = 0
-            if v.belong_to == request_db_id or k == request_db_id:
-                members_info.append({"level": int(v.level), "name": v.name, "gameCoin": v.game_coin,
-                                     "accountDBId": k, "state": online_state,
-                                     "belongTo": v.belong_to,
-                                     "belongToName": up_entity.name if up_entity else "",
-                                     "chapterCounts": v.chapter_count,
-                                     "headImage": v.head_image,
-                                     'luckyCard': v.lucky_card,
-                                     'freeze': self.is_freeze_player(k),
-                                     'freezeScore': freezeScore,
-                                     'todaySum': self.get_member_today_sum(k),
-                                     'yesterdaySum': self.get_member_yesterday_sum(k)
-                                     # 'winner':v.winner,
-                                     # 'luckCardConsume':v.luckyCardConsume,
-                                     })
-
-        # 排序优先级,权限>在线状态,权限大的在前，在线状态为True的在前
-        members_info.sort(key=lambda x: (-x['level'], -x['state']))
-        # INFO_MSG('[base TeaHouse] request_db_id request_db_id %s' % str(request_db_id))
-        # 如果是客户端请求
-        if request_db_id != -1:
-            request_entity = get_account_entity_with_db_id(request_db_id)
-            if request_entity:
-                if request_db_id in self.memberInfo.keys():
-                    request_level = self.memberInfo[request_db_id].level
-                    # 普通成员只能看到自己和群主
-                    if request_level == TeaHousePlayerLevel.Normal:
-                        members_info = [x for x in members_info if
-                                        x['level'] == TeaHousePlayerLevel.Creator or
-                                        x['accountDBId'] == request_db_id]
-                    # 合伙人、队长、组长能看到自己、群主和名下成员
-                    elif request_level >= TeaHousePlayerLevel.SmallTeamLeader:
-                        # 获取指定 id 下的所有成员 id，越级判断，A-->B-->C 则，A 也是 C 的下级
-                        down_members_id = self.get_all_members_belong_to_account(request_db_id)
-
-                        members_info = [x for x in members_info if
-                                        x['level'] == TeaHousePlayerLevel.Creator or
-                                        x['accountDBId'] == request_db_id or
-                                        x['accountDBId'] in down_members_id
-                                        ]
+        # if request_db_id != -1:
+        #     request_entity = get_account_entity_with_db_id(request_db_id)
+        #     if request_entity:
+        #         if request_db_id in self.memberInfo.keys():
+        #             request_level = self.memberInfo[request_db_id].level
+        #             # 普通成员只能看到自己和群主
+        #             if request_level == TeaHousePlayerLevel.Normal:
+        #                 members_info = [x for x in members_info if
+        #                                 x['level'] == TeaHousePlayerLevel.Creator or
+        #                                 x['accountDBId'] == request_db_id]
+        #             # 合伙人、队长、组长能看到自己、群主和名下成员
+        #             elif request_level >= TeaHousePlayerLevel.SmallTeamLeader:
+        #                 # 获取指定 id 下的所有成员 id，越级判断，A-->B-->C 则，A 也是 C 的下级
+        #                 down_members_id = self.get_all_members_belong_to_account(request_db_id)
+        #
+        #                 members_info = [x for x in members_info if
+        #                                 x['level'] == TeaHousePlayerLevel.Creator or
+        #                                 x['accountDBId'] == request_db_id or
+        #                                 x['accountDBId'] in down_members_id
+        #                                 ]
         # 计算总页数
         total_pages = math.ceil(len(members_info) / Const.member_list_page_item)
 
