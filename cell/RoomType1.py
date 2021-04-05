@@ -2104,9 +2104,12 @@ class RoomType1(RoomBase):
             _playerInGameCopy = chapter["playerInGame"].copy()
             for k, v in _playerInGameCopy.items():
                 if int(v["locationIndex"]) == int(_currentLocationIndex):
-                    # 计时器到了跟注
-                    bet = chapter['lookCardBet'] if v['hasLookCard'] else chapter['muffledCardBet']
-                    self.drop_bet(k, bet)
+                    if self.info['compareCardRound'] <= chapter['currentRound']:
+                        self.disCard(k)
+                    else:
+                        # 计时器到了跟注
+                        bet = chapter['lookCardBet'] if v['hasLookCard'] else chapter['muffledCardBet']
+                        self.drop_bet(k, bet)
         elif timerHandle == chapter["betAnimationTimerId"]:
             DEBUG_MSG('[Room id %s]------>onTimer betAnimationTimerId %s' % (self.id, timerHandle))
             chapter["betAnimationTimerId"] = -1
