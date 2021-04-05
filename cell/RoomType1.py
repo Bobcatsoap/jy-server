@@ -311,8 +311,6 @@ class RoomType1(RoomBase):
             if v["entity"].client_death is True:  # TODO client_death 玩家在线状态 [False在线]    [True不在线]
                 # 离开房间
                 self.onLeave(v["entity"].id)
-        DEBUG_MSG('?????????????%s' % self.info["winnerRaffleInterval"])
-        DEBUG_MSG('?????????????%s' % self.info["winnerBilling"])
 
     def randomSetSeat(self):
         """
@@ -364,11 +362,8 @@ class RoomType1(RoomBase):
                 if not _locationIndexs[_nextLocationIndex]["hasDisCard"]:  # 是否弃牌
                     break
             _nextLocationIndex += 1
-            DEBUG_MSG("startLocationIndex:%s" % _startLocationIndex)
-            DEBUG_MSG("_nextLocationIndex:%s" % _nextLocationIndex)
 
         for k, v in _playerInGame.items():
-            DEBUG_MSG("locationIndex = %s" % v["locationIndex"])
             if int(v["locationIndex"]) == int(_nextLocationIndex):
                 # 1 设置当前操作玩家位置
                 self.setCurrentLocationIndex(_nextLocationIndex, k)
@@ -940,10 +935,10 @@ class RoomType1(RoomBase):
         # 如果是金币场 并且所带金币小于基本金币 禁止入场
         # self.have_gold_limit()  根据是否是比赛币场和比赛币开关判断是否有金币限制
         # if self.have_gold_limit() and addBetSum > _player["score"] - _player["totalBet"]:
-            # self.callClientFunction(accountId, "Notice", ["%s不足,请继续带入" % self.gold_name])
-            #
-            # self.callClientFunction(accountId, "AddBetCallBack", ["0"])
-            # return False
+        # self.callClientFunction(accountId, "Notice", ["%s不足,请继续带入" % self.gold_name])
+        #
+        # self.callClientFunction(accountId, "AddBetCallBack", ["0"])
+        # return False
 
         # 1 判断是否看牌
         if _player["hasLookCard"]:
@@ -996,9 +991,9 @@ class RoomType1(RoomBase):
         DEBUG_MSG(_player)
         # if self.have_gold_limit() and betSum > _player["score"] - _player["totalBet"]:
         #     带入比赛分
-            # self.callClientFunction(accountId, "Notice", ["%s不足,请继续带入" % self.gold_name])
-            # self.callClientFunction(accountId, "BetCallBack", ["0"])
-            # return False
+        # self.callClientFunction(accountId, "Notice", ["%s不足,请继续带入" % self.gold_name])
+        # self.callClientFunction(accountId, "BetCallBack", ["0"])
+        # return False
         self.delTimer(_chapter["operateTimerId"])
         self.delTimer(_chapter["operateTimerId"])
         _chapter["operateTimerId"] = -1
@@ -1402,7 +1397,7 @@ class RoomType1(RoomBase):
 
     def changeChapterState(self, state):
         """
-        TODO E改变游戏状态
+        改变游戏状态
         :param state: 0:准备,1:游戏开始
         :return:
         """
@@ -2026,10 +2021,10 @@ class RoomType1(RoomBase):
     # 踢出房间（不判断房间状态的离开）
     def kick_out(self, accountEntityId, isBot=False, player_online=True):
         """
-                离开房间
-                :param accountEntityId:
-                :return:
-                """
+        离开房间
+        :param accountEntityId:
+        :return:
+        """
         DEBUG_MSG('[Room id %i]------>onLeave accountId %s' % (self.id, accountEntityId))
         _chapter = self.chapters[self.cn]
         _playerInRoom = _chapter["playerInRoom"]
@@ -2109,7 +2104,9 @@ class RoomType1(RoomBase):
             _playerInGameCopy = chapter["playerInGame"].copy()
             for k, v in _playerInGameCopy.items():
                 if int(v["locationIndex"]) == int(_currentLocationIndex):
-                    self.disCard(k)
+                    # 计时器到了跟注
+                    bet = chapter['lookCardBet'] if v['hasLookCard'] else chapter['muffledCardBet']
+                    self.drop_bet(k, bet)
         elif timerHandle == chapter["betAnimationTimerId"]:
             DEBUG_MSG('[Room id %s]------>onTimer betAnimationTimerId %s' % (self.id, timerHandle))
             chapter["betAnimationTimerId"] = -1
@@ -2298,7 +2295,6 @@ class RoomType1(RoomBase):
         for k, v in _playerOutGameCopy.items():
             self.kick_out(k)
 
-
         # 房费抽水, 根据局数对总输赢加1
         for k, v in chapter["playerInGame"].items():
             room_rate_add = 0
@@ -2313,11 +2309,10 @@ class RoomType1(RoomBase):
             else:
                 v["totalGoldChange"] -= room_rate_add
             self.base.cellToBase({"func": "todayGameRoomRateBilling", "teaHouseId": self.info["teaHouseId"],
-                                      "todayGameRoomRateAdd": room_rate_add,
-                                      "userId": v["entity"].info["userId"],
-                                      "roomType": Const.get_name_by_type("RoomType1") + "大局"})
-            
-            
+                                  "todayGameRoomRateAdd": room_rate_add,
+                                  "userId": v["entity"].info["userId"],
+                                  "roomType": Const.get_name_by_type("RoomType1") + "大局"})
+
         # 同步金币到 base
         player_settlement_info = []
         for k, v in chapter["playerInGame"].items():
@@ -2371,8 +2366,8 @@ class RoomType1(RoomBase):
         _player["entity"].base.cellToBase({"func": "setAccountMutableInfo", "dic": {
             "teaHouseId": self.info["teaHouseId"] if self.is_tea_house_room else -1,
             "gameCoin": _player["entity"].accountMutableInfo["gameCoin"]}})
-    
-    def send_win_or_lose_score_to_base(self,_player):
+
+    def send_win_or_lose_score_to_base(self, _player):
         """
         通知base玩家总输赢
         :param _player:
