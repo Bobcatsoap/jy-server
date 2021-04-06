@@ -1946,6 +1946,8 @@ class Account(KBEngine.Proxy):
             _thisroomid = _args['roomID']
             _thisroomType = _args["roomType"]
             self.room_mgr.RecurInning(self, _thisroomid, _thisroomType)
+        elif _func_name == 'GetRealTimeStamp':
+            self.get_real_time_stamp()
         else:
             ERROR_MSG("[Account id %s] clientToBase------>func: %s not exit" % (self.id, _func_name))
 
@@ -2574,7 +2576,6 @@ class Account(KBEngine.Proxy):
         """
         member_info = self.tea_house_mgr.get_down_members(tea_house_id, account_db_id)
         self.call_client_func("GetDownPlayer", member_info)
-
 
     def get_members_with_page_index(self, tea_house_id, account_db_id, page_index):
         """
@@ -4898,6 +4899,14 @@ class Account(KBEngine.Proxy):
                 self.call_client_func("BackToChallengeRoomConfirm", {})
                 return True
         return False
+
+    def get_real_time_stamp(self):
+        """
+        获取后台时间戳
+        :return:
+        """
+        t = time.time()
+        self.call_client_func('GetRealTimeStamp', {'time': int(t)})
 
     def join_tea_house_by_invitation_code(self, args):
         """

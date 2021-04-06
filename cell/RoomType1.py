@@ -2100,16 +2100,7 @@ class RoomType1(RoomBase):
             chapter["operateTimerId"] = -1
             self.delTimer(chapter["operateTimerId"])
             DEBUG_MSG('[Room id %s]------>onTimer betTimerId %s' % (self.id, timerHandle))
-            _currentLocationIndex = chapter["currentLocationIndex"]
-            _playerInGameCopy = chapter["playerInGame"].copy()
-            for k, v in _playerInGameCopy.items():
-                if int(v["locationIndex"]) == int(_currentLocationIndex):
-                    if self.info['compareCardRound'] <= chapter['currentRound']:
-                        self.disCard(k)
-                    else:
-                        # 计时器到了跟注
-                        bet = chapter['lookCardBet'] if v['hasLookCard'] else chapter['muffledCardBet']
-                        self.drop_bet(k, bet)
+            self.operate_time_over()
         elif timerHandle == chapter["betAnimationTimerId"]:
             DEBUG_MSG('[Room id %s]------>onTimer betAnimationTimerId %s' % (self.id, timerHandle))
             chapter["betAnimationTimerId"] = -1
@@ -2222,6 +2213,23 @@ class RoomType1(RoomBase):
             _playerInGameCopy = chapter["playerInGame"].copy()
             for k, v in _playerInGameCopy.items():
                 self.kick_out(k)
+
+    def operate_time_over(self):
+        chapter = self.chapters[self.cn]
+        _currentLocationIndex = chapter["currentLocationIndex"]
+        _playerInGameCopy = chapter["playerInGame"].copy()
+        for k, v in _playerInGameCopy.items():
+            if int(v["locationIndex"]) == int(_currentLocationIndex):
+                # 没达到闷牌轮数跟注，否则弃牌
+                if chapter['currentRound'] <= self.info['lookCardRound']:
+                    # 计时器到了跟注
+                    bet = chapter['lookCardBet'] if v['hasLookCard'] else chapter['muffledCardBet']
+                    self.drop_bet(k, bet)
+                    self.changeOperation()
+                else:
+                    self.disCard(k)
+
+                break
 
     def sendChapterState(self, accountEntityId):
         _chapter = self.chapters[self.cn]
