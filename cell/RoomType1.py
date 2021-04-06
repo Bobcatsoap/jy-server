@@ -247,13 +247,6 @@ class RoomType1(RoomBase):
         self.info["started"] = True  # 准备状态
         _chapter = self.chapters[self.cn]
         _playerInGame = _chapter["playerInGame"]  # 在游戏中的玩家
-        # 金币场扣除房费
-        if self.is_gold_session_room():  # is_gold_session_room  是否是金币场房间 True 开始扣除金币
-            for k, v in _playerInGame.items():
-                # 减掉玩家金币
-                v['score'] -= self.info['roomRate']
-                # E 重新设置玩家金币数量
-                self.set_base_player_gold(k)
         # 1 创建牌库
         self.createCardLib()
         # 1 更改游戏状态 设置游戏开始
@@ -272,6 +265,10 @@ class RoomType1(RoomBase):
 
         # 通知 base 游戏开始
         if self.cn == 0:
+            # 首局扣除房费
+            for k, v in _playerInGame.items():
+                v['totalGoldChange'] -= self.info['roomRate']
+
             # 将坐下玩家的DB_ID传入前台
             player_in_game_db_id = []
             for k, v in self.chapters[self.cn]["playerInGame"].items():
@@ -834,11 +831,9 @@ class RoomType1(RoomBase):
             return
         _player = chapter["playerInGame"][account_id]
         # 如果玩家的币小于底分 return
-        # TODO self.have_gold_limit() 根据是否是比赛币场和比赛币开关判断是否有金币限制
         # if self.have_gold_limit() and _player["score"] < self.info["betBase"]:
         #     return
         # 如果小于房费返回
-        # TODO self.is_gold_session_room() 是否是金币场房间
         if self.is_gold_session_room() and _player['score'] < self.info['roomRate']:
             return
         _playerInRoom = chapter["playerInRoom"]
