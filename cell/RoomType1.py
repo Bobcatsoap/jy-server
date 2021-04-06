@@ -2281,17 +2281,14 @@ class RoomType1(RoomBase):
 
     # 总结算
     def total_settlement(self):
-        if self.total_settlement_ed:  # TODO total_settlement_ed 总结算标志位  False未结算 True已结算
+        if self.total_settlement_ed:
             return
         self.close_all_timer()
         self.changeChapterState(3)
-        self.total_settlement_ed = True  # TODO 设置已经结算
+        self.total_settlement_ed = True
         chapter = self.chapters[self.cn]
         # self.started = False
         # 抽奖
-        DEBUG_MSG("total_settlement 大结算")
-        DEBUG_MSG(self.settlement_count)
-        DEBUG_MSG(self.info["roomType"])
         if self.info["roomType"] == "gameCoin" and self.settlement_count >= 0:
             # 赢家支付房费
             pass
@@ -2302,22 +2299,22 @@ class RoomType1(RoomBase):
             self.kick_out(k)
 
         # 房费抽水, 根据局数对总输赢加1
-        for k, v in chapter["playerInGame"].items():
-            room_rate_add = 0
-            if self.info["maxChapterCount"] == 6:
-                room_rate_add = 1
-            elif self.info["maxChapterCount"] == 12:
-                room_rate_add = 2
-            elif self.info["maxChapterCount"] == 24:
-                room_rate_add = 4
-            if v["totalGoldChange"] > 0:
-                v["totalGoldChange"] = v["totalGoldChange"] - room_rate_add
-            else:
-                v["totalGoldChange"] -= room_rate_add
-            self.base.cellToBase({"func": "todayGameRoomRateBilling", "teaHouseId": self.info["teaHouseId"],
-                                  "todayGameRoomRateAdd": room_rate_add,
-                                  "userId": v["entity"].info["userId"],
-                                  "roomType": Const.get_name_by_type("RoomType1") + "大局"})
+        # for k, v in chapter["playerInGame"].items():
+        #     room_rate_add = 0
+        #     if self.info["maxChapterCount"] == 6:
+        #         room_rate_add = 1
+        #     elif self.info["maxChapterCount"] == 12:
+        #         room_rate_add = 2
+        #     elif self.info["maxChapterCount"] == 24:
+        #         room_rate_add = 4
+        #     if v["totalGoldChange"] > 0:
+        #         v["totalGoldChange"] = v["totalGoldChange"] - room_rate_add
+        #     else:
+        #         v["totalGoldChange"] -= room_rate_add
+        #     self.base.cellToBase({"func": "todayGameRoomRateBilling", "teaHouseId": self.info["teaHouseId"],
+        #                           "todayGameRoomRateAdd": room_rate_add,
+        #                           "userId": v["entity"].info["userId"],
+        #                           "roomType": Const.get_name_by_type("RoomType1") + "大局"})
 
         # 同步金币到 base
         player_settlement_info = []
