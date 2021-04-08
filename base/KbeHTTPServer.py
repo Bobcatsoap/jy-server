@@ -168,11 +168,12 @@ def set_tea_house_black_score(req, resp):
 def get_tea_house_players(req, resp):
     INFO_MSG('[interface KBEHttpServer] get_tea_house_players req.params=%s' % req.params)
     tea_house_database_id = int(req.params.get('tea_house_database_id', None))
+    account_db_id=int(req.params.get('requester', None))
     tea_house_mgr = KBEngine.globalData["TeaHouseManager"].mgr
     member_list = []
     if tea_house_database_id in tea_house_mgr.teaHouse_dic.keys():
         tea_house_entity = tea_house_mgr.teaHouse_dic[tea_house_database_id]
-        member_list = tea_house_entity.get_member_info()
+        member_list = tea_house_entity.get_member_info(account_db_id)
     dic = dict()
     dic["member_list"] = member_list
     INFO_MSG(dic)

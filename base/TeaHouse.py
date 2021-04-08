@@ -1346,13 +1346,16 @@ class TeaHouse(KBEngine.Entity):
         #     }
         # return members_info
 
-    def get_member_info(self):
+    def get_member_info(self, proxy_db_id=-1):
         """
         获取所有成员信息
         :return:
         """
         members_info_list = []
         for k, v in self.memberInfo.items():
+            if proxy_db_id != -1:
+                if v.belong_to != proxy_db_id:
+                    continue
             # 如果玩家实体有客户端，视为在线
             account_entity = get_account_entity_with_db_id(k)
             up_entity = get_account_entity_with_db_id(v.belong_to)
@@ -3904,7 +3907,7 @@ class TeaHouse(KBEngine.Entity):
         for k, v in self.memberInfo.items():
             if k == account_db_id:
                 continue
-            if self.is_down_player(k,account_db_id):
+            if self.is_down_player(k, account_db_id):
                 down_members.append(k)
 
         DEBUG_MSG('get_all_down_member account_db_id:%s down_player:%s' % (account_db_id, down_members))
