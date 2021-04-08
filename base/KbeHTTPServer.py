@@ -83,7 +83,7 @@ def start():
     server.route("/GetPlayerInfo", get_player_info)
     # 修改玩家余额
     server.route("/UpdatePlayerBalance", update_player_balance)
-    
+
 
 def update_player_balance(req, resp):
     INFO_MSG('[interface KBEHttpServer] update_player_balance req.params=%s' % req.params)
@@ -95,15 +95,15 @@ def update_player_balance(req, resp):
         entity.writeToDB()
     else:
         def callback(baseRef, dataBaseID, wasActive):
-            if  baseRef:
+            if baseRef:
                 baseRef.balance -= int(count)
                 baseRef.writeToDB()
-        
+
         KBEngine.createEntityFromDBID("Account", int(userId), callback)
-    
+
     resp.body = 'success'.encode()
     resp.end()
-    
+
 
 def get_player_info(req, resp):
     INFO_MSG('[interface KBEHttpServer] get_player_info req.params=%s' % req.params)
@@ -123,12 +123,13 @@ def get_player_info(req, resp):
     resp.body = str.encode()
     resp.end()
 
+
 def set_player_proxy_type(req, resp):
     INFO_MSG('[interface KBEHttpServer] modify_proxy_type resp.params=%s' % req.params)
     account_db_id = int(req.params.get('accountDBID', None))
     proxy_type = int(req.params.get('proxyType', None))
     superior_id = int(req.params.get('superior_id', None))
-    KBEngine.globalData["AccountMgr"].mgr.set_account_proxy_type(account_db_id, proxy_type,superior_id)
+    KBEngine.globalData["AccountMgr"].mgr.set_account_proxy_type(account_db_id, proxy_type, superior_id)
     resp.body = "success".encode()
     resp.end()
 
@@ -186,26 +187,33 @@ def get_all_tea_house(req, resp):
     INFO_MSG('[interface KBEHttpServer] get_all_tea_house req.params=%s' % req.params)
     tea_house_mgr = KBEngine.globalData["TeaHouseManager"].mgr
     tea_house_list = []
-    for k, v in tea_house_mgr.teaHouse_dic.items():
-        item = dict()
-        item['name'] = v.name
-        item['id'] = v.databaseID
-        item['teaHouseId'] = v.teaHouseId
-        item['creatorDBID'] = v.creatorDBID
-        item['createTime'] = v.createTime
-        item['freezeScore'] = v.block_score_standard
-        item['member_count'] = len(v.memberInfo)
-        if status != 1:  # 代理
-            if account_db_id == v.creatorDBID:
-                tea_house_list.append(item)
-        else:
+    # 总管理：1 代理：0
+    if status == 1:
+        for k, v in tea_house_mgr.teaHouse_dic.items():
+            item = dict()
+            item['name'] = v.name
+            item['id'] = v.databaseID
+            item['teaHouseId'] = v.teaHouseId
+            item['creatorDBID'] = v.creatorDBID
+            item['createTime'] = v.createTime
+            item['freezeScore'] = v.block_score_standard
+            item['member_count'] = len(v.memberInfo)
             tea_house_list.append(item)
-    dic = dict()
-    dic["tea_house_list"] = tea_house_list
-    INFO_MSG(dic)
-    str = json.dumps(dic)
-    resp.body = str.encode()
-    resp.end()
+
+            dic = dict()
+            dic["tea_house_list"] = tea_house_list
+            INFO_MSG(dic)
+            str = json.dumps(dic)
+            resp.body = str.encode()
+            resp.end()
+    else:
+        def callback(dic):
+            INFO_MSG(dic)
+            str = json.dumps(dic)
+            resp.body = str.encode()
+            resp.end()
+
+        tea_house_mgr.get_all_join_or_member_join_tea_house(account_db_id, callback)
 
 
 def change_Placard(req, resp):
@@ -631,7 +639,8 @@ def modify_room_card(req, resp):
                         if number > operator_ref.roomCard:
                             return
                         operator_ref.roomCard -= round(float(number), 1)
-                        INFO_MSG('[interface KBEHttpServer] modify_room_card [operator_ref.roomCard]', operator_ref.roomCard)
+                        INFO_MSG('[interface KBEHttpServer] modify_room_card [operator_ref.roomCard]',
+                                 operator_ref.roomCard)
                         INFO_MSG('[interface KBEHttpServer] modify_room_card [baseRef.roomCard]', baseRef.roomCard)
                         baseRef.roomCard += round(float(number), 1)
                         if baseRef.roomCard < 0:
@@ -871,7 +880,8 @@ def unbind_proxy(req, resp):
     KBEngine.globalData["AccountMgr"].mgr.unbind_proxy(account_db_id)
     resp.body = "success".encode()
     resp.end()
-    
+
+
 def rebinding_proxy(req, resp):
     """
     重新绑定玩家代理
@@ -885,7 +895,6 @@ def rebinding_proxy(req, resp):
     KBEngine.globalData["AccountMgr"].mgr.rebinding_proxy(account_db_id, proxy_id)
     resp.body = "success".encode()
     resp.end()
-    
 
 
 def withdraw_cash(req, resp):

@@ -1670,19 +1670,11 @@ class Account(KBEngine.Proxy):
             import time
             import datetime
             if _args['date'] == 0:
-                # 今天日期
-                today = datetime.date.today()
-                yesterday = today - datetime.timedelta(days=1)
-                # 明天时间
-                tomorrow = today + datetime.timedelta(days=1)
-                today_end_time = int(time.mktime(time.strptime(str(tomorrow), '%Y-%m-%d'))) - 1
+                end_time = self.today_end
             else:
-                today = datetime.date.today()
-                yesterday = today - datetime.timedelta(days=-1)
-                # 明天时间
-                tomorrow = today + datetime.timedelta(days=-1)
-                today_end_time = int(time.mktime(time.strptime(str(tomorrow), '%Y-%m-%d'))) - 1
-            _args['date'] = today_end_time
+                end_time = self.yesterday_end
+
+            _args['date'] = end_time
             # -------新增添服务器获取时间戳end
             DEBUG_MSG(_args)
 
