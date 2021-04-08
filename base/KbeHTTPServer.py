@@ -199,21 +199,30 @@ def get_all_tea_house(req, resp):
             item['freezeScore'] = v.block_score_standard
             item['member_count'] = len(v.memberInfo)
             tea_house_list.append(item)
-
-            dic = dict()
-            dic["tea_house_list"] = tea_house_list
-            INFO_MSG(dic)
-            str = json.dumps(dic)
-            resp.body = str.encode()
-            resp.end()
     else:
-        def callback(dic):
-            INFO_MSG(dic)
-            str = json.dumps(dic)
-            resp.body = str.encode()
-            resp.end()
+        for k, v in tea_house_mgr.teaHouse_dic.items():
+            item = dict()
+            item['name'] = v.name
+            item['id'] = v.databaseID
+            item['teaHouseId'] = v.teaHouseId
+            item['creatorDBID'] = v.creatorDBID
+            item['createTime'] = v.createTime
+            item['freezeScore'] = v.block_score_standard
+            item['member_count'] = len(v.memberInfo)
 
-        tea_house_mgr.get_all_join_or_member_join_tea_house(account_db_id, callback)
+            # 代理在茶楼里或者有下级在茶楼里
+            for k2, v2 in v.memberInfo.items():
+                if v2.belong_to == account_db_id or k2 == account_db_id:
+                    tea_house_list.append(item)
+                    break
+
+    dic = dict()
+    dic["tea_house_list"] = tea_house_list
+    INFO_MSG(dic)
+    str = json.dumps(dic)
+    resp.body = str.encode()
+    resp.end()
+    tea_house_mgr.get_all_join_or_member_join_tea_house(account_db_id, callback)
 
 
 def change_Placard(req, resp):

@@ -931,45 +931,6 @@ class TeaHouseManager(Manger):
         if tea_house_entity:
             tea_house_entity.get_tea_house_proxy_info(requester)
 
-    def get_all_join_or_member_join_tea_house(self, account_db_id, callback):
-        def on_query_success(result, rows, insertid, error):
-            db_id_s = []
-            if result:
-                for r in result:
-                    db_id = Utils.bytes_to_int(r[0])
-                    if db_id not in db_id_s:
-                        db_id_s.append(db_id)
-
-                DEBUG_MSG('get_all_join_or_member_join_tea_house db_id_s:%s' % db_id_s)
-
-            # 收集所有名下成员
-            if account_db_id not in db_id_s:
-                db_id_s.append(account_db_id)
-
-            # 收集茶楼
-            tea_house_list = []
-            for k, v in self.teaHouse_dic.items():
-
-                item = dict()
-                item['name'] = v.name
-                item['id'] = v.databaseID
-                item['teaHouseId'] = v.teaHouseId
-                item['creatorDBID'] = v.creatorDBID
-                item['createTime'] = v.createTime
-                item['freezeScore'] = v.block_score_standard
-                item['member_count'] = len(v.memberInfo)
-
-                for _db_id in db_id_s:
-                    if _db_id in v.memberInfo:
-                        tea_house_list.append(item)
-                        break
-
-            callback(tea_house_list)
-
-        # 找出所有绑定了这个代理的玩家
-        sql = 'SELECT id FROM tbl_account WHERE sm_belong_to=%s' % account_db_id
-        DEBUG_MSG('get_all_join_or_member_join_tea_house sql:%s' % sql)
-        KBEngine.executeRawDatabaseCommand(sql, on_query_success)
 
     @property
     def today_start(self):
