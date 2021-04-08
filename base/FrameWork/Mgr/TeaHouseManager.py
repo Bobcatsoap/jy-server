@@ -935,7 +935,7 @@ class TeaHouseManager(Manger):
         def on_query_success(result, rows, insertid, error):
             db_id_s = []
             if result:
-                for r in rows:
+                for r in result:
                     db_id = Utils.bytes_to_int(r[0])
                     if db_id not in db_id_s:
                         db_id_s.append(db_id)
