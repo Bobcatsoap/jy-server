@@ -2024,8 +2024,11 @@ class TeaHouse(KBEngine.Entity):
             on_fail("修改失败，该玩家不是冠名赛成员")
             return
 
+        operator = self.get_member(operate_player_db_id)
+        modifier = self.get_member(modify_player_db_id)
+
         # 不能修改非直属下级成员
-        if self.memberInfo[modify_player_db_id].belong_to != self.memberInfo[operate_player_db_id].db_id:
+        if modifier.belong_to != operator.db_id and operator.db_id != self.creatorDBID:
             on_fail("修改失败，该成员不是你的下级")
             return
 
