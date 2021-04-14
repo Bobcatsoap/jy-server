@@ -271,49 +271,27 @@ def check_double_k_must_1(pre_play_cards, this_play_cards, cards, room_info):
     cards_number = convert_cards_to_value(cards)
     # 获取本次出牌类型
     this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
-    
-    
-    
-    
-    #-------------------------------------TODO新增
-    # 如果上个玩家出牌是对K，并且手里有三个A，判断本次是否是炸弹
+    # 如果上个玩家出牌是对K，并且手里有三个A，没有要求
     if pre_play_cards_type == CardType.Com_Double and pre_play_cards_number[0] == 13 and cards_number.count(14) == 3:
         return True
-        
-    #---------------------------------------TODO新增
-    
-    #---------------------------------------TODO新增我写的
-    
+
+    # 如果上个玩家出牌是对K，并且手里有对A和炸弹，要出对A或炸弹
     if pre_play_cards_type == CardType.Com_Double and pre_play_cards_number[0] == 13 and cards_number.count(14) == 2 and find_boom(cards_number, room_info):
-        # 如果是任意一种炸弹，满足
         if this_play_cards_type == CardType.Lin_FourBoom:
+            return True
+        elif this_play_cards_type == CardType.Com_Double and this_play_cards_number[0] == 14:
             return True
         else:
             return False
     
-    #---------------------------------------TODO新增我写的
-    
-    
-    
-    
-    
-    
-    
-    # 如果上个玩家出牌是对K，并且手里有两个A，判断本次是否是两个A
+    # 如果上个玩家出牌是对K，并且手里有两个A，要出对A
     if pre_play_cards_type == CardType.Com_Double and pre_play_cards_number[0] == 13 and cards_number.count(14) == 2:
         if this_play_cards_type == CardType.Com_Double and this_play_cards_number[0] == 14:
             return True
-        timeCard = 0
-        for _p in cards_number:
-            if _p == 14:
-                timeCard += 1
-        if timeCard == 3:
-            return True
         else:
             return False
-    # 如果上个玩家出牌不是对k,一定满足
-    else:
-        return True
+
+    return True
 
 
 def check_straight_not_a(pre_play_cards, this_play_cards, cards, room_info):
