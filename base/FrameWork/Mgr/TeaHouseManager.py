@@ -931,6 +931,18 @@ class TeaHouseManager(Manger):
         if tea_house_entity:
             tea_house_entity.get_tea_house_proxy_info(requester)
 
+    def recur_inning(self, tea_house_id,room_id):
+        """
+        再来一局
+        @param room_id:
+        @return:
+        :param tea_house_id:
+        """
+        tea_house_entity = self.get_tea_house_with_id(tea_house_id)
+        if tea_house_entity:
+            return tea_house_entity.recur_inning(room_id)
+        else:
+            return -1
 
     @property
     def today_start(self):

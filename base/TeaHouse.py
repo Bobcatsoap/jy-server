@@ -3964,6 +3964,39 @@ class TeaHouse(KBEngine.Entity):
             count += float(i[0])
         return count
 
+    def recur_inning(self, room_id):
+        """
+        再来一局
+        @param room_id:
+        @return:
+        """
+        current_room = None
+        for room_index, room_entity in self.rooms.items():
+            if room_entity.info['roomId'] == room_id:
+                current_room = room_entity
+                break
+
+        if not current_room:
+            DEBUG_MSG('recur_inning current_room is None room_id:%s' % room_id)
+            return -1
+
+        new_room_id = -1
+        # 房间实体列表
+        new_rooms = []
+        for k, v in self.rooms.items():
+            new_rooms.append(v)
+        # 按人数多少排序
+        new_rooms = sorted(new_rooms, key=lambda i: len(i.info["playerInGame"]), reverse=True)
+        for room_entity in new_rooms:
+            if room_entity.info["started"]:
+                continue
+            if not self.is_same_room_config(current_room.info, room_entity.info):
+                continue
+            new_room_id = room_entity.info['roomId']
+            break
+
+        return new_room_id
+
     @property
     def today_start(self):
         today_date = datetime.date.today()

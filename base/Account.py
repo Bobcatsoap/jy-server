@@ -1935,13 +1935,24 @@ class Account(KBEngine.Proxy):
                         return
             self.call_client_func('Notice', ["不能踢出此玩家"])
         elif _func_name == 'RecurInningSend':
-            _thisroomid = _args['roomID']
-            _thisroomType = _args["roomType"]
-            self.room_mgr.RecurInning(self, _thisroomid, _thisroomType)
+            self.recur_inning(_args)
         elif _func_name == 'GetRealTimeStamp':
             self.get_real_time_stamp()
         else:
             ERROR_MSG("[Account id %s] clientToBase------>func: %s not exit" % (self.id, _func_name))
+
+    def recur_inning(self, args):
+        room_id = args['roomID']
+        room_type = args["roomType"]
+        tea_house_id=-1
+        if 'teaHouseId' in args:
+            tea_house_id=args['teaHouseId']
+        # self.room_mgr.RecurInning(self, room_id, room_type)
+        new_room_id = self.tea_house_mgr.recur_inning(tea_house_id,room_id)
+        if new_room_id != -1:
+            self.call_client_func("RecurInningRes", {"roomId": new_room_id})
+        else:
+            DEBUG_MSG('Account recur_inning new_room_id=-1')
 
     def join_gold_room(self, _args):
         if self.scene:
