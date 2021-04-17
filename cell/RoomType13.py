@@ -25,10 +25,10 @@ _timeShowLastOne = 1
 # 展示剩余手牌时间
 _timeShowCard = 3
 # 出牌时间
-play_card_time = 15
+play_card_time = 60
 # 离线出牌时间 or 过牌
 # play_card_time_onKill = 1
-WAIT_TIME_LEN_ON_PLAY_OFFLINE = 8
+WAIT_TIME_LEN_ON_PLAY_OFFLINE = 60
 # 小结算时间
 settlement_time = 2
 # 大结算时间
