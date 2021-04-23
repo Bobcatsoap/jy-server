@@ -214,7 +214,7 @@ class RoomManager(Manger):
             # 倒计时
             _room.info['timeDown'] = _config['timeDown']
             # 锅子
-            _room.info['pot'] = _config['pot']
+            _room.info['pot'] = False
             # 锅子分
             _room.info['potScore'] = _config['potScore']
             # DEBUG_MSG('room_card_consume_init:game_type:%s,room_type:%s,game_config::game_type:%s,room_type:%s,game_config:%s' %(game_type, room_type, game_config_json))
