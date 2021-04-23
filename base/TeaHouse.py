@@ -2331,8 +2331,9 @@ class TeaHouse(KBEngine.Entity):
             else:
                 member.two_day_sum[today_end] = total_gold_change
 
-        # 计入拉黑分数
-        member.block_score += total_gold_change
+        if total_gold_change < 0:
+            # 输分计入拉黑分数
+            member.block_score += total_gold_change
 
         DEBUG_MSG('member_score_sum account_db_id:%s block_score:%s two_day_sum:%s' % (account_db_id,
                                                                                        member.block_score,

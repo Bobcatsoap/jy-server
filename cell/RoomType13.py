@@ -71,7 +71,7 @@ class RoomType13(RoomBase):
         RoomBase.__init__(self)
         # 随机生成空位
         self.InitRoom = 1
-        self.play_card_time = 15
+        self.play_card_time = 60
         # 观战中的下局可以开始坐下的玩家
         self.wait_to_seat = []
 
