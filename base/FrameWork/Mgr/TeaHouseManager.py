@@ -564,6 +564,14 @@ class TeaHouseManager(Manger):
             write_time = time.time()
             DBCommand.save_tea_house_game_coin_info(write_time, tea_house.teaHouseId, tea_house_game_coin_info)
 
+    def clear_member_block_score(self):
+        """
+        清除玩家拉黑分
+        :return:
+        """
+        for k, v in self.teaHouse_dic.items():
+            v.clear_member_block_score()
+
     def on_timer(self, _id, arg):
         # 每天23:59:59被调用
         if _id == self.mainTimerId:
@@ -616,6 +624,8 @@ class TeaHouseManager(Manger):
         elif _id == self.tomorrowStartTimer:
             # 存储茶楼
             self.save_tea_house_game_coin_data()
+            # 清除拉黑分
+            self.clear_member_block_score()
 
     def give_reward(self, reward_name, reward_count, account_db_id, tea_house_id, tea_house_name, reward_type='day'):
         """

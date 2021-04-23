@@ -3998,6 +3998,15 @@ class TeaHouse(KBEngine.Entity):
 
         return new_room_id
 
+    def clear_member_block_score(self):
+        """
+        清除玩家拉黑分
+        :return:
+        """
+        DEBUG_MSG('clear_member_block_score teaHouseId:%s' % self.teaHouseId)
+        for k, v in self.memberInfo.items():
+            v.block_score = 0
+
     @property
     def today_start(self):
         today_date = datetime.date.today()
