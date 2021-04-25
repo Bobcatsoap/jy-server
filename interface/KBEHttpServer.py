@@ -136,9 +136,9 @@ def check_game_version(req, resp):
     else:
         # 失败
         result["result"] = 0
-        result["downloadUrl"] = "http://www.tpe0pgm.cn/"
-        result["updateUrl"] = "http://www.tpe0pgm.cn/static/"
-        result["updateApkName"] = "rylm.apk"
+        result["downloadUrl"] = "http://d.firim.pro/ad9w"
+        result["updateUrl"] = ""
+        result["updateApkName"] = ""
     resp.body = json.dumps(result).encode()
     resp.end()
 
