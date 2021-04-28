@@ -253,16 +253,16 @@ class Account(KBEngine.Proxy):
                 self.name = _dic["nickname"]
                 self.headImageUrl = _dic["headimgurl"]
                 self.name = remove_emoji(self.name)
-                unionid = _dic["unionid"]
-
-                def _fun(result, rows, insertid, error):
-                    if len(result) != 0:
-                        _user_id = int(str(result[0][2], 'utf-8'))
-                        self.binding_proxy_by_user_id(_user_id)
-
-                _command = "SELECT * FROM `invite_code_relations` WHERE `unionid`='%s'" % unionid
-                DEBUG_MSG(_command)
-                KBEngine.executeRawDatabaseCommand(_command, _fun)
+                # unionid = _dic["unionid"]
+                #
+                # def _fun(result, rows, insertid, error):
+                #     if len(result) != 0:
+                #         _user_id = int(str(result[0][2], 'utf-8'))
+                #         self.binding_proxy_by_user_id(_user_id)
+                #
+                # _command = "SELECT * FROM `invite_code_relations` WHERE `unionid`='%s'" % unionid
+                # DEBUG_MSG(_command)
+                # KBEngine.executeRawDatabaseCommand(_command, _fun)
             except Exception as e:
                 self.name = ""
                 self.headImageUrl = ""

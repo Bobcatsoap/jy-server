@@ -1406,6 +1406,9 @@ class RoomType1(RoomBase):
                     '[Wait_to_seat]------>playerOutGame playerInGame setSeat setSeat accountId %s' % (k))
                 if not self.emptyLocationIndex:
                     continue
+                # 中途坐下的玩家扣房费
+                v = _chapter["playerOutGame"][k]
+                v['totalGoldChange'] -= self.info['roomRate']
                 self.setSeat(k, self.emptyLocationIndex[0])
             # 1 准备开始  走之前的游戏逻辑
             # if self.info["gameStartType"] == 101:
