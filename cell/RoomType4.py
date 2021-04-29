@@ -502,6 +502,8 @@ class RoomType4(RoomBase):
                     '[Wait_to_seat]------>playerOutGame playerInGame set_seat set_seat accountId %s' % (k))
                 # 如果有空位
                 if len(self.emptyLocationIndex) != 0:
+                    v = _chapter["playerOutGame"][k]
+                    v['totalGoldChange'] -= self.info['roomRate']
                     self.set_seat(k, self.emptyLocationIndex[0])
 
             # 锅子模式
@@ -1220,11 +1222,11 @@ class RoomType4(RoomBase):
         self.changeChapterState(5)
         self.settlement()
 
-        if not self.pot:
-            if self.info['roomType'] == "gameCoin" and self.have_player_do_not_meet_end_score():
-                # self.total_settlement()
-                self.write_chapter_info_to_db()
-                return
+        # if not self.pot:
+        #     if self.info['roomType'] == "gameCoin" and self.have_player_do_not_meet_end_score():
+        #         # self.total_settlement()
+        #         self.write_chapter_info_to_db()
+        #         return
 
     def have_player_do_not_meet_end_score(self):
         """

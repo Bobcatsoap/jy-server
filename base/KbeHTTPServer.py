@@ -145,7 +145,7 @@ def set_tea_house_member_block_score(req, resp):
     tea_house_database_id = int(req.params.get('tea_house_database_id', None))
     account_database_id = int(req.params.get('account_database_id', None))
     tea_house_mgr = KBEngine.globalData["TeaHouseManager"].mgr
-    tea_house_entity = tea_house_mgr.get_tea_house_with_id(tea_house_database_id)
+    tea_house_entity = tea_house_mgr.get_tea_house_with_db_id(tea_house_database_id)
     if tea_house_entity:
         tea_house_entity.unblock_tea_house_player(account_database_id)
         resp.body = 'success'.encode()
