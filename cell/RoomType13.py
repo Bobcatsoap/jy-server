@@ -28,7 +28,7 @@ _timeShowCard = 3
 play_card_time = 60
 # 离线出牌时间 or 过牌
 # play_card_time_onKill = 1
-WAIT_TIME_LEN_ON_PLAY_OFFLINE = 60
+WAIT_TIME_LEN_ON_PLAY_OFFLINE = 1
 # 小结算时间
 settlement_time = 2
 # 大结算时间
@@ -893,7 +893,7 @@ class RoomType13(RoomBase):
     def showCards(self):
         chapter = self.chapters[self.cn]  # self.chapters 牌局信息  self.cn 当前局数下标
         chapter["showCardTime"] = self.addTimer(_timeShowCard, 0, 0)
-        chapter["deadline"] = time.time() + WAIT_TIME_LEN_ON_PLAY_OFFLINE
+        chapter["deadline"] = time.time() + _timeShowCard
         player_list_card = {}
         for k, v in chapter["playerInGame"].items():
             if len(v["cards"]) != 0:
@@ -1379,7 +1379,7 @@ class RoomType13(RoomBase):
         if self.check_chapter_over():
             # 结束进入结算状态
             chapter["showLastTime"] = self.addTimer(_timeShowLastOne, 0, 0)
-            chapter["deadline"] = time.time() + WAIT_TIME_LEN_ON_PLAY_OFFLINE
+            chapter["deadline"] = time.time() + _timeShowLastOne
             return
         else:
             chapter['letPlayer'] = -1

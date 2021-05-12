@@ -2153,6 +2153,7 @@ class TeaHouse(KBEngine.Entity):
     def set_empty_location(self, index):
         DEBUG_MSG("设置空桌在前参数: %s" % index)
         self.empty_location = index
+        self.update_tea_house_info_to_client()
 
     def rooms_sort(self, room_ids):
         # 根据房间是否满员排序
