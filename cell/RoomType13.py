@@ -944,14 +944,14 @@ class RoomType13(RoomBase):
                     wait_time_length = self.play_card_time  # 出牌时间
                     _player["allowAutoPlayCheck"] = True
                 else:
-                    wait_time_length = WAIT_TIME_LEN_ON_PLAY_OFFLINE  # 离线出牌时间
+                    wait_time_length = self.play_card_time  # 离线出牌时间
         else:
             # 没开定时器
             wait_time_length = 60
             if have_bigger:
                 add_server_timer = False
             else:
-                wait_time_length = WAIT_TIME_LEN_ON_PLAY_OFFLINE  # 离线出牌时间
+                wait_time_length = self.play_card_time  # 离线出牌时间
 
         if add_server_timer:
             chapter["playCardTimer"] = self.addTimer(wait_time_length, 0, 0)
