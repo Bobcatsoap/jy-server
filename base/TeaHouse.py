@@ -4108,7 +4108,7 @@ class TeaHouse(KBEngine.Entity):
                     fund_time = int(r[1])
                     current_count = float(r[2])
                     funded_count = float(r[3])
-                    operate_name = str(r[4])
+                    operate_name = str(r[4], 'utf-8')
                     d = {'dbId': db_id,
                          'name': name,
                          'fundTime': fund_time,
