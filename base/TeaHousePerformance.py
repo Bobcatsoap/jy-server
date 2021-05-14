@@ -55,8 +55,8 @@ class TeaHousePerformance(KBEngine.Entity):
         self.superior = str(account_db_id)
         self.time = int(time.time())
         self.performanceDetail = str(round(count, 2))
-        self.currentCount = str(round(current_count, 2))
-        self.fundedCount = str(round(current_count, 2) - round(count, 2))
+        self.currentCount = round(current_count, 2)
+        self.fundedCount = round(current_count, 2) - round(count, 2)
         self.operateName = operate_name
         self.createType = 1
 

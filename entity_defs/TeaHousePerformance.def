@@ -32,13 +32,13 @@
             <Persistent>        true        </Persistent>
         </performanceDetail>
         <fundedCount>
-            <Type>              UNICODE     </Type>
+            <Type>              FLOAT32     </Type>
             <Flags>             BASE        </Flags>
             <Default>                       </Default>
             <Persistent>        true        </Persistent>
         </fundedCount>
         <currentCount>
-            <Type>              UNICODE     </Type>
+            <Type>              FLOAT32     </Type>
             <Flags>             BASE        </Flags>
             <Default>                       </Default>
             <Persistent>        true        </Persistent>
