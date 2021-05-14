@@ -46,8 +46,8 @@ class TeaHousePerformance(KBEngine.Entity):
         self.writeToDB()
 
     def create_one_fund_item(self, account_db_id, count, callback):
-        self.superior = account_db_id
-        self.time = time.time()
-        self.count = count
+        self.superior = str(account_db_id)
+        self.time = int(time.time())
+        self.performanceDetail = count
         self.createType = 1
         self.writeToDB(callback)

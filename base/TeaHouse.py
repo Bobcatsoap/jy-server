@@ -4023,9 +4023,14 @@ class TeaHouse(KBEngine.Entity):
                     count = float(result[0][0])
                 callback(count)
 
-            sql = 'SELECT SUM(sm_performancedetail) ' \
-                  'FROM tbl_teahouseperformance ' \
-                  'WHERE sm_superior=%s and sm_createType=0' % account_db_id
+            sql = "SELECT " \
+                  "(SELECT IFNULL(sum(sm_performanceDetail),0) " \
+                  "FROM tbl_teahouseperformance " \
+                  "WHERE sm_superior=%s and sm_createType=0)" \
+                  "-" \
+                  "(SELECT IFNULL(sum(sm_performanceDetail),0) " \
+                  "FROM tbl_teahouseperformance " \
+                  "WHERE sm_superior=%s and sm_createType=1)" % (account_db_id, account_db_id)
             KBEngine.executeRawDatabaseCommand(sql, on_success)
 
     def get_funded_performance(self, account_db_id, callback):

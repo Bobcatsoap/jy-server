@@ -4999,7 +4999,7 @@ class Account(KBEngine.Proxy):
 
     def fund_performance(self, _args):
         """
-        体现抽水，由保险箱到携带
+        提现抽水，由保险箱到携带
         :param _args:
         :return:
         """
