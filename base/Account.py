@@ -1944,6 +1944,8 @@ class Account(KBEngine.Proxy):
             self.get_funded_performance(_args)
         elif _func_name == 'FundPerformance':
             self.fund_performance(_args)
+        elif _func_name == 'GetFundedRecord':
+            self.get_funded_record(_args)
         else:
             ERROR_MSG("[Account id %s] clientToBase------>func: %s not exit" % (self.id, _func_name))
 
@@ -5015,3 +5017,17 @@ class Account(KBEngine.Proxy):
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args['teaHouseId'])
         if tea_house_entity:
             tea_house_entity.fund_performance(self.userId, _args['count'], on_success, on_fail)
+
+    def get_funded_record(self, _args):
+        """
+        获取提现记录
+        :param _args:
+        :return:
+        """
+
+        def on_success(info):
+            self.call_client_func('GetFundedRecord', {'info': info})
+
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args['teaHouseId'])
+        if tea_house_entity:
+            tea_house_entity.get_fund_record(self.userId, on_success)

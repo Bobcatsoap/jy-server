@@ -23,6 +23,12 @@ class TeaHousePerformance(KBEngine.Entity):
     accountDBID = 0
     # 0收入，1支出
     createType = 0
+    # 原数量
+    currentCount = 0
+    # 提现后数量
+    fundedCount = 0
+    # 操作
+    operateName = ''
     roomType = None
 
     def __init__(self):
@@ -45,9 +51,13 @@ class TeaHousePerformance(KBEngine.Entity):
         # tea_house_entity.update_team_rank_winner(account_db_id, performance_count)
         self.writeToDB()
 
-    def create_one_fund_item(self, account_db_id, count, callback):
+    def create_one_fund_item(self, account_db_id, count, current_count, operate_name, callback):
         self.superior = str(account_db_id)
         self.time = int(time.time())
-        self.performanceDetail = count
+        self.performanceDetail = str(round(count, 2))
+        self.currentCount = str(round(current_count, 2))
+        self.fundedCount = str(round(current_count, 2) - round(count, 2))
+        self.operateName = operate_name
         self.createType = 1
+
         self.writeToDB(callback)

@@ -31,6 +31,24 @@
             <Default>                       </Default>
             <Persistent>        true        </Persistent>
         </performanceDetail>
+        <fundedCount>
+            <Type>              UNICODE     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </fundedCount>
+        <currentCount>
+            <Type>              UNICODE     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </currentCount>
+        <operateName>
+            <Type>              UNICODE     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </operateName>
 		<proportion>
             <Type>              UINT32     </Type>
             <Flags>             BASE        </Flags>

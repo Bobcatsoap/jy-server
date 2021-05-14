@@ -4021,16 +4021,11 @@ class TeaHouse(KBEngine.Entity):
                 count = 0
                 if result[0][0]:
                     count = float(result[0][0])
-                callback(count)
+                callback(count - member.funded_performance)
 
-            sql = "SELECT " \
-                  "(SELECT IFNULL(sum(sm_performanceDetail),0) " \
+            sql = "SELECT IFNULL(sum(sm_performanceDetail),0) " \
                   "FROM tbl_teahouseperformance " \
-                  "WHERE sm_superior=%s and sm_createType=0)" \
-                  "-" \
-                  "(SELECT IFNULL(sum(sm_performanceDetail),0) " \
-                  "FROM tbl_teahouseperformance " \
-                  "WHERE sm_superior=%s and sm_createType=1)" % (account_db_id, account_db_id)
+                  "WHERE sm_superior=%s and sm_createType=0" % account_db_id
             KBEngine.executeRawDatabaseCommand(sql, on_success)
 
     def get_funded_performance(self, account_db_id, callback):
@@ -4042,17 +4037,18 @@ class TeaHouse(KBEngine.Entity):
         """
         member = self.get_member(account_db_id)
         if member:
-            def on_success(result, rows, insertid, error):
-                DEBUG_MSG('get_funded_performance db result:%s' % result)
-                count = 0
-                if result[0][0]:
-                    count = float(result[0][0])
-                callback(count)
-
-            sql = 'SELECT SUM(sm_performancedetail) ' \
-                  'FROM tbl_teahouseperformance ' \
-                  'WHERE sm_superior=%s and sm_createType=1' % account_db_id
-            KBEngine.executeRawDatabaseCommand(sql, on_success)
+            # def on_success(result, rows, insertid, error):
+            #     DEBUG_MSG('get_funded_performance db result:%s' % result)
+            #     count = 0
+            #     if result[0][0]:
+            #         count = float(result[0][0])
+            #     callback(count)
+            #
+            # sql = 'SELECT SUM(sm_performancedetail) ' \
+            #       'FROM tbl_teahouseperformance ' \
+            #       'WHERE sm_superior=%s and sm_createType=1' % account_db_id
+            # KBEngine.executeRawDatabaseCommand(sql, on_success)
+            callback(member.funded_performance)
 
     def fund_performance(self, account_db_id, count, on_success, on_fail):
         """
@@ -4065,27 +4061,70 @@ class TeaHouse(KBEngine.Entity):
         """
         member = self.get_member(account_db_id)
         if member:
+            count = round(count, 2)
+
             def on_query_success(result, rows, insertid, error):
                 DEBUG_MSG('query un_fund_performance db result:%s' % result)
-                un_fund_count = 0
+                # 此玩家所获得的所有抽水
+                all_performance = 0
                 if result[0][0]:
-                    un_fund_count = float(result[0][0])
+                    all_performance = float(result[0][0])
 
-                if un_fund_count < count:
+                # 未提现金额
+                un_funded_count = all_performance - member.funded_performance
+                if un_funded_count < count:
                     on_fail('失败，余额不足')
                     return
                 else:
                     def write_fund_call_back(boolean, entity):
                         if boolean:
+                            member.funded_performance += count
                             on_success()
 
                     tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-                    tea_house_performance.create_one_fund_item(account_db_id, count, write_fund_call_back)
+                    tea_house_performance.create_one_fund_item(account_db_id, count, un_funded_count,
+                                                               '门票代扣',
+                                                               write_fund_call_back)
 
             sql = 'SELECT SUM(sm_performancedetail) ' \
                   'FROM tbl_teahouseperformance ' \
                   'WHERE sm_superior=%s and sm_createType=0' % account_db_id
             KBEngine.executeRawDatabaseCommand(sql, on_query_success)
+
+    def get_fund_record(self, account_db_id, callback):
+        """
+        获取提现记录（携带）
+        :param account_db_id:
+        :param callback:
+        :return:
+        """
+
+        def on_query_success(result, rows, insertid, error):
+            info = []
+            if result:
+                for r in result:
+                    db_id = int(r[0])
+                    name = self.get_member(db_id).name
+                    fund_time = int(r[1])
+                    current_count = float(r[2])
+                    funded_count = float(r[3])
+                    operate_name = str(r[4])
+                    d = {'dbId': db_id,
+                         'name': name,
+                         'fundTime': fund_time,
+                         'currentCount': current_count,
+                         'fundedCount': funded_count,
+                         'operateName': operate_name}
+                    info.append(d)
+            callback(info)
+
+        sql = 'SELECT sm_superior,sm_time,sm_currentCount,sm_fundedCount,sm_operateName ' \
+              'FROM tbl_teahouseperformance ' \
+              'WHERE sm_superior=%s and sm_createType=1 ' \
+              'and sm_time>=%s and sm_time<=%s order by sm_time DESC ' % (account_db_id,
+                                                                          self.yesterday_start,
+                                                                          self.today_end)
+        KBEngine.executeRawDatabaseCommand(sql, on_query_success)
 
     @property
     def today_start(self):
@@ -4159,6 +4198,8 @@ class TeaHousePlayer:
     all_sum = {}
     # 代理等级
     proxy_type = 0
+    # 携带（已提现抽水）
+    funded_performance = 0
 
     def __init__(self, level, db_id, name, head_image, belong_to, invitation_code, gold=0):
         self.level = level
@@ -4187,6 +4228,7 @@ class TeaHousePlayer:
         self.all_sum = 0
         self.block_score = 0
         self.proxy_type = 0
+        self.funded_performance = 0
         self.proxy_block_score_standard = 0
 
     def del_game_coin(self):
