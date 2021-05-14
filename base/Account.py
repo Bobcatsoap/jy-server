@@ -1940,6 +1940,10 @@ class Account(KBEngine.Proxy):
             self.get_real_time_stamp()
         elif _func_name == 'GetUnFundPerformance':
             self.get_un_fund_performance(_args)
+        elif _func_name == 'GetFundedPerformance':
+            self.get_funded_performance(_args)
+        elif _func_name == 'FundPerformance':
+            self.fund_performance(_args)
         else:
             ERROR_MSG("[Account id %s] clientToBase------>func: %s not exit" % (self.id, _func_name))
 
@@ -4979,7 +4983,7 @@ class Account(KBEngine.Proxy):
         if tea_house_entity:
             tea_house_entity.get_un_fund_performance(self.userId, on_success)
 
-    def get_funded_performance(self,_args):
+    def get_funded_performance(self, _args):
         """
         获取携带（已提现抽水）
         :param _args:
@@ -4992,3 +4996,22 @@ class Account(KBEngine.Proxy):
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args['teaHouseId'])
         if tea_house_entity:
             tea_house_entity.get_funded_performance(self.userId, on_success)
+
+    def fund_performance(self, _args):
+        """
+        体现抽水，由保险箱到携带
+        :param _args:
+        :return:
+        """
+
+        def on_success():
+            self.call_client_func('Notice', ['提现成功'])
+            self.get_funded_performance(_args)
+            self.get_un_fund_performance(_args)
+
+        def on_fail(content):
+            self.call_client_func('Notice', [content])
+
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args['teaHouseId'])
+        if tea_house_entity:
+            tea_house_entity.fund_performance(self.userId, _args['count'], on_success, on_fail)

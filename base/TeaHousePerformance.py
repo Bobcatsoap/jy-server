@@ -45,9 +45,9 @@ class TeaHousePerformance(KBEngine.Entity):
         # tea_house_entity.update_team_rank_winner(account_db_id, performance_count)
         self.writeToDB()
 
-    def create_one_fund_item(self, account_db_id, count):
+    def create_one_fund_item(self, account_db_id, count, callback):
         self.superior = account_db_id
         self.time = time.time()
         self.count = count
         self.createType = 1
-        self.writeToDB()
+        self.writeToDB(callback)

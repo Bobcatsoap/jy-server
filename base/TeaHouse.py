@@ -4049,6 +4049,39 @@ class TeaHouse(KBEngine.Entity):
                   'WHERE sm_superior=%s and sm_createType=1' % account_db_id
             KBEngine.executeRawDatabaseCommand(sql, on_success)
 
+    def fund_performance(self, account_db_id, count, on_success, on_fail):
+        """
+        提现抽水
+        :param account_db_id:
+        :param count:
+        :param on_success:
+        :param on_fail:
+        :return:
+        """
+        member = self.get_member(account_db_id)
+        if member:
+            def on_query_success(result, rows, insertid, error):
+                DEBUG_MSG('query un_fund_performance db result:%s' % result)
+                un_fund_count = 0
+                if result[0][0]:
+                    un_fund_count = float(result[0][0])
+
+                if un_fund_count < count:
+                    on_fail('失败，余额不足')
+                    return
+                else:
+                    def write_fund_call_back(boolean, entity):
+                        if boolean:
+                            on_success()
+
+                    tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
+                    tea_house_performance.create_one_fund_item(account_db_id, count, write_fund_call_back)
+
+            sql = 'SELECT SUM(sm_performancedetail) ' \
+                  'FROM tbl_teahouseperformance ' \
+                  'WHERE sm_superior=%s and sm_createType=0' % account_db_id
+            KBEngine.executeRawDatabaseCommand(sql, on_query_success)
+
     @property
     def today_start(self):
         today_date = datetime.date.today()
