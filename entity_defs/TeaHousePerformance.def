@@ -37,6 +37,12 @@
             <Default>                       </Default>
             <Persistent>        true        </Persistent>
         </proportion>
+        <createType>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>           0            </Default>
+            <Persistent>        true        </Persistent>
+        </createType>
         <roomType>
             <Type>              UNICODE     </Type>
             <Flags>             BASE        </Flags>

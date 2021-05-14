@@ -4007,6 +4007,48 @@ class TeaHouse(KBEngine.Entity):
         for k, v in self.memberInfo.items():
             v.block_score = 0
 
+    def get_un_fund_performance(self, account_db_id, callback):
+        """
+        获取未提现抽水
+        :param account_db_id:
+        :param callback:
+        :return:
+        """
+        member = self.get_member(account_db_id)
+        if member:
+            def on_success(result, rows, insertid, error):
+                DEBUG_MSG('get_un_fund_performance db result:%s' % result)
+                count = 0
+                if result[0][0]:
+                    count = float(result[0][0])
+                callback(count)
+
+            sql = 'SELECT SUM(sm_performancedetail) ' \
+                  'FROM tbl_teahouseperformance ' \
+                  'WHERE sm_superior=%s and sm_createType=0' % account_db_id
+            KBEngine.executeRawDatabaseCommand(sql, on_success)
+
+    def get_funded_performance(self, account_db_id, callback):
+        """
+        获取已提现抽水
+        :param account_db_id:
+        :param callback:
+        :return:
+        """
+        member = self.get_member(account_db_id)
+        if member:
+            def on_success(result, rows, insertid, error):
+                DEBUG_MSG('get_funded_performance db result:%s' % result)
+                count = 0
+                if result[0][0]:
+                    count = float(result[0][0])
+                callback(count)
+
+            sql = 'SELECT SUM(sm_performancedetail) ' \
+                  'FROM tbl_teahouseperformance ' \
+                  'WHERE sm_superior=%s and sm_createType=1' % account_db_id
+            KBEngine.executeRawDatabaseCommand(sql, on_success)
+
     @property
     def today_start(self):
         today_date = datetime.date.today()

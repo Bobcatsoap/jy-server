@@ -1938,17 +1938,19 @@ class Account(KBEngine.Proxy):
             self.recur_inning(_args)
         elif _func_name == 'GetRealTimeStamp':
             self.get_real_time_stamp()
+        elif _func_name == 'GetUnFundPerformance':
+            self.get_un_fund_performance(_args)
         else:
             ERROR_MSG("[Account id %s] clientToBase------>func: %s not exit" % (self.id, _func_name))
 
     def recur_inning(self, args):
         room_id = args['roomID']
         room_type = args["roomType"]
-        tea_house_id=-1
+        tea_house_id = -1
         if 'teaHouseId' in args:
-            tea_house_id=args['teaHouseId']
+            tea_house_id = args['teaHouseId']
         # self.room_mgr.RecurInning(self, room_id, room_type)
-        new_room_id = self.tea_house_mgr.recur_inning(tea_house_id,room_id)
+        new_room_id = self.tea_house_mgr.recur_inning(tea_house_id, room_id)
         if new_room_id != -1:
             self.call_client_func("RecurInningRes", {"roomId": new_room_id})
         else:
@@ -4962,3 +4964,31 @@ class Account(KBEngine.Proxy):
         else:
             self.call_client_func("JoinTeaHouseResp", ["找不到此冠名赛"])
             return
+
+    def get_un_fund_performance(self, _args):
+        """
+        获取保险箱余额
+        :param _args:
+        :return:
+        """
+
+        def on_success(count):
+            self.call_client_func('GetUnFundPerformance', {'count': count})
+
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args['teaHouseId'])
+        if tea_house_entity:
+            tea_house_entity.get_un_fund_performance(self.userId, on_success)
+
+    def get_funded_performance(self,_args):
+        """
+        获取携带（已提现抽水）
+        :param _args:
+        :return:
+        """
+
+        def on_success(count):
+            self.call_client_func('GetFundedPerformance', {'count': count})
+
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args['teaHouseId'])
+        if tea_house_entity:
+            tea_house_entity.get_funded_performance(self.userId, on_success)
