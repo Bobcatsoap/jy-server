@@ -1318,33 +1318,6 @@ class TeaHouse(KBEngine.Entity):
                                 'proxyType': v.proxy_type
                                 }
                 return members_info
-        # members_info = {}
-        # yesterday = 0
-        # today = 0
-        # for k in self.performance_detail:
-        #     if str(account_db_id) in self.performance_detail[k]:
-        #         performance_detail = self.performance_detail[k][account_db_id]
-        #         _time = performance_detail['time']
-        #         count = performance_detail['count']
-        #         if self.yesterday_start <= _time <= self.yesterday_end:
-        #             yesterday = count
-        #         elif self.today_start <= _time <= self.today_end:
-        #             today = count
-        #
-        # if account_db_id in self.memberInfo:
-        #     members_info = {
-        #         "name": self.memberInfo[account_db_id].name, "headImageUrl": self.memberInfo[account_db_id].head_image,
-        #         "belongTo": self.memberInfo[account_db_id].belong_to,
-        #         "invitationCode": self.memberInfo[account_db_id].invitation_code,
-        #         "proportion": self.memberInfo[account_db_id].proportion,
-        #         "level": self.memberInfo[account_db_id].level,
-        #         'userId': self.memberInfo[account_db_id].db_id,
-        #         'todayData': yesterday,
-        #         'yesterdayData': today,
-        #         "performance": self.memberInfo[account_db_id].performance,
-        #         "turnInPerformance": round(self.memberInfo[account_db_id].turn_in_performance, 2)
-        #     }
-        # return members_info
 
     def get_member_info(self, proxy_db_id=-1):
         """
@@ -3918,6 +3891,20 @@ class TeaHouse(KBEngine.Entity):
 
         return down_members
 
+    def get_all_down_proxy(self, account_db_id):
+        """
+        获取所有下级代理
+        :param account_db_id:
+        :return:
+        """
+        down_proxy = []
+        for k, v in self.memberInfo.items():
+            if k == account_db_id:
+                continue
+            if self.is_down_player(k, account_db_id) and v.proxy_type > 0:
+                down_proxy.append(k)
+        return down_proxy
+
     def get_tea_house_proxy_info(self, requester):
         """
         获取茶楼代理信息
@@ -4023,7 +4010,7 @@ class TeaHouse(KBEngine.Entity):
                     count = float(result[0][0])
                 callback(count - member.funded_performance)
 
-            sql = "SELECT IFNULL(sum(sm_performanceDetail),0) " \
+            sql = "SELECT sum(sm_performanceDetail) " \
                   "FROM tbl_teahouseperformance " \
                   "WHERE sm_superior=%s and sm_createType=0" % account_db_id
             KBEngine.executeRawDatabaseCommand(sql, on_success)
@@ -4037,17 +4024,6 @@ class TeaHouse(KBEngine.Entity):
         """
         member = self.get_member(account_db_id)
         if member:
-            # def on_success(result, rows, insertid, error):
-            #     DEBUG_MSG('get_funded_performance db result:%s' % result)
-            #     count = 0
-            #     if result[0][0]:
-            #         count = float(result[0][0])
-            #     callback(count)
-            #
-            # sql = 'SELECT SUM(sm_performancedetail) ' \
-            #       'FROM tbl_teahouseperformance ' \
-            #       'WHERE sm_superior=%s and sm_createType=1' % account_db_id
-            # KBEngine.executeRawDatabaseCommand(sql, on_success)
             callback(member.funded_performance)
 
     def fund_performance(self, account_db_id, count, on_success, on_fail):
@@ -4120,29 +4096,104 @@ class TeaHouse(KBEngine.Entity):
 
         sql = 'SELECT sm_superior,sm_time,sm_currentCount,sm_fundedCount,sm_operateName ' \
               'FROM tbl_teahouseperformance ' \
-              'WHERE sm_superior=%s and sm_createType=1 ' \
+              'WHERE sm_superior=%s and (sm_createType=1 or sm_createType=2) ' \
               'and sm_time>=%s and sm_time<=%s order by sm_time DESC ' % (account_db_id,
                                                                           self.yesterday_start,
                                                                           self.today_end)
         KBEngine.executeRawDatabaseCommand(sql, on_query_success)
 
-    @property
-    def today_start(self):
-        today_date = datetime.date.today()
-        today_stamp = time.mktime(today_date.timetuple())
-        return int(today_stamp)
+    def get_down_proxy_performance_info(self, account_db_id, callback):
+        """
+        获取战队信息
+        :return:
+        """
+        down_proxy = self.get_all_down_proxy(account_db_id)
+        down_proxy_str = str(down_proxy)
+        down_proxy_str = down_proxy_str.replace('[', '(')
+        down_proxy_str = down_proxy_str.replace(']', ')')
+        sql = "SELECT sm_superior,SUM(sm_performancedetail) " \
+              "FROM tbl_teahouseperformance " \
+              "WHERE sm_superior in %s and sm_createType=0 " \
+              "GROUP BY sm_superior" % down_proxy_str
 
-    @property
-    def today_end(self):
-        return self.today_start + 86399
+        def on_query_success(result, rows, insertid, error):
+            info = []
+            if result:
+                for r in result:
+                    db_id = int(r[0])
+                    member = self.get_member(db_id)
+                    if not member:
+                        continue
+                    # 所有抽水
+                    all_performance = round(float(r[1]), 2)
+                    # 未提现抽水
+                    unfunded_performance = all_performance - member.funded_performance
 
-    @property
-    def yesterday_start(self):
-        return self.today_start - 86400
+                    d = {'dbId': db_id,
+                         'unfunded': unfunded_performance,
+                         'funded': member.funded_performance,
+                         'name': member.name,
+                         'head': member.head_image}
+                    info.append(d)
+            callback(info)
 
-    @property
-    def yesterday_end(self):
-        return self.today_end - 86400
+        KBEngine.executeRawDatabaseCommand(sql, on_query_success)
+
+    def modify_funded_performance(self, account_db_id, modify_db_id, count, on_success, on_fail):
+        """
+        修改携带
+        :param on_fail:
+        :param on_success:
+        :param account_db_id:
+        :param modify_db_id:
+        :param count:
+        :return:
+        """
+        if count >= 0:
+            on_fail('数值必须小于0')
+            return
+        if not self.is_down_player(modify_db_id, account_db_id):
+            on_fail('该玩家不是你的下级')
+            return
+        operator = self.get_member(account_db_id)
+        modifier = self.get_member(modify_db_id)
+
+        if operator and modifier:
+            if modifier.funded_performance + count < 0:
+                on_fail('超出已有携带')
+                return
+
+            def write_modify_call_back(boolean, entity):
+                if boolean:
+                    modifier.funded_performance += count
+                    on_success()
+
+            tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
+            tea_house_performance.create_one_modify_item(account_db_id, count, modifier.funded_performance,
+                                                         '裁判',
+                                                         write_modify_call_back)
+
+
+@property
+def today_start(self):
+    today_date = datetime.date.today()
+    today_stamp = time.mktime(today_date.timetuple())
+    return int(today_stamp)
+
+
+@property
+def today_end(self):
+    return self.today_start + 86399
+
+
+@property
+def yesterday_start(self):
+    return self.today_start - 86400
+
+
+@property
+def yesterday_end(self):
+    return self.today_end - 86400
 
 
 class TeaHousePlayer:

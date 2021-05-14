@@ -21,7 +21,7 @@ class TeaHousePerformance(KBEngine.Entity):
     superior = 0
     # 用户id
     accountDBID = 0
-    # 0收入，1支出
+    # 0收入，1支出，2裁判
     createType = 0
     # 原数量
     currentCount = 0
@@ -59,5 +59,18 @@ class TeaHousePerformance(KBEngine.Entity):
         self.fundedCount = round(current_count, 2) - round(count, 2)
         self.operateName = operate_name
         self.createType = 1
+
+        self.writeToDB(callback)
+
+    def create_one_modify_item(self, account_db_id, count, current_count, operate_name, callback):
+        self.superior = str(account_db_id)
+        self.time = int(time.time())
+        # 裁判修改数额暂时用这个字段
+        self.performanceDetail = str(round(count, 2))
+        self.currentCount = round(current_count, 2)
+        # 裁判后的数额暂时用这个字段
+        self.fundedCount = round(current_count, 2) + round(count, 2)
+        self.operateName = operate_name
+        self.createType = 2
 
         self.writeToDB(callback)
