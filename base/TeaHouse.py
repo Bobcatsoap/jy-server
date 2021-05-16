@@ -4103,8 +4103,8 @@ class TeaHouse(KBEngine.Entity):
               'FROM tbl_teahouseperformance ' \
               'WHERE sm_superior=%s and (sm_createType=1 or sm_createType=2) ' \
               'and sm_time>=%s and sm_time<=%s order by sm_time DESC ' % (account_db_id,
-                                                                          yesterday_start,
-                                                                          today_end)
+                                                                          self.yesterday_start,
+                                                                          self.today_end)
         DEBUG_MSG('get_fund_record sql:%s' % sql)
         KBEngine.executeRawDatabaseCommand(sql, on_query_success)
 
@@ -4212,7 +4212,7 @@ class TeaHouse(KBEngine.Entity):
                     on_success()
 
             tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-            tea_house_performance.create_one_modify_item(account_db_id, count, modifier.funded_performance,
+            tea_house_performance.create_one_modify_item(modifier.db_id, count, modifier.funded_performance,
                                                          '裁判',
                                                          write_modify_call_back)
 
@@ -4244,27 +4244,24 @@ class TeaHouse(KBEngine.Entity):
                                                          '裁判',
                                                          write_modify_call_back)
 
+    @property
+    def today_start(self):
+        today_date = datetime.date.today()
+        today_stamp = time.mktime(today_date.timetuple())
+        return int(today_stamp)
 
-@property
-def today_start(self):
-    today_date = datetime.date.today()
-    today_stamp = time.mktime(today_date.timetuple())
-    return int(today_stamp)
+    @property
+    def today_end(self):
+        return self.today_start + 86399
 
+    @property
+    def yesterday_start(self):
+        return self.today_start - 86400
 
-@property
-def today_end(self):
-    return self.today_start + 86399
+    @property
+    def yesterday_end(self):
+        return self.today_end - 86400
 
-
-@property
-def yesterday_start(self):
-    return self.today_start - 86400
-
-
-@property
-def yesterday_end(self):
-    return self.today_end - 86400
 
 
 class TeaHousePlayer:
