@@ -4008,11 +4008,16 @@ class TeaHouse(KBEngine.Entity):
                 count = 0
                 if result[0][0]:
                     count = float(result[0][0])
-                callback(count - member.funded_performance)
 
-            sql = "SELECT sum(sm_performanceDetail) " \
-                  "FROM tbl_teahouseperformance " \
-                  "WHERE sm_superior=%s and sm_createType=0" % account_db_id
+                callback(count)
+
+            # 裁判值为负数
+            # 获得的所有抽水-转给携带的值=保险箱
+            sql = "SELECT " \
+                  "(SELECT sum(sm_performanceDetail) FROM tbl_teahouseperformance WHERE sm_superior=%s and sm_createType=0) - " \
+                  "(SELECT sum(sm_performanceDetail) FROM tbl_teahouseperformance WHERE sm_superior=%s and sm_createType=1)" \
+                  % (account_db_id, account_db_id)
+            DEBUG_MSG('get_un_fund_performance sql:%s' % sql)
             KBEngine.executeRawDatabaseCommand(sql, on_success)
 
     def get_funded_performance(self, account_db_id, callback):
@@ -4100,6 +4105,7 @@ class TeaHouse(KBEngine.Entity):
               'and sm_time>=%s and sm_time<=%s order by sm_time DESC ' % (account_db_id,
                                                                           yesterday_start,
                                                                           today_end)
+        DEBUG_MSG('get_fund_record sql:%s' % sql)
         KBEngine.executeRawDatabaseCommand(sql, on_query_success)
 
     def search_down_proxy_performance_info(self, account_db_id, keyword, on_success, on_fail):

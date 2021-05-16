@@ -5101,12 +5101,12 @@ class Account(KBEngine.Proxy):
         """
 
         def on_success():
-            self.call_client_func('Notice', ['修改成功'])
-            self.get_down_proxy_performance_info(_args)
+            self.call_client_func('Notice', ['清空成功'])
+            self.get_funded_performance(_args)
 
         def on_fail(content):
             self.call_client_func('Notice', [content])
 
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args['teaHouseId'])
         if tea_house_entity:
-            tea_house_entity.clear_performance(self.userId, _args['count'], on_success, on_fail)
+            tea_house_entity.clear_performance(self.userId, on_success, on_fail)
