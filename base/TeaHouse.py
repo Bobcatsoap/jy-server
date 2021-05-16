@@ -4008,15 +4008,13 @@ class TeaHouse(KBEngine.Entity):
                 count = 0
                 if result[0][0]:
                     count = float(result[0][0])
+                callback(round(count - member.funded_performance + member.modify_funded_performance, 2))
 
-                callback(count)
-
-            # 裁判值为负数
-            # 获得的所有抽水-转给携带的值=保险箱
-            sql = "SELECT " \
-                  "(SELECT sum(sm_performanceDetail) FROM tbl_teahouseperformance WHERE sm_superior=%s and sm_createType=0) - " \
-                  "(SELECT sum(sm_performanceDetail) FROM tbl_teahouseperformance WHERE sm_superior=%s and sm_createType=1)" \
-                  % (account_db_id, account_db_id)
+            # 获得所有抽水
+            sql = "SELECT sum(sm_performanceDetail) " \
+                  "FROM tbl_teahouseperformance " \
+                  "WHERE sm_superior=%s and sm_createType=0" \
+                  % account_db_id
             DEBUG_MSG('get_un_fund_performance sql:%s' % sql)
             KBEngine.executeRawDatabaseCommand(sql, on_success)
 
@@ -4046,13 +4044,14 @@ class TeaHouse(KBEngine.Entity):
 
             def on_query_success(result, rows, insertid, error):
                 DEBUG_MSG('query un_fund_performance db result:%s' % result)
-                # 此玩家所获得的所有抽水
+                # 此玩家未提现抽水
                 all_performance = 0
                 if result[0][0]:
                     all_performance = float(result[0][0])
 
-                # 未提现金额
-                un_funded_count = all_performance - member.funded_performance
+                # 未提现抽水=总获取抽水-携带+携带裁判
+                un_funded_count = all_performance - member.funded_performance + member.modify_funded_performance
+                un_funded_count = round(un_funded_count, 2)
                 if un_funded_count < count:
                     on_fail('失败，余额不足')
                     return
@@ -4067,9 +4066,10 @@ class TeaHouse(KBEngine.Entity):
                                                                '门票代扣',
                                                                write_fund_call_back)
 
-            sql = 'SELECT SUM(sm_performancedetail) ' \
-                  'FROM tbl_teahouseperformance ' \
-                  'WHERE sm_superior=%s and sm_createType=0' % account_db_id
+            sql = "SELECT sum(sm_performanceDetail) " \
+                  "FROM tbl_teahouseperformance " \
+                  "WHERE sm_superior=%s and sm_createType=0" % account_db_id
+            DEBUG_MSG('get_un_fund_performance sql:%s' % sql)
             KBEngine.executeRawDatabaseCommand(sql, on_query_success)
 
     def get_fund_record(self, account_db_id, callback):
@@ -4132,9 +4132,8 @@ class TeaHouse(KBEngine.Entity):
                         continue
                     # 所有抽水
                     all_performance = round(float(r[1]), 2)
-                    # 未提现抽水
-                    unfunded_performance = all_performance - member.funded_performance
-
+                    unfunded_performance = all_performance - member.funded_performance + member.modify_funded_performance
+                    unfunded_performance = round(unfunded_performance, 2)
                     d = {'dbId': db_id,
                          'unfunded': unfunded_performance,
                          'funded': member.funded_performance,
@@ -4170,8 +4169,8 @@ class TeaHouse(KBEngine.Entity):
                     # 所有抽水
                     all_performance = round(float(r[1]), 2)
                     # 未提现抽水
-                    unfunded_performance = all_performance - member.funded_performance
-
+                    unfunded_performance = all_performance - member.funded_performance + member.modify_funded_performance
+                    unfunded_performance = round(unfunded_performance, 2)
                     d = {'dbId': db_id,
                          'unfunded': unfunded_performance,
                          'funded': member.funded_performance,
@@ -4209,6 +4208,7 @@ class TeaHouse(KBEngine.Entity):
             def write_modify_call_back(boolean, entity):
                 if boolean:
                     modifier.funded_performance += count
+                    modifier.modify_funded_performance += count
                     on_success()
 
             tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
@@ -4236,6 +4236,7 @@ class TeaHouse(KBEngine.Entity):
             def write_modify_call_back(boolean, entity):
                 if boolean:
                     operator.funded_performance += count
+                    operator.modify_funded_performance += count
                     on_success()
 
             tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
@@ -4321,6 +4322,8 @@ class TeaHousePlayer:
     proxy_type = 0
     # 携带（已提现抽水）
     funded_performance = 0
+    # 裁判（已裁判数额）
+    modify_funded_performance = 0
 
     def __init__(self, level, db_id, name, head_image, belong_to, invitation_code, gold=0):
         self.level = level
@@ -4350,6 +4353,7 @@ class TeaHousePlayer:
         self.block_score = 0
         self.proxy_type = 0
         self.funded_performance = 0
+        self.modify_funded_performance = 0
         self.proxy_block_score_standard = 0
 
     def del_game_coin(self):
