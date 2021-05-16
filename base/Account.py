@@ -1952,6 +1952,8 @@ class Account(KBEngine.Proxy):
             self.search_down_proxy_performance_info(_args)
         elif _func_name == 'ModifyFundedPerformance':
             self.modify_funded_performance(_args)
+        elif _func_name == 'ClearPerformance':
+            self.clear_performance(_args)
         else:
             ERROR_MSG("[Account id %s] clientToBase------>func: %s not exit" % (self.id, _func_name))
 
@@ -5068,7 +5070,7 @@ class Account(KBEngine.Proxy):
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args['teaHouseId'])
         if tea_house_entity:
             tea_house_entity.search_down_proxy_performance_info(self.userId,
-                                                                _args['keyword'],
+                                                                _args['keyWord'],
                                                                 on_success,
                                                                 on_fail)
 
@@ -5090,3 +5092,21 @@ class Account(KBEngine.Proxy):
         if tea_house_entity:
             tea_house_entity.modify_funded_performance(self.userId, _args['modifyDbId'], _args['count'],
                                                        on_success, on_fail)
+
+    def clear_performance(self, _args):
+        """
+        清空已提现抽水
+        :param _args:
+        :return:
+        """
+
+        def on_success():
+            self.call_client_func('Notice', ['修改成功'])
+            self.get_down_proxy_performance_info(_args)
+
+        def on_fail(content):
+            self.call_client_func('Notice', [content])
+
+        tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(_args['teaHouseId'])
+        if tea_house_entity:
+            tea_house_entity.clear_performance(self.userId, _args['count'], on_success, on_fail)

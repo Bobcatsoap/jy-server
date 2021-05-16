@@ -4098,8 +4098,8 @@ class TeaHouse(KBEngine.Entity):
               'FROM tbl_teahouseperformance ' \
               'WHERE sm_superior=%s and (sm_createType=1 or sm_createType=2) ' \
               'and sm_time>=%s and sm_time<=%s order by sm_time DESC ' % (account_db_id,
-                                                                          self.yesterday_start,
-                                                                          self.today_end)
+                                                                          yesterday_start,
+                                                                          today_end)
         KBEngine.executeRawDatabaseCommand(sql, on_query_success)
 
     def search_down_proxy_performance_info(self, account_db_id, keyword, on_success, on_fail):
@@ -4207,6 +4207,33 @@ class TeaHouse(KBEngine.Entity):
 
             tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
             tea_house_performance.create_one_modify_item(account_db_id, count, modifier.funded_performance,
+                                                         '裁判',
+                                                         write_modify_call_back)
+
+    def clear_performance(self, account_db_id, on_success, on_fail):
+        """
+        修改携带
+        :param on_fail:
+        :param on_success:
+        :param account_db_id:
+        :return:
+        """
+        if self.creatorDBID != account_db_id:
+            on_fail('只有圈主可以清空')
+            return
+
+        operator = self.get_member(account_db_id)
+
+        if operator:
+            count = -operator.funded_performance
+
+            def write_modify_call_back(boolean, entity):
+                if boolean:
+                    operator.funded_performance += count
+                    on_success()
+
+            tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
+            tea_house_performance.create_one_modify_item(account_db_id, count, operator.funded_performance,
                                                          '裁判',
                                                          write_modify_call_back)
 
