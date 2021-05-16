@@ -4102,6 +4102,43 @@ class TeaHouse(KBEngine.Entity):
                                                                           self.today_end)
         KBEngine.executeRawDatabaseCommand(sql, on_query_success)
 
+    def search_down_proxy_performance_info(self, account_db_id, keyword, on_success, on_fail):
+        """
+        搜索战队信息
+        :return:
+        """
+        down_proxy = self.get_all_down_proxy(account_db_id)
+        if keyword not in down_proxy:
+            on_fail('不存在此玩家')
+            return
+        sql = "SELECT sm_superior,SUM(sm_performancedetail) " \
+              "FROM tbl_teahouseperformance " \
+              "WHERE sm_superior = %s and sm_createType=0 " \
+              "GROUP BY sm_superior" % keyword
+
+        def on_query_success(result, rows, insertid, error):
+            info = []
+            if result:
+                for r in result:
+                    db_id = int(r[0])
+                    member = self.get_member(db_id)
+                    if not member:
+                        continue
+                    # 所有抽水
+                    all_performance = round(float(r[1]), 2)
+                    # 未提现抽水
+                    unfunded_performance = all_performance - member.funded_performance
+
+                    d = {'dbId': db_id,
+                         'unfunded': unfunded_performance,
+                         'funded': member.funded_performance,
+                         'name': member.name,
+                         'head': member.head_image}
+                    info.append(d)
+            on_success(info)
+
+        KBEngine.executeRawDatabaseCommand(sql, on_query_success)
+
     def get_down_proxy_performance_info(self, account_db_id, callback):
         """
         获取战队信息
