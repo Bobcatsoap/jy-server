@@ -29,6 +29,8 @@ class TeaHousePerformance(KBEngine.Entity):
     fundedCount = 0
     # 操作
     operateName = ''
+    # 茶楼id
+    teaHouseId = 0
     roomType = None
 
     def __init__(self):
@@ -47,6 +49,7 @@ class TeaHousePerformance(KBEngine.Entity):
             self.roomType = ''
         self.proportion = proportion
         self.createType = 0
+        self.teaHouseId = teaHouseId
         tea_house_entity = tea_house_manager().get_tea_house_with_id(teaHouseId)
         # tea_house_entity.update_team_rank_winner(account_db_id, performance_count)
         self.writeToDB()

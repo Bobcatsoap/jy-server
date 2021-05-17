@@ -55,6 +55,12 @@
             <Default>                       </Default>
             <Persistent>        true        </Persistent>
         </proportion>
+        <teaHouseId>
+            <Type>              UINT32     </Type>
+            <Flags>             BASE        </Flags>
+            <Default>                       </Default>
+            <Persistent>        true        </Persistent>
+        </teaHouseId>
         <createType>
             <Type>              UINT32     </Type>
             <Flags>             BASE        </Flags>
