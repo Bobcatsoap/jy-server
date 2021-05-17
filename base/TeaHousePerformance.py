@@ -54,7 +54,7 @@ class TeaHousePerformance(KBEngine.Entity):
         # tea_house_entity.update_team_rank_winner(account_db_id, performance_count)
         self.writeToDB()
 
-    def create_one_fund_item(self, account_db_id, count, current_count, operate_name, callback):
+    def create_one_fund_item(self, account_db_id, count, current_count, operate_name, tea_house_id, callback):
         self.superior = str(account_db_id)
         self.time = int(time.time())
         self.performanceDetail = str(round(count, 2))
@@ -62,10 +62,10 @@ class TeaHousePerformance(KBEngine.Entity):
         self.fundedCount = round(current_count, 2) - round(count, 2)
         self.operateName = operate_name
         self.createType = 1
-
+        self.teaHouseId = tea_house_id
         self.writeToDB(callback)
 
-    def create_one_modify_item(self, account_db_id, count, current_count, operate_name, callback):
+    def create_one_modify_item(self, account_db_id, count, current_count, operate_name, tea_house_id, callback):
         self.superior = str(account_db_id)
         self.time = int(time.time())
         # 裁判修改数额暂时用这个字段
@@ -75,5 +75,5 @@ class TeaHousePerformance(KBEngine.Entity):
         self.fundedCount = round(current_count, 2) + round(count, 2)
         self.operateName = operate_name
         self.createType = 2
-
+        self.teaHouseId = tea_house_id
         self.writeToDB(callback)

@@ -83,6 +83,15 @@ def start():
     server.route("/GetPlayerInfo", get_player_info)
     # 修改玩家余额
     server.route("/UpdatePlayerBalance", update_player_balance)
+    # 清楚所有茶楼所有玩家携带、裁判
+    server.route("/ClearAllTeaHousePerformanceAndModifyPerformance", clear_all_performance)
+
+
+def clear_all_performance(req, resp):
+    tea_house_manager = KBEngine.globalData["TeaHouseManager"].mgr
+    tea_house_manager.clear_all_performance()
+    resp.body = 'success'.encode()
+    resp.end()
 
 
 def update_player_balance(req, resp):
@@ -168,7 +177,7 @@ def set_tea_house_black_score(req, resp):
 def get_tea_house_players(req, resp):
     INFO_MSG('[interface KBEHttpServer] get_tea_house_players req.params=%s' % req.params)
     tea_house_database_id = int(req.params.get('tea_house_database_id', None))
-    account_db_id=int(req.params.get('requester', None))
+    account_db_id = int(req.params.get('requester', None))
     tea_house_mgr = KBEngine.globalData["TeaHouseManager"].mgr
     member_list = []
     if tea_house_database_id in tea_house_mgr.teaHouse_dic.keys():

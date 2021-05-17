@@ -75,6 +75,14 @@ class TeaHouseManager(Manger):
         get_db(func)
         self.check_out_create_tea_house_permission_from_db()
 
+    def clear_all_performance(self):
+        """
+        清除所有茶楼所有玩家携带、裁判数额
+        :return:
+        """
+        for k, v in self.teaHouse_dic.items():
+            v.clear_funded_modify_funded()
+
     def application_create_tea_house(self, creator_db_id, creator_head_image, tea_house_head_image, tea_house_name,
                                      tea_house_type, creator_name,
                                      creator_proxy_type, gold, on_success, on_fail):
@@ -941,7 +949,7 @@ class TeaHouseManager(Manger):
         if tea_house_entity:
             tea_house_entity.get_tea_house_proxy_info(requester)
 
-    def recur_inning(self, tea_house_id,room_id):
+    def recur_inning(self, tea_house_id, room_id):
         """
         再来一局
         @param room_id:

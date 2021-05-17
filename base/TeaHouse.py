@@ -4013,8 +4013,8 @@ class TeaHouse(KBEngine.Entity):
             # 获得所有抽水
             sql = "SELECT sum(sm_performanceDetail) " \
                   "FROM tbl_teahouseperformance " \
-                  "WHERE sm_superior=%s and sm_createType=0" \
-                  % account_db_id
+                  "WHERE sm_superior=%s and sm_createType=0 and sm_teaHouseId=%s" \
+                  % (account_db_id, self.teaHouseId)
             DEBUG_MSG('get_un_fund_performance sql:%s' % sql)
             KBEngine.executeRawDatabaseCommand(sql, on_success)
 
@@ -4064,11 +4064,12 @@ class TeaHouse(KBEngine.Entity):
                     tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
                     tea_house_performance.create_one_fund_item(account_db_id, count, un_funded_count,
                                                                '门票代扣',
+                                                               self.teaHouseId,
                                                                write_fund_call_back)
 
             sql = "SELECT sum(sm_performanceDetail) " \
                   "FROM tbl_teahouseperformance " \
-                  "WHERE sm_superior=%s and sm_createType=0" % account_db_id
+                  "WHERE sm_superior=%s and sm_createType=0 and sm_teaHouseId=%s" % (account_db_id, self.teaHouseId)
             DEBUG_MSG('get_un_fund_performance sql:%s' % sql)
             KBEngine.executeRawDatabaseCommand(sql, on_query_success)
 
@@ -4102,9 +4103,10 @@ class TeaHouse(KBEngine.Entity):
         sql = 'SELECT sm_superior,sm_time,sm_currentCount,sm_fundedCount,sm_operateName ' \
               'FROM tbl_teahouseperformance ' \
               'WHERE sm_superior=%s and (sm_createType=1 or sm_createType=2) ' \
-              'and sm_time>=%s and sm_time<=%s order by sm_time DESC ' % (account_db_id,
-                                                                          self.yesterday_start,
-                                                                          self.today_end)
+              'and sm_time>=%s and sm_time<=%s and sm_teaHouseId=%s order by sm_time DESC ' % (account_db_id,
+                                                                                               self.yesterday_start,
+                                                                                               self.today_end,
+                                                                                               self.teaHouseId)
         DEBUG_MSG('get_fund_record sql:%s' % sql)
         KBEngine.executeRawDatabaseCommand(sql, on_query_success)
 
@@ -4119,8 +4121,8 @@ class TeaHouse(KBEngine.Entity):
             return
         sql = "SELECT sm_superior,SUM(sm_performancedetail) " \
               "FROM tbl_teahouseperformance " \
-              "WHERE sm_superior = %s and sm_createType=0 " \
-              "GROUP BY sm_superior" % keyword
+              "WHERE sm_superior = %s and sm_createType=0 and sm_teaHouseId=%s" \
+              "GROUP BY sm_superior" % (keyword, self.teaHouseId)
 
         def on_query_success(result, rows, insertid, error):
             info = []
@@ -4155,8 +4157,8 @@ class TeaHouse(KBEngine.Entity):
         down_proxy_str = down_proxy_str.replace(']', ')')
         sql = "SELECT sm_superior,SUM(sm_performancedetail) " \
               "FROM tbl_teahouseperformance " \
-              "WHERE sm_superior in %s and sm_createType=0 " \
-              "GROUP BY sm_superior" % down_proxy_str
+              "WHERE sm_superior in %s and sm_createType=0 and sm_teaHouseId=%s" \
+              "GROUP BY sm_superior" % (down_proxy_str, self.teaHouseId)
 
         def on_query_success(result, rows, insertid, error):
             info = []
@@ -4214,6 +4216,7 @@ class TeaHouse(KBEngine.Entity):
             tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
             tea_house_performance.create_one_modify_item(modifier.db_id, count, modifier.funded_performance,
                                                          '裁判',
+                                                         self.teaHouseId,
                                                          write_modify_call_back)
 
     def clear_performance(self, account_db_id, on_success, on_fail):
@@ -4242,7 +4245,19 @@ class TeaHouse(KBEngine.Entity):
             tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
             tea_house_performance.create_one_modify_item(account_db_id, count, operator.funded_performance,
                                                          '裁判',
+                                                         self.teaHouseId,
                                                          write_modify_call_back)
+
+    def clear_funded_modify_funded(self):
+        """
+        清除茶楼成员携带、已修改携带数值
+        :return:
+        """
+        for k, v in self.memberInfo.items():
+            v.funded_performance = 0
+            v.modify_funded_performance = 0
+
+        DEBUG_MSG('clear_funded_modify_funded teaHouseId:%s clear over' % self.teaHouseId)
 
     @property
     def today_start(self):
@@ -4261,7 +4276,6 @@ class TeaHouse(KBEngine.Entity):
     @property
     def yesterday_end(self):
         return self.today_end - 86400
-
 
 
 class TeaHousePlayer:
