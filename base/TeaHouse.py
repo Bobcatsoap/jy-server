@@ -4124,24 +4124,30 @@ class TeaHouse(KBEngine.Entity):
               "WHERE sm_superior = %s and sm_createType=0 and sm_teaHouseId=%s" \
               "GROUP BY sm_superior" % (keyword, self.teaHouseId)
 
+        info = []
+        member = self.get_member(keyword)
+        d = {'dbId': keyword,
+             'funded': member.funded_performance,
+             'name': member.name,
+             'head': member.head_image}
+        info.append(d)
+
         def on_query_success(result, rows, insertid, error):
-            info = []
             if result:
                 for r in result:
                     db_id = int(r[0])
-                    member = self.get_member(db_id)
-                    if not member:
-                        continue
-                    # 所有抽水
-                    all_performance = round(float(r[1]), 2)
-                    unfunded_performance = all_performance - member.funded_performance + member.modify_funded_performance
-                    unfunded_performance = round(unfunded_performance, 2)
-                    d = {'dbId': db_id,
-                         'unfunded': unfunded_performance,
-                         'funded': member.funded_performance,
-                         'name': member.name,
-                         'head': member.head_image}
-                    info.append(d)
+                    for i in info:
+                        if i['dbId'] == db_id:
+                            m = self.get_member(db_id)
+                            # 所有抽水
+                            all_performance = round(float(r[1]), 2)
+                            funded_performance = m.funded_performance
+                            modify_funded_performance = m.modify_funded_performance
+                            # 未提现抽水
+                            unfunded_performance = all_performance - funded_performance + modify_funded_performance
+                            unfunded_performance = round(unfunded_performance, 2)
+                            i['unfunded'] = unfunded_performance
+                            break
             on_success(info)
 
         KBEngine.executeRawDatabaseCommand(sql, on_query_success)
@@ -4160,25 +4166,32 @@ class TeaHouse(KBEngine.Entity):
               "WHERE sm_superior in %s and sm_createType=0 and sm_teaHouseId=%s" \
               "GROUP BY sm_superior" % (down_proxy_str, self.teaHouseId)
 
+        info = []
+        for k in down_proxy:
+            member = self.get_member(k)
+            d = {'dbId': k,
+                 'funded': member.funded_performance,
+                 'name': member.name,
+                 'head': member.head_image}
+            info.append(d)
+
         def on_query_success(result, rows, insertid, error):
-            info = []
             if result:
                 for r in result:
                     db_id = int(r[0])
-                    member = self.get_member(db_id)
-                    if not member:
-                        continue
-                    # 所有抽水
-                    all_performance = round(float(r[1]), 2)
-                    # 未提现抽水
-                    unfunded_performance = all_performance - member.funded_performance + member.modify_funded_performance
-                    unfunded_performance = round(unfunded_performance, 2)
-                    d = {'dbId': db_id,
-                         'unfunded': unfunded_performance,
-                         'funded': member.funded_performance,
-                         'name': member.name,
-                         'head': member.head_image}
-                    info.append(d)
+                    for i in info:
+                        if i['dbId'] == db_id:
+                            m = self.get_member(db_id)
+                            # 所有抽水
+                            all_performance = round(float(r[1]), 2)
+                            funded_performance = m.funded_performance
+                            modify_funded_performance = m.modify_funded_performance
+                            # 未提现抽水
+                            unfunded_performance = all_performance - funded_performance + modify_funded_performance
+                            unfunded_performance = round(unfunded_performance, 2)
+                            i['unfunded'] = unfunded_performance
+                            break
+
             callback(info)
 
         KBEngine.executeRawDatabaseCommand(sql, on_query_success)
