@@ -903,175 +903,96 @@ class TeaHouse(KBEngine.Entity):
         :return:
         """
         DEBUG_MSG("today_game_room_rate_calculate:  add:[%s] roomType:[%s]" % (add, roomType))
-        accountDBID = origin_player.db_id
-        account_entity = KBEngine.globalData["AccountMgr"].mgr.get_account(accountDBID)
-        DEBUG_MSG(account_entity)
+        origin_db_id = origin_player.db_id
+        account_entity = KBEngine.globalData["AccountMgr"].mgr.get_account(origin_db_id)
         if account_entity:
-            self.get_up_player(account_entity.belong_to, add, roomType)
+            self.get_up_player(origin_db_id, account_entity.belong_to, add, roomType)
 
-    def get_up_player(self, accountDBID, add, roomType):
+    def get_up_player(self, origin_db_id, up_db_id, add, roomType):
         """
         查询上级玩家
         """
-        DEBUG_MSG("get_up_player:  accountDBID:[%s]  add[%s] roomType:[%s]" % (accountDBID, add, roomType))
+        DEBUG_MSG("get_up_player up_db_id:%s add:%s roomType:%s" % (up_db_id, add, roomType))
         proportion = 0.65
-        account_entity = KBEngine.globalData["AccountMgr"].mgr.get_account(accountDBID)
-        DEBUG_MSG(account_entity)
-        if account_entity:  # 用户在线
-            account_entity.balance += add * proportion
-            DEBUG_MSG(
-                "当前玩家:[%s] 余额:[%s] 上级:[%s]" % (account_entity.name, account_entity.balance, account_entity.belong_to))
-            DEBUG_MSG(
-                "get_up_player:--->用户[%s]在线---> account_entity.balance:[%s]" % (accountDBID, account_entity.balance))
-            account_entity.writeToDB()
-            tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-            tea_house_performance.create_one_item(accountDBID, account_entity.belong_to, int(time.time()),
-                                                  add * proportion, add * proportion, proportion * 100, self.teaHouseId,
-                                                  roomType)
-            tea_house_performance.destroy(False, False)
-            if not account_entity.belong_to:
-                self.add_teahouse_create_balance(add - add * proportionn, roomType)
-            else:
-                self.get_up_up_player(account_entity.belong_to, add, roomType, add - add * proportion)
-        else:  # 用户不在线
-            DEBUG_MSG("get_up_player:--->用户[%s]不在线" % accountDBID)
 
-            def on_success_callback(baseRef, databaseID, wasActive):
-                DEBUG_MSG("get_up_player:--->on_success_callback")
-                DEBUG_MSG(baseRef)
-                if baseRef:
-                    baseRef.balance += add * proportion
-                    DEBUG_MSG("当前玩家:[%s] 余额:[%s] 上级:[%s]" % (baseRef.name, baseRef.balance, baseRef.belong_to))
-                    DEBUG_MSG("get_up_player:--->用户[%s]不在线---> baseRef.balance:[%s]" % (accountDBID, baseRef.balance))
-                    baseRef.writeToDB()
-                    tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-                    tea_house_performance.create_one_item(accountDBID, baseRef.belong_to, int(time.time()),
-                                                          add * proportion, add * proportion, proportion * 100,
-                                                          self.teaHouseId, roomType)
-                    tea_house_performance.destroy(False, False)
-                    if not baseRef.belong_to:
-                        self.add_teahouse_create_balance(add - add * proportion, roomType)
-                    else:
-                        self.get_up_up_player(baseRef.belong_to, add, roomType, add - add * proportion)
+        def on_success_callback(baseRef, databaseID, wasActive):
+            if baseRef:
+                baseRef.balance += add * proportion
+                baseRef.writeToDB()
+                tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
+                tea_house_performance.create_one_item(origin_db_id, up_db_id, int(time.time()),
+                                                      add, add * proportion, int(proportion * 100),
+                                                      self.teaHouseId, roomType)
+                tea_house_performance.destroy(False, False)
+                if not baseRef.belong_to:
+                    self.add_tea_house_create_balance(origin_db_id, add - add * proportion, roomType)
+                else:
+                    self.get_up_up_player(origin_db_id, baseRef.belong_to, add, roomType, add - add * proportion)
 
-            KBEngine.createEntityFromDBID("Account", accountDBID, on_success_callback)
+        KBEngine.createEntityFromDBID("Account", up_db_id, on_success_callback)
 
-    def get_up_up_player(self, accountDBID, add, roomType, surplus):
+    def get_up_up_player(self, origin_db_id, up_db_id, add, roomType, surplus):
         """
         查询上上级玩家
         :param surplus:剩余余额
         """
         proportion = 0.1
-        account_entity = KBEngine.globalData["AccountMgr"].mgr.get_account(accountDBID)
-        # 用户在线
-        if account_entity:
-            account_entity.balance += add * proportion
-            account_entity.writeToDB()
-            tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-            tea_house_performance.create_one_item(accountDBID, account_entity.belong_to, int(time.time()),
-                                                  add * proportion, add * proportion, proportion * 100, self.teaHouseId,
-                                                  roomType)
-            tea_house_performance.destroy(False, False)
-            if not account_entity.belong_to:
-                self.add_teahouse_create_balance(surplus - add * proportion, roomType)
-            else:
-                self.get_up_up_up_player(account_entity.belong_to, add, roomType, surplus - add * proportion)
-        else:
-            def on_success_callback(baseRef, databaseID, wasActive):
-                DEBUG_MSG("get_up_up_player:--->on_success_callback")
-                DEBUG_MSG(baseRef)
-                if baseRef:
-                    baseRef.balance += add * proportion
-                    DEBUG_MSG("当前玩家:[%s] 余额:[%s] 上级:[%s]" % (baseRef.name, baseRef.balance, baseRef.belong_to))
-                    DEBUG_MSG(
-                        "get_up_up_player:--->用户[%s]不在线---> baseRef.balance:[%s]" % (accountDBID, baseRef.balance))
-                    baseRef.writeToDB()
-                    tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-                    tea_house_performance.create_one_item(accountDBID, baseRef.belong_to, int(time.time()),
-                                                          add * proportion, add * proportion, proportion * 100,
-                                                          self.teaHouseId, roomType)
-                    tea_house_performance.destroy(False, False)
-                    if not baseRef.belong_to:
-                        self.add_teahouse_create_balance(surplus - add * proportion, roomType)
-                    else:
-                        self.get_up_up_up_player(baseRef.belong_to, add, roomType, surplus - add * proportion)
 
-            KBEngine.createEntityFromDBID("Account", accountDBID, on_success_callback)
+        def on_success_callback(baseRef, databaseID, wasActive):
 
-    def get_up_up_up_player(self, accountDBID, add, roomType, surplus):
+            if baseRef:
+                baseRef.balance += add * proportion
+                baseRef.writeToDB()
+                tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
+                tea_house_performance.create_one_item(origin_db_id, up_db_id, int(time.time()),
+                                                      add, add * proportion, int(proportion * 100),
+                                                      self.teaHouseId, roomType)
+                tea_house_performance.destroy(False, False)
+                if not baseRef.belong_to:
+                    self.add_tea_house_create_balance(origin_db_id, surplus - add * proportion, roomType)
+                else:
+                    self.get_up_up_up_player(origin_db_id, baseRef.belong_to, add, roomType, surplus - add * proportion)
+
+        KBEngine.createEntityFromDBID("Account", up_db_id, on_success_callback)
+
+    def get_up_up_up_player(self, origin_db_id, up_db_id, add, roomType, surplus):
         """
         查询上上级玩家
         :param surplus:剩余余额
         """
         proportion = 0.1
-        account_entity = KBEngine.globalData["AccountMgr"].mgr.get_account(accountDBID)
-        if account_entity:  # 用户在线
-            account_entity.balance += add * proportion
-            DEBUG_MSG("get_up_up_up_player:--->用户[%s]在线---> account_entity.balance:[%s]" % (
-                accountDBID, account_entity.balance))
-            DEBUG_MSG(
-                "当前玩家:[%s] 余额:[%s] 上级:[%s]" % (account_entity.name, account_entity.balance, account_entity.belong_to))
-            account_entity.writeToDB()
-            tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-            tea_house_performance.create_one_item(accountDBID, account_entity.belong_to, int(time.time()),
-                                                  add * proportion, add * proportion, proportion * 100, self.teaHouseId,
-                                                  roomType)
-            tea_house_performance.destroy(False, False)
-            self.add_teahouse_create_balance(surplus - add * proportion, roomType)
-            # 剩下的分给圈主
-        else:  # 用户不在线
-            DEBUG_MSG("get_up_up_up_player:--->用户[%s]不在线" % accountDBID)
 
-            def on_success_callback(baseRef, databaseID, wasActive):
-                DEBUG_MSG("get_up_up_up_player:--->on_success_callback")
-                DEBUG_MSG(baseRef)
-                if baseRef:
-                    baseRef.balance += add * proportion
-                    DEBUG_MSG("当前玩家:[%s] 余额:[%s] 上级:[%s]" % (baseRef.name, baseRef.balance, baseRef.belong_to))
-                    DEBUG_MSG(
-                        "get_up_up_up_player:--->用户[%s]不在线---> baseRef.balance:[%s]" % (accountDBID, baseRef.balance))
-                    baseRef.writeToDB()
-                    tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-                    tea_house_performance.create_one_item(accountDBID, baseRef.belong_to, int(time.time()),
-                                                          add * proportion, add * proportion, proportion * 100,
-                                                          self.teaHouseId, roomType)
-                    tea_house_performance.destroy(False, False)
-                    self.add_teahouse_create_balance(surplus - add * proportion, roomType)
+        def on_success_callback(baseRef, databaseID, wasActive):
+            if baseRef:
+                baseRef.balance += add * proportion
+                baseRef.writeToDB()
+                tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
+                tea_house_performance.create_one_item(origin_db_id, up_db_id, int(time.time()),
+                                                      add, add * proportion, int(proportion * 100),
+                                                      self.teaHouseId, roomType)
+                tea_house_performance.destroy(False, False)
+                self.add_tea_house_create_balance(origin_db_id, surplus - add * proportion, roomType)
 
-            KBEngine.createEntityFromDBID("Account", accountDBID, on_success_callback)
+        KBEngine.createEntityFromDBID("Account", up_db_id, on_success_callback)
 
-    def add_teahouse_create_balance(self, add, roomType):
+    def add_tea_house_create_balance(self, origin_db_id, add, room_type):
         """
         给圈主加余额
         """
         proportion = 100
         for k, v in self.memberInfo.items():
             if v.level == TeaHousePlayerLevel.Creator:
-                accountDBID = v.db_id
-                account_entity = KBEngine.globalData["AccountMgr"].mgr.get_account(accountDBID)
-                DEBUG_MSG("add_teahouse_create_balance----------------------")
-                DEBUG_MSG(account_entity)
-                if account_entity:
-                    account_entity.balance += add
-                    account_entity.writeToDB()
-                    DEBUG_MSG("当前圈主:[%s]" % accountDBID)
-                    tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-                    tea_house_performance.create_one_item(accountDBID, account_entity.belong_to, int(time.time()),
-                                                          add, add, proportion, self.teaHouseId, roomType)
-                    tea_house_performance.destroy(False, False)
-                else:
-                    def on_success_callback(baseRef, databaseID, wasActive):
-                        DEBUG_MSG("当前圈主不在线:[%s]" % accountDBID)
-                        if baseRef:
-                            baseRef.balance += add
-                            baseRef.writeToDB()
-                            DEBUG_MSG("当前圈主不在线:[%s] 当前余额:[%s]" % (accountDBID, baseRef.balance))
-                            tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-                            tea_house_performance.create_one_item(accountDBID, baseRef.belong_to, int(time.time()),
-                                                                  add, add, proportion, self.teaHouseId, roomType)
-                            tea_house_performance.destroy(False, False)
+                def on_success_callback(baseRef, databaseID, wasActive):
+                    if baseRef:
+                        baseRef.balance += add
+                        baseRef.writeToDB()
+                        tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
+                        tea_house_performance.create_one_item(origin_db_id, baseRef.userId, int(time.time()),
+                                                              add, add, proportion, self.teaHouseId, room_type)
+                        tea_house_performance.destroy(False, False)
 
-                    KBEngine.createEntityFromDBID("Account", self.creatorDBID, on_success_callback)
+                KBEngine.createEntityFromDBID("Account", self.creatorDBID, on_success_callback)
+                break
 
     def today_game_coin_calculate(self, origin_player, add, roomType, call_back):
         """
