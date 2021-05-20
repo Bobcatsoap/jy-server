@@ -4042,7 +4042,7 @@ class TeaHouse(KBEngine.Entity):
             return
         sql = "SELECT sm_superior,SUM(sm_performancedetail) " \
               "FROM tbl_teahouseperformance " \
-              "WHERE sm_superior = %s and sm_createType=0 and sm_teaHouseId=%s" \
+              "WHERE sm_superior = %s and sm_createType=0 and sm_teaHouseId=%s " \
               "GROUP BY sm_superior" % (keyword, self.teaHouseId)
 
         info = []
@@ -4084,7 +4084,7 @@ class TeaHouse(KBEngine.Entity):
         down_proxy_str = down_proxy_str.replace(']', ')')
         sql = "SELECT sm_superior,SUM(sm_performancedetail) " \
               "FROM tbl_teahouseperformance " \
-              "WHERE sm_superior in %s and sm_createType=0 and sm_teaHouseId=%s" \
+              "WHERE sm_superior in %s and sm_createType=0 and sm_teaHouseId=%s " \
               "GROUP BY sm_superior" % (down_proxy_str, self.teaHouseId)
 
         info = []
