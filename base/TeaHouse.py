@@ -4145,6 +4145,9 @@ class TeaHouse(KBEngine.Entity):
                 if boolean:
                     modifier.funded_performance += count
                     modifier.modify_funded_performance += count
+
+                    operator.funded_performance -= count
+                    operator.modify_funded_performance -= count
                     on_success()
 
             tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
