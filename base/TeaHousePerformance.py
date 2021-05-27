@@ -55,11 +55,21 @@ class TeaHousePerformance(KBEngine.Entity):
         self.writeToDB()
 
     def create_one_fund_item(self, account_db_id, count, current_count, operate_name, tea_house_id, callback):
+        """
+        提现记录
+        :param account_db_id:
+        :param count: 提现数量
+        :param current_count: 当前携带
+        :param operate_name:
+        :param tea_house_id:
+        :param callback:
+        :return:
+        """
         self.superior = str(account_db_id)
         self.time = int(time.time())
         self.performanceDetail = str(round(count, 2))
         self.currentCount = round(current_count, 2)
-        self.fundedCount = round(current_count, 2) - round(count, 2)
+        self.fundedCount = round(current_count, 2) + round(count, 2)
         self.operateName = operate_name
         self.createType = 1
         self.teaHouseId = tea_house_id

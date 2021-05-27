@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="bd2fd1e6-8510-4ccc-87c0-7786b1ed1d27" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Const.py" beforeDir="false" afterPath="$PROJECT_DIR$/Const.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,11 +45,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1547176867187</updated>
+      <workItem from="1622031046487" duration="30000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="version" value="3" />
   </component>
   <component name="WindowStateProjectService">
     <state x="740" y="275" key="FileChooserDialogImpl" timestamp="1598012234970">

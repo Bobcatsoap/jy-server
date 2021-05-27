@@ -3948,7 +3948,7 @@ class TeaHouse(KBEngine.Entity):
         """
         member = self.get_member(account_db_id)
         if member:
-            callback(member.funded_performance)
+            callback(round(member.funded_performance, 2))
 
     def fund_performance(self, account_db_id, count, on_success, on_fail):
         """
@@ -3983,7 +3983,7 @@ class TeaHouse(KBEngine.Entity):
                             on_success()
 
                     tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
-                    tea_house_performance.create_one_fund_item(account_db_id, count, un_funded_count,
+                    tea_house_performance.create_one_fund_item(account_db_id, count, member.funded_performance,
                                                                '门票代扣',
                                                                self.teaHouseId,
                                                                write_fund_call_back)
@@ -4048,7 +4048,7 @@ class TeaHouse(KBEngine.Entity):
         info = []
         member = self.get_member(keyword)
         d = {'dbId': keyword,
-             'funded': member.funded_performance,
+             'funded': round(member.funded_performance, 2),
              'name': member.name,
              'head': member.head_image}
         info.append(d)
@@ -4067,7 +4067,7 @@ class TeaHouse(KBEngine.Entity):
                             # 未提现抽水
                             unfunded_performance = all_performance - funded_performance + modify_funded_performance
                             unfunded_performance = round(unfunded_performance, 2)
-                            i['unfunded'] = unfunded_performance
+                            i['unfunded'] = round(unfunded_performance, 2)
                             break
             on_success(info)
 
@@ -4091,7 +4091,7 @@ class TeaHouse(KBEngine.Entity):
         for k in down_proxy:
             member = self.get_member(k)
             d = {'dbId': k,
-                 'funded': member.funded_performance,
+                 'funded': round(member.funded_performance, 2),
                  'name': member.name,
                  'head': member.head_image}
             info.append(d)
@@ -4110,7 +4110,7 @@ class TeaHouse(KBEngine.Entity):
                             # 未提现抽水
                             unfunded_performance = all_performance - funded_performance + modify_funded_performance
                             unfunded_performance = round(unfunded_performance, 2)
-                            i['unfunded'] = unfunded_performance
+                            i['unfunded'] = round(unfunded_performance, 2)
                             break
 
             callback(info)
@@ -4150,11 +4150,22 @@ class TeaHouse(KBEngine.Entity):
                     operator.modify_funded_performance -= count
                     on_success()
 
+            def write_operate_call_back(boolean, entity):
+                pass
+
+            # 被修改者添加一条记录
             tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
             tea_house_performance.create_one_modify_item(modifier.db_id, count, modifier.funded_performance,
                                                          '裁判',
                                                          self.teaHouseId,
                                                          write_modify_call_back)
+
+            # 操作者添加一条记录
+            tea_house_performance = KBEngine.createEntityLocally("TeaHousePerformance", {})
+            tea_house_performance.create_one_modify_item(operator.db_id, -count, operator.funded_performance,
+                                                         '裁判',
+                                                         self.teaHouseId,
+                                                         write_operate_call_back)
 
     def clear_performance(self, account_db_id, on_success, on_fail):
         """

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-GameVersion = "1.3.4"
+GameVersion = "1.3.5"
 
 # 成员信息面板每页条数
 member_list_page_item = 20
