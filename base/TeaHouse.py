@@ -1430,19 +1430,7 @@ class TeaHouse(KBEngine.Entity):
         if len(self.joinAndExitHistory) > tea_house_config()['joinExitHistoryLimit']:
             self.joinAndExitHistory.pop(0)
         exit_player_level = self.memberInfo[int(account_db_id)].level
-        # 如果退出的不是楼主，并且有职位,将其直属和间接所属降级后归为楼主
-        if exit_player_level != TeaHousePlayerLevel.Creator and exit_player_level != TeaHousePlayerLevel.Normal:
-            for k in self.get_all_members_belong_to_account(account_db_id):
-                down_player = self.get_tea_house_player(k)
-                if down_player:
-                    # 名下成员降级并切归为原来的上级
-                    down_player.level = TeaHousePlayerLevel.Normal
-                    down_player.belong_to = self.creatorDBID
-            """
-            for k, v in self.memberInfo.items():
-                if v.belong_to == account_db_id:
-                    v.belong_to = self.creatorDBID
-            """
+
         self.memberInfo.pop(account_db_id)
         self.memberInfoJson = self.get_member_info_json()
 
@@ -1885,15 +1873,7 @@ class TeaHouse(KBEngine.Entity):
             self.exitApplicationList.pop(exit_player_db_id)
         tea_house_player = self.memberInfo[exit_player_db_id]
         exit_level = tea_house_player.level
-        # 如果下级用户的上级改为楼主，分成比例为0，身份将为普通人
-        if TeaHousePlayerLevel.SmallTeamLeader <= tea_house_player.level <= TeaHousePlayerLevel.Partner:
-            # 找到合伙人下面的所有人员，越级判断
-            for k in self.get_all_members_belong_to_account(tea_house_player.db_id):
-                down_player = self.get_tea_house_player(k)
-                if down_player:
-                    down_player.level = TeaHousePlayerLevel.Normal
-                    down_player.proportion = 0
-                    down_player.belong_to = self.creatorDBID
+
         self.memberInfo.pop(exit_player_db_id)
         self.memberInfoJson = self.get_member_info_json()
         # 从茶楼排行榜中移除该成员信息
@@ -1954,33 +1934,10 @@ class TeaHouse(KBEngine.Entity):
                 on_fail("管理者不能设为助理")
                 return
         # DEBUG_MSG('----------------------new_level1 %s ' % str(new_level))
-        # 如果要把合伙人以下级别的人升为合伙人，则此人上级为楼主，并移除战队数据
-        if self.memberInfo[modify_player_db_id].level < TeaHousePlayerLevel.Partner and \
-                new_level == TeaHousePlayerLevel.Partner:
-            # 被修改者原来的上级
-            origin_up = self.get_tea_house_player(self.memberInfo[modify_player_db_id].belong_to)
-            # 如果原来的上级是合伙人，首先移除战队贡献
-            if origin_up.level == TeaHousePlayerLevel.Partner:
-                # 移除新合伙人在原来战队的贡献
-                self.remove_player_in_team_rank(modify_player_db_id, origin_up.db_id)
-            # 新合伙人上级为楼主
-            self.memberInfo[modify_player_db_id].belong_to = self.creatorDBID
 
         modify_player = self.get_tea_house_player(modify_player_db_id)
         origin_level = modify_player.level
-        # 如果小组长以上被取消，则名下所有成员归为楼主
-        if modify_player.level >= TeaHousePlayerLevel.SmallTeamLeader:
-            if modify_player.level == TeaHousePlayerLevel.Partner and new_level == TeaHousePlayerLevel.Normal:
-                self.del_team_rank_info_from_db_id(modify_player.db_id, modify_player.level)
-            if new_level == TeaHousePlayerLevel.Normal:
-                # 找到合伙人下面的所有人员，越级判断
-                for k in self.get_all_members_belong_to_account(modify_player.db_id):
-                    down_player = self.get_tea_house_player(k)
-                    if down_player:
-                        # 名下成员降级并切归为原来的上级
-                        down_player.level = TeaHousePlayerLevel.Normal
-                        down_player.belong_to = modify_player.belong_to
-        # DEBUG_MSG('----------------------new_level2 %s ' % str(new_level))
+
         modify_player.level = new_level
         modify_player.proportion = 0
         # modify_player. = 0
@@ -3822,6 +3779,7 @@ class TeaHouse(KBEngine.Entity):
         for k, v in self.memberInfo.items():
             if k == account_db_id:
                 continue
+            DEBUG_MSG('is_down_player:%s proxy_type:%s' % (self.is_down_player(k, account_db_id), v.proxy_type))
             if self.is_down_player(k, account_db_id) and v.proxy_type > 0:
                 down_proxy.append(k)
         return down_proxy
