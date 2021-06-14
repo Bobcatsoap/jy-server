@@ -3781,12 +3781,16 @@ class Account(KBEngine.Proxy):
         DEBUG_MSG("---update_empty_location----")
         DEBUG_MSG(_args)
         index = _args['index']
+        count = _args['count']
         tea_house_id = _args["teaHouseId"]
         tea_house_entity = self.tea_house_mgr.get_tea_house_with_id(tea_house_id)
         if not tea_house_entity:
             self.call_client_func('Notice', ['冠名赛不存在'])
             return
         tea_house_entity.set_empty_location(index)
+        tea_house_entity.set_table_count_per_page(count)
+        # 刷新桌子
+        self.call_client_func('InsertSingleRoomInfo', {})
         self.call_client_func("updateEmptyLocationSuccess", ["修改成功"])
 
     def give_gold_record(self, _args):

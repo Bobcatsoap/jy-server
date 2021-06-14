@@ -105,6 +105,8 @@ class TeaHouse(KBEngine.Entity):
     freezePlayers = {}
     # 拉黑分标准
     block_score_standard = -500
+    # 每页桌子数
+    table_per_page = 10
 
     def __init__(self):
         KBEngine.Entity.__init__(self)
@@ -123,6 +125,7 @@ class TeaHouse(KBEngine.Entity):
         self.manualRooms = []
         self.baseRooms = []
         self.get_rand_luck_num()
+        self.table_per_page = 10
 
     def set_freeze_state(self, account_db_id, freeze_state):
         """
@@ -1967,9 +1970,9 @@ class TeaHouse(KBEngine.Entity):
         _room_ids = []
         _rooms = collections.OrderedDict()
         # 开始位置
-        page_start = page_index * Const.room_list_page_item
+        page_start = page_index * self.table_per_page
         # 结束位置
-        page_end = page_start + Const.room_list_page_item
+        page_end = page_start + self.table_per_page
         for k, v in self.rooms.items():
             if started_disappear and v.info['started']:
                 continue
@@ -2004,6 +2007,15 @@ class TeaHouse(KBEngine.Entity):
     def set_empty_location(self, index):
         DEBUG_MSG("设置空桌在前参数: %s" % index)
         self.empty_location = index
+        self.update_tea_house_info_to_client()
+
+    def set_table_count_per_page(self, count):
+        """
+        设置每页桌子数
+        :param count:
+        :return:
+        """
+        self.table_per_page = count
         self.update_tea_house_info_to_client()
 
     def rooms_sort(self, room_ids):
@@ -2073,12 +2085,12 @@ class TeaHouse(KBEngine.Entity):
         """
         _rooms = self.get_rooms_with_room_type(room_type, anonymity, started_disappear)
         member_count = len(_rooms)
-        if member_count % Const.room_list_page_item == 0:
-            total_pages = member_count / Const.room_list_page_item
+        if member_count % self.table_per_page == 0:
+            total_pages = member_count / self.table_per_page
             if total_pages != 0:
                 total_pages -= 1
         else:
-            total_pages = math.floor(member_count / Const.room_list_page_item)
+            total_pages = math.floor(member_count / self.table_per_page)
         return int(total_pages)
 
     def get_room_by_id(self, room_id):
@@ -2794,6 +2806,7 @@ class TeaHouse(KBEngine.Entity):
                           'luckyCard': self.luckyCard,
                           'emptyLocation': self.empty_location,
                           'fullDisappear': self.full_disappear,
+                          'tablePerPage': self.table_per_page,
                           'freezeScore': self.block_score_standard
                           }
         # 指定发送
