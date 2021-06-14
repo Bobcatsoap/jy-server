@@ -170,7 +170,7 @@ def check_2_must_bomb(pre_play_cards, this_play_cards, cards, room_info):
     cards_number = convert_cards_to_value(cards)
     # 获取本次出牌类型
     this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
-   
+
     # 如果上个玩家出牌包含2，并且本玩家手牌里有炸弹
     if 15 in pre_play_cards_number and find_boom(cards_number, room_info):
         # 如果是任意一种炸弹，满足
@@ -208,16 +208,46 @@ def check_single_1_must_2(pre_play_cards, this_play_cards, cards, room_info):
     # 获取本次出牌类型
     this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
 
-    check_single_1_must_2
     # 如果上个玩家出牌是单A，并且手里有2，判断本次是否是2
     if pre_play_cards_type == CardType.Com_Single and pre_play_cards_number[0] == 14 and 15 in cards_number:
         if this_play_cards_type == CardType.Com_Single and this_play_cards_number[0] == 15:
             return True
-        if check_single_1_must_2 == CardType.Lin_MaxBoomForFour or check_single_1_must_2 == CardType.Lin_FourBoom:
-            return True
         else:
             return False
     # 如果上个玩家出牌不是单A,一定满足
+    else:
+        return True
+
+
+def check_single_1_must_bomb(pre_play_cards, this_play_cards, cards, room_info):
+    """
+    检测是否满足2必出炸弹
+    """
+    # 获取上家出牌数字
+    pre_play_cards_number = convert_cards_to_value(pre_play_cards)
+    # 获取上家出牌类型
+    pre_play_cards_type = get_cards_type(pre_play_cards_number, room_info)
+    # 获取本次出牌数字
+    this_play_cards_number = convert_cards_to_value(this_play_cards)
+    # 获取手牌数字
+    cards_number = convert_cards_to_value(cards)
+    # 获取本次出牌类型
+    this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
+
+    # 如果上个玩家出牌包含A，并且本玩家手牌里有炸弹
+    if 14 in pre_play_cards_number and pre_play_cards_type == CardType.Com_Single and find_boom(cards_number,
+                                                                                                room_info):
+        # 如果是任意一种炸弹，满足
+        if this_play_cards_type == CardType.Lin_MaxBoomForFour or this_play_cards_type == CardType.Lin_FourBoom:
+            return True
+        else:
+            return False
+    elif 14 in pre_play_cards_number and pre_play_cards_type == CardType.Com_Single and find_max_boom_for_four(
+            cards_number, room_info):
+        if this_play_cards_type == CardType.Lin_MaxBoomForFour:
+            return True
+        else:
+            return False
     else:
         return True
 
@@ -312,6 +342,7 @@ def check_straight_not_a(pre_play_cards, this_play_cards, cards, room_info):
         return False
     return True
 
+
 def check_with_not_2(pre_play_cards, this_play_cards, cards, room_info):
     """ 检测不能带2 """
     # 获取本次出牌数字
@@ -325,6 +356,7 @@ def check_with_not_2(pre_play_cards, this_play_cards, cards, room_info):
     if this_play_cards_type == CardType.Lin_FourWithThreeSingle and 15 in this_play_cards_number:
         return True
     return False
+
 
 # 获取card2中与card1牌型一样的牌或者大的牌型(找到任意合适的牌就返回，待优化)
 def find_greater_cards(card1, _card2, room_info):
@@ -657,6 +689,7 @@ def find_boom(card2, room_info):
                 card_filter.add(k)
     return itm_cards
 
+
 # ----------------TODO新增
 def find_max_boom_for_four(card2, room_info):
     """
@@ -666,6 +699,8 @@ def find_max_boom_for_four(card2, room_info):
         return [14, 14, 14]
     else:
         return []
+
+
 # ----------------TODO新增
 
 def find_single(pre_card_val, card2, room_info):

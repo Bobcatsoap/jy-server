@@ -1083,8 +1083,7 @@ class RoomType13(RoomBase):
         if server_cards_type == RoomType13Calculator.CardType.Com_Invalid and this_play_cards:
             self.send_player_cards(account_id, -1, client_cards, server_cards_type)
             return
-        DEBUG_MSG('======================================xxxxxxxxxxxxxxx')
-        DEBUG_MSG(chapter)
+
         # 检测报单顶大
         if self.single_max and len(this_play_cards) == 1 and self.is_only_left_one_for_next_player(account_id, chapter):
             for cv in chapter["playerInGame"][account_id]["cards"]:
@@ -1092,10 +1091,7 @@ class RoomType13(RoomBase):
                     self.send_player_cards(account_id, -1, client_cards, server_cards_type)
                     self.callClientFunction(account_id, 'Notice', ["报单顶大"])
                     return
-        DEBUG_MSG('======================================')
-        DEBUG_MSG(chapter)
-        DEBUG_MSG(account_id)
-        DEBUG_MSG('======================================++')
+
         # 检测是否满足单A必出2
         if chapter["prePlayer"] != account_id:
             if not self.check_single_1_must_2(pre_playa_cards, this_play_cards, player_cards):
@@ -1103,17 +1099,20 @@ class RoomType13(RoomBase):
                 self.callClientFunction(account_id, 'Notice', ["单A必出2"])
                 return
 
+        # 检测是否满足单A必出炸弹
+        if chapter["prePlayer"] != account_id:
+            if not self.check_single_1_must_bomb(pre_playa_cards, this_play_cards, player_cards):
+                self.send_player_cards(account_id, -1, client_cards, server_cards_type)
+                self.callClientFunction(account_id, 'Notice', ["单A必出炸"])
+                return
+
         # 检测是否满足2必出炸弹
-        DEBUG_MSG('======================================++prePlayer')
-        DEBUG_MSG(chapter["prePlayer"])
         if chapter["prePlayer"] != account_id:
             if not self.check_2_must_bomb(pre_playa_cards, this_play_cards, player_cards):
                 self.send_player_cards(account_id, -1, client_cards, server_cards_type)
                 self.callClientFunction(account_id, 'Notice', ["2必出炸弹"])
                 return
 
-        DEBUG_MSG('======================================++prePlayer')
-        DEBUG_MSG(chapter["prePlayer"])
         if chapter["prePlayer"] != account_id:
             # 检测是否满足大炸弹压小炸弹
             if not self.check_big_bomb_and_small_bomb(pre_playa_cards, this_play_cards, player_cards):
@@ -1127,17 +1126,20 @@ class RoomType13(RoomBase):
                 self.send_player_cards(account_id, -1, client_cards, server_cards_type)
                 self.callClientFunction(account_id, 'Notice', ["单K必出A"])
                 return
+
         if chapter["prePlayer"] != account_id:
             # 检测是否满足对K必出对A
             if self.double_k_must_a and not self.check_double_k_must_1(pre_playa_cards, this_play_cards, player_cards):
                 self.send_player_cards(account_id, -1, client_cards, server_cards_type)
                 self.callClientFunction(account_id, 'Notice', ["对K必出对A"])
                 return
+
         if chapter["prePlayer"] != account_id:
             if self.straight_not_a and not self.check_straight_not_a(pre_playa_cards, this_play_cards, player_cards):
                 self.send_player_cards(account_id, -1, client_cards, server_cards_type)
                 self.callClientFunction(account_id, 'Notice', ["A不能连"])
                 return
+
         if chapter["prePlayer"] != account_id or chapter["prePlayer"] == account_id:
             # 检测是否带的是2
             if self.check_with_not_2(pre_playa_cards, this_play_cards, player_cards):
@@ -1145,10 +1147,6 @@ class RoomType13(RoomBase):
                 self.callClientFunction(account_id, 'Notice', ["2不能带"])
                 return
 
-        DEBUG_MSG("**********************************")
-        DEBUG_MSG(client_cards)
-        DEBUG_MSG("**********************************=======")
-        DEBUG_MSG(self.info["haveCardMustCome"])
         if not len(client_cards):
             # 上个出牌玩家是自己或者没有上个出牌玩家，不能不出
             if chapter["prePlayer"] == -1 or chapter["prePlayer"] == account_id:
@@ -2288,6 +2286,12 @@ class RoomType13(RoomBase):
         检测是否满足单A必出2
         """
         return RoomType13Calculator.check_single_1_must_2(pre_play_cards, this_play_cards, cards, self.info)
+
+    def check_single_1_must_bomb(self, pre_play_cards, this_play_cards, cards):
+        """
+        检测是否满足单A必出炸
+        """
+        return RoomType13Calculator.check_single_1_must_bomb(pre_play_cards, this_play_cards, cards, self.info)
 
     def check_2_must_bomb(self, pre_play_cards, this_play_cards, cards):
         """

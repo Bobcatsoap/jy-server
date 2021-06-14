@@ -3779,7 +3779,6 @@ class TeaHouse(KBEngine.Entity):
         for k, v in self.memberInfo.items():
             if k == account_db_id:
                 continue
-            DEBUG_MSG('is_down_player:%s proxy_type:%s' % (self.is_down_player(k, account_db_id), v.proxy_type))
             if self.is_down_player(k, account_db_id) and v.proxy_type > 0:
                 down_proxy.append(k)
         return down_proxy
