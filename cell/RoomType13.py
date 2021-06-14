@@ -1094,17 +1094,18 @@ class RoomType13(RoomBase):
 
         # 检测是否满足单A必出2
         if chapter["prePlayer"] != account_id:
-            if not self.check_single_1_must_2(pre_playa_cards, this_play_cards, player_cards):
-                self.send_player_cards(account_id, -1, client_cards, server_cards_type)
-                self.callClientFunction(account_id, 'Notice', ["单A必出2"])
-                return
-
-        # 检测是否满足单A必出炸弹
-        if chapter["prePlayer"] != account_id:
-            if not self.check_single_1_must_bomb(pre_playa_cards, this_play_cards, player_cards):
-                self.send_player_cards(account_id, -1, client_cards, server_cards_type)
-                self.callClientFunction(account_id, 'Notice', ["单A必出炸"])
-                return
+            # 如果手里有2，判断是否满足单A必出2
+            if 15 in RoomType13Calculator.convert_cards_to_value(player_cards):
+                # 如果不满足单A必出2
+                if not self.check_single_1_must_2(pre_playa_cards, this_play_cards, player_cards):
+                    self.send_player_cards(account_id, -1, client_cards, server_cards_type)
+                    self.callClientFunction(account_id, 'Notice', ["单A必出2"])
+                    return
+            else:
+                if not self.check_single_1_must_bomb(pre_playa_cards, this_play_cards, player_cards):
+                    self.send_player_cards(account_id, -1, client_cards, server_cards_type)
+                    self.callClientFunction(account_id, 'Notice', ["单A必出炸"])
+                    return
 
         # 检测是否满足2必出炸弹
         if chapter["prePlayer"] != account_id:
