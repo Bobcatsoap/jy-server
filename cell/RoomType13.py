@@ -1830,27 +1830,27 @@ class RoomType13(RoomBase):
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"]) * 2
                                 # TODO
                                 if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
-                                    basic_gold_change -= 10
+                                    basic_gold_change -= 10 * self.info["baseScore"]
                             else:
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"])
                                 if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
-                                    basic_gold_change -= 10
+                                    basic_gold_change -= 10 * self.info["baseScore"]
                     else:
                         if len(v["cards"]) < 5:
                             basic_gold_change = - self.info["baseScore"] * len(v["cards"])
                             if 15.3 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
-                                basic_gold_change -= 10
+                                basic_gold_change -= 10 * self.info["baseScore"]
 
                         else:
                             if v["playCount"] == 0 and v["identity"] != 1:
                                 v["overCardLift"] = True
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"]) * 2 * 2
                                 if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
-                                    basic_gold_change -= 10
+                                    basic_gold_change -= 10 * self.info["baseScore"]
                             else:
                                 basic_gold_change = - self.info["baseScore"] * len(v["cards"]) * 2
                                 if 15 in RoomType13Calculator.convert_cards_to_value(v["cards"]):
-                                    basic_gold_change -= 10
+                                    basic_gold_change -= 10 * self.info["baseScore"]
 
                     # 如果有放走包赔玩家
                     if let_player:
