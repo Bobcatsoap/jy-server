@@ -219,9 +219,9 @@ def check_single_1_must_2(pre_play_cards, this_play_cards, cards, room_info):
         return True
 
 
-def check_single_1_must_bomb(pre_play_cards, this_play_cards, cards, room_info):
+def check_single_1_must_bomb(pre_play_cards, this_play_cards, cards, room_info, can_blank=False):
     """
-    检测是否满足2必出炸弹
+    检测是否满足1必出炸弹
     """
     # 获取上家出牌数字
     pre_play_cards_number = convert_cards_to_value(pre_play_cards)
@@ -234,9 +234,12 @@ def check_single_1_must_bomb(pre_play_cards, this_play_cards, cards, room_info):
     # 获取本次出牌类型
     this_play_cards_type = get_cards_type(this_play_cards_number, room_info)
 
+    # 如果上家出单A，本玩家不出，检测是否允许不出
+    if 14 in pre_play_cards_number and pre_play_cards_type == CardType.Com_Single and len(this_play_cards_number) == 0:
+        return can_blank
     # 如果上个玩家出牌包含A，并且本玩家手牌里有炸弹
-    if 14 in pre_play_cards_number and pre_play_cards_type == CardType.Com_Single and find_boom(cards_number,
-                                                                                                room_info):
+    elif 14 in pre_play_cards_number and pre_play_cards_type == CardType.Com_Single and find_boom(cards_number,
+                                                                                                  room_info):
         # 如果是任意一种炸弹，满足
         if this_play_cards_type == CardType.Lin_MaxBoomForFour or this_play_cards_type == CardType.Lin_FourBoom:
             return True
@@ -248,6 +251,7 @@ def check_single_1_must_bomb(pre_play_cards, this_play_cards, cards, room_info):
             return True
         else:
             return False
+
     else:
         return True
 
@@ -306,14 +310,15 @@ def check_double_k_must_1(pre_play_cards, this_play_cards, cards, room_info):
         return True
 
     # 如果上个玩家出牌是对K，并且手里有对A和炸弹，要出对A或炸弹
-    if pre_play_cards_type == CardType.Com_Double and pre_play_cards_number[0] == 13 and cards_number.count(14) == 2 and find_boom(cards_number, room_info):
+    if pre_play_cards_type == CardType.Com_Double and pre_play_cards_number[0] == 13 and cards_number.count(
+            14) == 2 and find_boom(cards_number, room_info):
         if this_play_cards_type == CardType.Lin_FourBoom:
             return True
         elif this_play_cards_type == CardType.Com_Double and this_play_cards_number[0] == 14:
             return True
         else:
             return False
-    
+
     # 如果上个玩家出牌是对K，并且手里有两个A，要出对A
     if pre_play_cards_type == CardType.Com_Double and pre_play_cards_number[0] == 13 and cards_number.count(14) == 2:
         if this_play_cards_type == CardType.Com_Double and this_play_cards_number[0] == 14:

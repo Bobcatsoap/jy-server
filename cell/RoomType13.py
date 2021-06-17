@@ -2287,31 +2287,23 @@ class RoomType13(RoomBase):
             return True
         return False
 
-    def check_single_1_must_2(self, pre_play_cards, this_play_cards, cards, can_blank=False):
+    def check_single_1_must_2(self, pre_play_cards, this_play_cards, cards):
         """
         检测是否满足单A必出2
         """
-        # 如果不出，并且不能不出，则不满足
-        if len(this_play_cards) == 0 and not can_blank:
-            return False
         return RoomType13Calculator.check_single_1_must_2(pre_play_cards, this_play_cards, cards, self.info)
 
     def check_single_1_must_bomb(self, pre_play_cards, this_play_cards, cards, can_blank=False):
         """
         检测是否满足单A必出炸
         """
-        # 如果不出，并且不能不出，则不满足
-        if len(this_play_cards) == 0 and not can_blank:
-            return False
-        return RoomType13Calculator.check_single_1_must_bomb(pre_play_cards, this_play_cards, cards, self.info)
+        return RoomType13Calculator.check_single_1_must_bomb(pre_play_cards, this_play_cards, cards, self.info,
+                                                             can_blank)
 
-    def check_2_must_bomb(self, pre_play_cards, this_play_cards, cards, can_blank=False):
+    def check_2_must_bomb(self, pre_play_cards, this_play_cards, cards):
         """
         检测是否满足2必出炸弹
         """
-        # 如果不出，并且不能不出，则不满足
-        if len(this_play_cards) == 0 and not can_blank:
-            return False
         return RoomType13Calculator.check_2_must_bomb(pre_play_cards, this_play_cards, cards, self.info)
 
     def check_big_bomb_and_small_bomb(self, pre_play_cards, this_play_cards, cards):
