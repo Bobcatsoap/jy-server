@@ -1103,8 +1103,10 @@ class RoomType13(RoomBase):
                     self.send_player_cards(account_id, -1, client_cards, server_cards_type)
                     self.callClientFunction(account_id, 'Notice', ["单A必出2"])
                     return
-            # 如果手里没有2，不满足单A必出炸时返回
+            # 如果手里没有2，不满足单A必出炸时返回(此时允许不出)
             else:
+                check_1_must_bomb = self.check_single_1_must_bomb(pre_playa_cards, this_play_cards, player_cards,
+                                                                  can_blank=True)
                 if not check_1_must_bomb:
                     self.send_player_cards(account_id, -1, client_cards, server_cards_type)
                     self.callClientFunction(account_id, 'Notice', ["单A必出炸"])
@@ -2285,22 +2287,31 @@ class RoomType13(RoomBase):
             return True
         return False
 
-    def check_single_1_must_2(self, pre_play_cards, this_play_cards, cards):
+    def check_single_1_must_2(self, pre_play_cards, this_play_cards, cards, can_blank=False):
         """
         检测是否满足单A必出2
         """
+        # 如果不出，并且不能不出，则不满足
+        if len(this_play_cards) == 0 and not can_blank:
+            return False
         return RoomType13Calculator.check_single_1_must_2(pre_play_cards, this_play_cards, cards, self.info)
 
-    def check_single_1_must_bomb(self, pre_play_cards, this_play_cards, cards):
+    def check_single_1_must_bomb(self, pre_play_cards, this_play_cards, cards, can_blank=False):
         """
         检测是否满足单A必出炸
         """
+        # 如果不出，并且不能不出，则不满足
+        if len(this_play_cards) == 0 and not can_blank:
+            return False
         return RoomType13Calculator.check_single_1_must_bomb(pre_play_cards, this_play_cards, cards, self.info)
 
-    def check_2_must_bomb(self, pre_play_cards, this_play_cards, cards):
+    def check_2_must_bomb(self, pre_play_cards, this_play_cards, cards, can_blank=False):
         """
         检测是否满足2必出炸弹
         """
+        # 如果不出，并且不能不出，则不满足
+        if len(this_play_cards) == 0 and not can_blank:
+            return False
         return RoomType13Calculator.check_2_must_bomb(pre_play_cards, this_play_cards, cards, self.info)
 
     def check_big_bomb_and_small_bomb(self, pre_play_cards, this_play_cards, cards):
